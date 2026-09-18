@@ -69,7 +69,7 @@ export function AgentNew() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">New Agent</h1>
-          <p className="text-muted-foreground mt-2">Configure a new Dovia agent.</p>
+          <p className="text-muted-foreground mt-2">Configure a new ItWield agent.</p>
         </div>
       </div>
 

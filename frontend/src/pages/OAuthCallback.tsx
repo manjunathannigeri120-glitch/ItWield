@@ -11,8 +11,8 @@ export function OAuthCallback() {
   useEffect(() => {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
-    const provider = localStorage.getItem('dovia_oauth_provider');
-    const workspaceId = localStorage.getItem('dovia_workspace_id');
+    const provider = localStorage.getItem('itwield_oauth_provider');
+    const workspaceId = localStorage.getItem('itwield_workspace_id');
 
     if (!code || !state) {
       setError('Missing authorization code or state.');
@@ -26,7 +26,7 @@ export function OAuthCallback() {
 
     api.post(`/connections/${provider}/callback`, { code, state }, { headers: { 'x-workspace-id': workspaceId } })
       .then(() => {
-        localStorage.removeItem('dovia_oauth_provider');
+        localStorage.removeItem('itwield_oauth_provider');
         navigate('/settings');
       })
       .catch(err => {

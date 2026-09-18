@@ -6,11 +6,8 @@ const { execSync } = require('child_process');
 const files = execSync('git ls-files').toString().trim().split('\n');
 
 const replacements = [
-  { search: /AgentX/g, replace: 'Dovia' },
-  { search: /agentx/g, replace: 'dovia' },
-  { search: /AI Workforce/g, replace: 'Dovia' },
-  { search: /ai agent/g, replace: 'Dovia' },
-  { search: /<title>frontend<\/title>/g, replace: '<title>Dovia</title>' }
+  { search: /Dovia/g, replace: 'ItWield' },
+  { search: /dovia/g, replace: 'itwield' }
 ];
 
 for (const file of files) {

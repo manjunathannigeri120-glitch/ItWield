@@ -59,7 +59,7 @@ export function Login() {
     <div className="flex items-center justify-center min-h-screen bg-muted/30">
       <Card className="w-[400px]">
         <CardHeader>
-          <CardTitle>Dovia</CardTitle>
+          <CardTitle>ItWield</CardTitle>
           <CardDescription>
             {isSignup ? 'Create a new account' : 'Sign in to your account'}
           </CardDescription>

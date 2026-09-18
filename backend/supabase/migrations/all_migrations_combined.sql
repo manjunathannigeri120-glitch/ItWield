@@ -1,4 +1,4 @@
-﻿-- V0.1 Initial Schema for Dovia
+﻿-- V0.1 Initial Schema for ItWield
 
 -- 1. Profiles (extends auth.users)
 CREATE TABLE public.profiles (

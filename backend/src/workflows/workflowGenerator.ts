@@ -63,7 +63,7 @@ function buildSystemPrompt(connections: SafeConnection[], agents: SafeAgent[]): 
   const connectionsJson = JSON.stringify(connections, null, 2);
   const agentsJson = JSON.stringify(agents, null, 2);
 
-  return `You are the Dovia AI Workflow Generator. Your ONLY job is to produce valid Dovia workflow JSON.
+  return `You are the ItWield AI Workflow Generator. Your ONLY job is to produce valid ItWield workflow JSON.
 
 ## CRITICAL SECURITY RULES (NEVER VIOLATE)
 - You MUST NOT generate eval(), Function(), require(), exec(), spawn(), or any code execution.
