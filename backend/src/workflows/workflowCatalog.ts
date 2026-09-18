@@ -1,5 +1,5 @@
 /**
- * V1.2: Machine-readable catalog of all supported AgentX workflow nodes/actions.
+ * V1.2: Machine-readable catalog of all supported Dovia workflow nodes/actions.
  * This is the ONLY set of node types the AI generator is allowed to produce.
  * Adding a new action here automatically makes it available to the generator.
  */
@@ -83,7 +83,7 @@ export const NODE_CATALOG: NodeCatalogEntry[] = [
     type: 'action_ai_agent',
     category: 'action',
     label: 'AI Agent',
-    description: 'Runs an AgentX AI agent with a given prompt.',
+    description: 'Runs an Dovia AI agent with a given prompt.',
     inputs: {
       agent_id: { type: 'agent_id', description: 'ID of an agent in the current workspace', required: true },
       prompt: { type: 'string', description: 'Prompt to send to the agent. Supports {{variable}} syntax.', required: true, example: 'Summarize: {{trigger_webhook.output.text}}' }

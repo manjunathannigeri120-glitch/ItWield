@@ -126,7 +126,7 @@ export function Settings() {
 
 function ConnectionsManager() {
   const queryClient = useQueryClient();
-  const [activeWorkspaceId] = useState(() => localStorage.getItem('agentx_workspace_id') || '');
+  const [activeWorkspaceId] = useState(() => localStorage.getItem('dovia_workspace_id') || '');
 
   const { data: connections, isLoading } = useQuery<any[]>({
     queryKey: ['connections', activeWorkspaceId],
@@ -147,7 +147,7 @@ function ConnectionsManager() {
   });
 
   const handleOAuthConnect = async (provider: string) => {
-    localStorage.setItem('agentx_oauth_provider', provider);
+    localStorage.setItem('dovia_oauth_provider', provider);
     try {
       const res = await api.get(`/connections/${provider}/connect`, { headers: { 'x-workspace-id': activeWorkspaceId } });
       if (res.data && res.data.url) {

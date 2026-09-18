@@ -34,7 +34,7 @@ export function Agents() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Agents</h1>
-          <p className="text-muted-foreground">Manage your AI workforce</p>
+          <p className="text-muted-foreground">Manage your Dovia agents</p>
         </div>
         <Button onClick={() => navigate('/agents/new')}>
           <Plus className="w-4 h-4 mr-2" />

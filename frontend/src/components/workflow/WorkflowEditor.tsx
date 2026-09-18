@@ -20,7 +20,7 @@ function ConnectionSelect({ provider, value, onChange }: { provider: string, val
   const [connections, setConnections] = useState<any[]>([]);
   useEffect(() => {
     // Assuming workspaceId is in localStorage or handled by fetch interceptors
-    const workspaceId = localStorage.getItem('agentx_workspace_id') || '';
+    const workspaceId = localStorage.getItem('dovia_workspace_id') || '';
     fetch('/api/v1/connections', { headers: { 'x-workspace-id': workspaceId } })
       .then(res => res.json())
       .then(data => {

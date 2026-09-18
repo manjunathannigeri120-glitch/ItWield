@@ -96,7 +96,7 @@ app.get('/api/health', (req, res) => {
 startScheduler();
 
 app.listen(port, () => {
-  console.log(`AgentX backend running on port ${port}`);
+  console.log(`Dovia backend running on port ${port}`);
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
     console.warn('WARN: SUPABASE_URL and/or SUPABASE_SERVICE_KEY missing. Falling back to in-memory mock DB.');
   }

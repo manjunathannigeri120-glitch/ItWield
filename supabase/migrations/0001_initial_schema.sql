@@ -1,4 +1,4 @@
--- V0.1 Initial Schema for AI Workforce
+-- V0.1 Initial Schema for Dovia
 
 -- 1. Profiles (extends auth.users)
 CREATE TABLE public.profiles (

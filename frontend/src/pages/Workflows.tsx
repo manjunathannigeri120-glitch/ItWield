@@ -23,7 +23,7 @@ export function Workflows() {
       if (res.data.length > 0) {
         const wsId = res.data[0].id;
         setWorkspaceId(wsId);
-        localStorage.setItem('agentx_workspace_id', wsId);
+        localStorage.setItem('dovia_workspace_id', wsId);
       }
       return res.data;
     }

@@ -68,8 +68,8 @@ export function AgentNew() {
     <div className="p-8 max-w-4xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Create Agent</h1>
-          <p className="text-muted-foreground mt-2">Configure a new AI workforce agent.</p>
+          <h1 className="text-3xl font-bold">New Agent</h1>
+          <p className="text-muted-foreground mt-2">Configure a new Dovia agent.</p>
         </div>
       </div>
 
