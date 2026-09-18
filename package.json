@@ -1,0 +1,8 @@
+{
+  "name": "ai-workforce",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}
