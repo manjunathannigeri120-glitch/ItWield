@@ -23,7 +23,7 @@ export function Workflows() {
       if (res.data.length > 0) {
         const wsId = res.data[0].id;
         setWorkspaceId(wsId);
-        localStorage.setItem('itwield_workspace_id', wsId);
+        localStorage.setItem('itwield_workspace_id', wsId); } else { const createRes = await api.post('/workspaces', { name: 'Default Workspace' }); const wsId = createRes.data.id; setWorkspaceId(wsId); localStorage.setItem('itwield_workspace_id', wsId); res.data = [createRes.data]; 
       }
       return res.data;
     }
