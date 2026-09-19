@@ -55,7 +55,7 @@ export function AIWorkflowGenerator({ workspaceId, onLoad, onCancel }: AIGenerat
         setQuestions(data.questions || []);
         setStatus('needs_input');
       } else {
-        setError(data.error || 'Unknown error from generator');
+        setError(data.error || data.message || 'Unknown error from generator');
       }
     } catch (err: any) {
       setError(err.response?.data?.error || err.message || 'Generation failed');
