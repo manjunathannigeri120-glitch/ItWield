@@ -1,11 +1,33 @@
 import { Handle, Position } from '@xyflow/react';
 
-const nodeStyle = "border rounded-md bg-card p-3 shadow-sm min-w-[150px] text-sm";
+const nodeStyle = "border rounded-md bg-card p-3 shadow-sm min-w-[150px] text-sm relative";
 const headerStyle = "font-semibold mb-2 pb-1 border-b text-xs uppercase tracking-wider";
+
+function StatusBadge({ status }: { status?: string }) {
+  if (!status) return null;
+  const colors: Record<string, string> = {
+    'running': 'bg-blue-500 text-white',
+    'completed': 'bg-green-500 text-white',
+    'failed': 'bg-red-500 text-white',
+    'pending': 'bg-gray-400 text-white',
+  };
+  const labels: Record<string, string> = {
+    'running': '● RUNNING',
+    'completed': '✓ SUCCESS',
+    'failed': '✕ FAILED',
+    'pending': '○ PENDING',
+  };
+  return (
+    <div className={`absolute -top-3 -right-3 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-10 ${colors[status] || colors.pending}`}>
+      {labels[status] || status.toUpperCase()}
+    </div>
+  );
+}
 
 export function TriggerManualNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-green-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <div className={`${headerStyle} text-green-500`}>Manual Trigger</div>
       <div className="text-muted-foreground">{data.name || 'Start'}</div>
       <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-green-500" />
@@ -16,6 +38,7 @@ export function TriggerManualNode({ data }: any) {
 export function TriggerWebhookNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-green-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <div className={`${headerStyle} text-green-500`}>Webhook Trigger</div>
       <div className="text-muted-foreground">{data.name || 'Webhook'}</div>
       <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-green-500" />
@@ -26,6 +49,7 @@ export function TriggerWebhookNode({ data }: any) {
 export function ActionAiAgentNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-blue-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-muted-foreground" />
       <div className={`${headerStyle} text-blue-500`}>AI Agent</div>
       <div className="text-muted-foreground truncate">{data.agent_id ? `Agent: ${data.agent_id}` : 'Unconfigured'}</div>
@@ -37,6 +61,7 @@ export function ActionAiAgentNode({ data }: any) {
 export function ActionHttpNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-purple-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-muted-foreground" />
       <div className={`${headerStyle} text-purple-500`}>HTTP Request</div>
       <div className="text-muted-foreground truncate">{data.url || 'Unconfigured'}</div>
@@ -48,6 +73,7 @@ export function ActionHttpNode({ data }: any) {
 export function ControlConditionNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-orange-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-muted-foreground" />
       <div className={`${headerStyle} text-orange-500`}>Condition</div>
       <div className="text-muted-foreground truncate">{data.left} {data.operator} {data.right}</div>
@@ -64,6 +90,7 @@ export function ControlConditionNode({ data }: any) {
 export function TriggerScheduleNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-green-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <div className={`${headerStyle} text-green-500`}>Schedule Trigger</div>
       <div className="text-muted-foreground truncate">{data.cron ? `Cron: ${data.cron}` : 'Unconfigured'}</div>
       <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-green-500" />
@@ -74,6 +101,7 @@ export function TriggerScheduleNode({ data }: any) {
 export function ActionSendEmailNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-pink-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-muted-foreground" />
       <div className={`${headerStyle} text-pink-500`}>Send Email</div>
       <div className="text-muted-foreground truncate">{data.to ? `To: ${data.to}` : 'Unconfigured'}</div>
@@ -85,6 +113,7 @@ export function ActionSendEmailNode({ data }: any) {
 export function ActionStoreDataNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-teal-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-muted-foreground" />
       <div className={`${headerStyle} text-teal-500`}>Store Data</div>
       <div className="text-muted-foreground truncate">{data.collection ? `Collection: ${data.collection}` : 'Unconfigured'}</div>
@@ -93,9 +122,10 @@ export function ActionStoreDataNode({ data }: any) {
   );
 }
 
-export function ActionTransformDataNode() {
+export function ActionTransformDataNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-yellow-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-muted-foreground" />
       <div className={`${headerStyle} text-yellow-500`}>Transform Data</div>
       <div className="text-muted-foreground truncate">Template interpolation</div>
@@ -107,6 +137,7 @@ export function ActionTransformDataNode() {
 export function ActionIntegrationGoogleSheetsNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-green-600/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-muted-foreground" />
       <div className={`${headerStyle} text-green-600`}>Google Sheets</div>
       <div className="text-muted-foreground truncate">{data.action ? data.action : 'Unconfigured'}</div>
@@ -118,6 +149,7 @@ export function ActionIntegrationGoogleSheetsNode({ data }: any) {
 export function ActionIntegrationSlackNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-rose-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-muted-foreground" />
       <div className={`${headerStyle} text-rose-500`}>Slack</div>
       <div className="text-muted-foreground truncate">{data.channel ? `To: ${data.channel}` : 'Unconfigured'}</div>
@@ -129,6 +161,7 @@ export function ActionIntegrationSlackNode({ data }: any) {
 export function ActionIntegrationDiscordNode({ data }: any) {
   return (
     <div className={`${nodeStyle} border-indigo-500/50`}>
+      <StatusBadge status={data?.executionStatus} />
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-muted-foreground" />
       <div className={`${headerStyle} text-indigo-500`}>Discord</div>
       <div className="text-muted-foreground truncate">{data.channelId || data.webhookUrl ? 'Configured' : 'Unconfigured'}</div>

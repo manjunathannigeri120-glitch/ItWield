@@ -15,6 +15,7 @@ import '@xyflow/react/dist/style.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { nodeTypes } from './Nodes';
+import { api } from '@/lib/api';
 
 function ConnectionSelect({ provider, value, onChange }: { provider: string, value: string, onChange: (val: string) => void }) {
   const [connections, setConnections] = useState<any[]>([]);
@@ -144,6 +145,8 @@ function EditorContent({ workflow, onSave, onCancel }: WorkflowEditorProps) {
     [setNodes]
   );
 
+  const [isRunning, setIsRunning] = useState(false);
+  
   const updateNodeData = (key: string, value: any) => {
     if (!selectedNode) return;
     setNodes((nds) =>
@@ -155,6 +158,49 @@ function EditorContent({ workflow, onSave, onCancel }: WorkflowEditorProps) {
       })
     );
     setSelectedNode(prev => prev ? { ...prev, data: { ...prev.data, [key]: value } } : null);
+  };
+
+  const onRun = async () => {
+    if (!workflow.id) {
+      alert("Please save the workflow first before running.");
+      return;
+    }
+    
+    setIsRunning(true);
+        
+    // Clear previous execution statuses from nodes
+    setNodes(nds => nds.map(n => {
+      const data = { ...n.data };
+      delete data.executionStatus;
+      return { ...n, data };
+    }));
+    
+    try {
+      // First save to make sure backend has latest definition
+      const def = serializeGraph(nodes, edges);
+      onSave(def); 
+      
+      const res = await api.post(`/api/v1/workflows/${workflow.id}/run`, {});
+      
+      if (res.data.execution_log) {
+        setNodes(nds => nds.map(n => {
+          const log = res.data.execution_log.find((l: any) => l.node_id === n.id);
+          return log ? { ...n, data: { ...n.data, executionStatus: log.status, executionOutput: log.output, executionError: log.error, executionDuration: log.duration_ms } } : n;
+        }));
+      }
+      
+      // We no longer alert unless necessary, it's better shown in UI
+    } catch (err: any) {
+      if (err.response?.data?.execution_log) {
+        setNodes(nds => nds.map(n => {
+          const log = err.response.data.execution_log.find((l: any) => l.node_id === n.id);
+          return log ? { ...n, data: { ...n.data, executionStatus: log.status, executionOutput: log.output, executionError: log.error, executionDuration: log.duration_ms } } : n;
+        }));
+      }
+      alert(`Execution Error: ${err.message || 'Unknown error'}`);
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const handleSave = () => {
@@ -426,6 +472,27 @@ function EditorContent({ workflow, onSave, onCancel }: WorkflowEditorProps) {
             </>
           )}
 
+          
+          {!!selectedNode.data.executionStatus && (
+            <div className="mt-4 p-3 bg-muted/50 rounded border text-xs space-y-2">
+              <h4 className="font-bold uppercase text-[10px] tracking-wider">Execution Details</h4>
+              <div><span className="font-semibold">Status:</span> {String(selectedNode.data.executionStatus).toUpperCase() as string}</div>
+              {selectedNode.data.executionDuration !== undefined && <div><span className="font-semibold">Duration:</span> {String(selectedNode.data.executionDuration) as string}ms</div>}
+              {!!selectedNode.data.executionOutput && (
+                <div>
+                  <span className="font-semibold">Output:</span>
+                  <pre className="bg-background p-2 rounded mt-1 overflow-x-auto max-h-32">{JSON.stringify(selectedNode.data.executionOutput, null, 2) as string}</pre>
+                </div>
+              )}
+              {!!selectedNode.data.executionError && (
+                <div>
+                  <span className="font-semibold text-red-500">Error:</span>
+                  <pre className="bg-red-50 text-red-900 p-2 rounded mt-1 overflow-x-auto whitespace-pre-wrap">{String(selectedNode.data.executionError) as string}</pre>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="mt-auto flex flex-col gap-2 pt-4 border-t">
             <Button onClick={() => setNodes(nds => nds.filter(n => n.id !== selectedNode.id))} variant="destructive" size="sm">Delete Node</Button>
           </div>
@@ -434,6 +501,9 @@ function EditorContent({ workflow, onSave, onCancel }: WorkflowEditorProps) {
 
       {/* Top Floating Bar */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <Button onClick={onRun} variant="secondary" disabled={isRunning} className="bg-green-100 hover:bg-green-200 text-green-800 border-green-300 border">
+          {isRunning ? 'Running...' : '▶ Run Workflow'}
+        </Button>
         <Button onClick={handleSave}>Save Graph</Button>
         <Button variant="outline" className="bg-background" onClick={onCancel}>Cancel</Button>
       </div>

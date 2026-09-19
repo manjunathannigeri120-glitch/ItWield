@@ -97,24 +97,55 @@ router.post('/:id/run', async (req: AuthRequest, res) => {
   try {
     const triggerData = req.body || {};
     let workflow, runId;
+    
+    if (!req.user?.id) throw new Error('User not authenticated');
+    
     if (!req.supabase) {
       workflow = { id: req.params.id, definition: { nodes: [] }, workspace_id: 'mock-ws' };
       runId = 'mock-run-' + Date.now();
     } else {
       const { data: wf, error: wfErr } = await req.supabase.from('workflows').select('*').eq('id', req.params.id).single();
       if (wfErr) throw wfErr;
-      if (wf.status !== 'active') throw new Error('Workflow is not active');
+      
       workflow = wf;
-      const { data: run, error: runErr } = await req.supabase.from('workflow_runs').insert({ workflow_id: wf.id, trigger_data: triggerData }).select().single();
+      
+      // We must insert user_id in workflow_runs based on our schema
+      const { data: run, error: runErr } = await req.supabase.from('workflow_runs').insert({ 
+        workflow_id: wf.id, 
+        user_id: req.user.id,
+        trigger_data: triggerData 
+      }).select().single();
       if (runErr) throw runErr;
       runId = run.id;
     }
     
-    // Fire and forget engine
-    WorkflowEngine.run(req.supabase || null, workflow, runId, triggerData, req.user?.id || 'mock-user').catch(console.error);
+    // Validating graph before execution
+    if (!workflow.definition || !workflow.definition.startNode || !workflow.definition.nodes || workflow.definition.nodes.length === 0) {
+      if (req.supabase) {
+        await req.supabase.from('workflow_runs').update({ status: 'failed', error: 'Invalid workflow graph: missing start node or nodes.' }).eq('id', runId);
+      }
+      return res.status(400).json({ error: 'Workflow contains an unsupported execution cycle or invalid structure.', code: 'INVALID_WORKFLOW' });
+    }
+
+    // Await execution so we can return the result safely to the UI if we want it synchronous for V1.4,
+    // or keep fire-and-forget but return immediately. 
+    // Given the prompt "The UI displays live execution progress... While running: Disable duplicate Run clicks", 
+    // we can return the runId immediately and let the frontend poll, OR we can return synchronous success.
+    // The instructions say "Success response example: { executionId: "...", status: "SUCCESS", output: {...} }",
+    // which implies synchronous. Let's make it synchronous for simple testing workflows.
+    const result = await WorkflowEngine.run(req.supabase || null, workflow, runId, triggerData, req.user.id);
     
-    res.json({ runId, message: 'Workflow started' });
-  } catch (err: any) { res.status(400).json({ error: err.message }); }
+    if (result.status === 'failed') {
+      return res.status(400).json({
+        executionId: runId,
+        status: 'FAILED',
+        error: result.error || 'Execution failed',
+        execution_log: result.execution_log
+      });
+    }
+
+    res.json({ executionId: runId, status: 'SUCCESS', output: result.output || {}, execution_log: result.execution_log });
+  } catch (err: any) { res.status(400).json({ error: err.message, code: 'EXECUTION_FAILED' }); }
 });
 
 // Get Runs

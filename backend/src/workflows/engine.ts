@@ -13,8 +13,8 @@ export class WorkflowEngine {
   ) {
     const execution_log: any[] = [];
     const context: any = { trigger: triggerData, steps: {} };
-    const { status, error } = await this.executeLoop(supabase, workflow, runId, workflow.definition.startNode, context, execution_log, userId);
-    return { status, error, execution_log };
+    const { status, error, output } = await this.executeLoop(supabase, workflow, runId, workflow.definition.startNode, context, execution_log, userId);
+    return { status, error, execution_log, output };
   }
 
   static async retry(
@@ -171,7 +171,8 @@ export class WorkflowEngine {
       error = err.message;
     }
 
+    const finalOutput = execution_log.length > 0 ? execution_log[execution_log.length - 1].output : null;
     await updateRunStatus(status, error);
-    return { status, error };
+    return { status, error, output: finalOutput };
   }
 }
