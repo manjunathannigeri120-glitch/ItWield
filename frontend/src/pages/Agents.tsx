@@ -10,23 +10,18 @@ export function Agents() {
   const workspaceId = '00000000-0000-0000-0000-000000000000'; 
   const navigate = useNavigate();
 
-  const { data: agents, isLoading } = useQuery({
+  const { data: agents, isLoading, isError, error } = useQuery({
     queryKey: ['agents', workspaceId],
     queryFn: async () => {
-      // Mocking for now since we don't have workspace selection perfectly wired up yet in the UI
-      try {
-        const res = await api.get(`/workspaces`);
-        if (res.data.length > 0) {
-          const wsId = res.data[0].id;
-          const agentsRes = await api.get(`/agents/workspace/${wsId}`);
-          return agentsRes.data;
-        }
-        return [];
-      } catch (err) {
-        console.error(err);
-        return [];
+      const res = await api.get(`/workspaces`);
+      if (res.data.length > 0) {
+        const wsId = res.data[0].id;
+        const agentsRes = await api.get(`/agents/workspace/${wsId}`);
+        return agentsRes.data;
       }
-    }
+      return [];
+    },
+    retry: false
   });
 
   return (
@@ -42,7 +37,13 @@ export function Agents() {
         </Button>
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <div className="bg-red-50 text-red-600 border border-red-200 p-4 rounded-md">
+          <h3 className="font-bold mb-2">Database Error</h3>
+          <p>{(error as any)?.response?.data?.error || (error as any)?.message || 'Failed to load agents'}</p>
+          <p className="mt-2 text-sm opacity-80">If you see "infinite recursion detected", your Supabase Row Level Security (RLS) policies are in a loop.</p>
+        </div>
+      ) : isLoading ? (
         <div>Loading agents...</div>
       ) : agents?.length === 0 ? (
         <div className="text-center py-12 border rounded-lg bg-card border-dashed">

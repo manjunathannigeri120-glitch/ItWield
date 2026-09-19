@@ -15,18 +15,24 @@ export function Workflows() {
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
   
-  // Fetch workspace
-  useQuery({
+  const { isError: isWsError, error: wsErrorObj } = useQuery({
     queryKey: ['workspace'],
     queryFn: async () => {
       const res = await api.get(`/workspaces`);
       if (res.data.length > 0) {
         const wsId = res.data[0].id;
         setWorkspaceId(wsId);
-        localStorage.setItem('itwield_workspace_id', wsId); } else { const createRes = await api.post('/workspaces', { name: 'Default Workspace' }); const wsId = createRes.data.id; setWorkspaceId(wsId); localStorage.setItem('itwield_workspace_id', wsId); res.data = [createRes.data]; 
+        localStorage.setItem('itwield_workspace_id', wsId); 
+      } else { 
+        const createRes = await api.post('/workspaces', { name: 'Default Workspace' }); 
+        const wsId = createRes.data.id; 
+        setWorkspaceId(wsId); 
+        localStorage.setItem('itwield_workspace_id', wsId); 
+        res.data = [createRes.data]; 
       }
       return res.data;
-    }
+    },
+    retry: false
   });
 
   const { data: workflows = [] } = useQuery({
@@ -79,6 +85,18 @@ export function Workflows() {
     // Create the workflow as a draft with the generated definition
     createMutation.mutate({ name: generated.name || 'AI Generated Workflow', definition: generated });
   };
+
+  if (isWsError) {
+    return (
+      <div className="p-8 space-y-4">
+        <div className="bg-red-50 text-red-600 border border-red-200 p-4 rounded-md">
+          <h3 className="font-bold mb-2">Database Error</h3>
+          <p>{(wsErrorObj as any)?.response?.data?.error || (wsErrorObj as any)?.message || 'Failed to load workspace'}</p>
+          <p className="mt-2 text-sm opacity-80">If you see "infinite recursion detected", your Supabase Row Level Security (RLS) policies are in a loop.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!workspaceId) return <div className="p-8 text-muted-foreground">Loading workspace...</div>;
 
