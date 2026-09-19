@@ -241,10 +241,18 @@ router.post('/generate', async (req: AuthRequest, res) => {
       workspaceId
     });
 
+    if (result.status === 'error') {
+      console.error('[generate] AI Workflow Generator Error:', result.message);
+      return res.status(400).json({ 
+        error: result.message,
+        code: 'PROVIDER_ERROR' 
+      });
+    }
+
     res.json(result);
   } catch (err: any) {
-    console.error('[generate] Error:', err.message);
-    res.status(500).json({ error: 'Internal error during workflow generation' });
+    console.error('[generate] Internal Error:', err.message);
+    res.status(500).json({ error: 'Internal error during workflow generation', code: 'INTERNAL_ERROR' });
   }
 });
 

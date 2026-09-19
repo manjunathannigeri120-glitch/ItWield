@@ -170,6 +170,7 @@ export async function generateWorkflow(options: GenerateOptions): Promise<Genera
 
     let rawContent: string;
     try {
+      console.log(`[generateWorkflow] Starting AI request to gpt-4o-mini (attempt ${attempt + 1})`);
       const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
@@ -180,9 +181,17 @@ export async function generateWorkflow(options: GenerateOptions): Promise<Genera
         max_tokens: 4000,
         temperature: 0.2
       });
+      console.log(`[generateWorkflow] AI request successful`);
       rawContent = response.choices[0]?.message?.content || '';
     } catch (err: any) {
-      return { status: 'error', message: `AI provider error: ${err.message}` };
+      const statusCode = err.status || err.response?.status || 'Unknown';
+      console.error(`[generateWorkflow] Provider Error (${statusCode}):`, err.message);
+      
+      let userMessage = `AI provider error: ${err.message}`;
+      if (statusCode === 401) userMessage = 'Authentication failed. Please check if the OPENAI_API_KEY is correct.';
+      else if (statusCode === 429) userMessage = 'Quota exceeded. The AI provider account is out of credits or rate limited.';
+      
+      return { status: 'error', message: userMessage };
     }
 
     // Parse JSON
