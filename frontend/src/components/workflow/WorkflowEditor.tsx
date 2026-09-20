@@ -101,7 +101,7 @@ function serializeGraph(nodes: Node[], edges: Edge[]) {
 
 interface WorkflowEditorProps {
   workflow: any;
-  onSave: (definition: any) => void;
+  onSave: (definition: any) => void | Promise<void>;
   onCancel: () => void;
 }
 
@@ -178,9 +178,15 @@ function EditorContent({ workflow, onSave, onCancel }: WorkflowEditorProps) {
     try {
       // First save to make sure backend has latest definition
       const def = serializeGraph(nodes, edges);
-      onSave(def); 
+      await onSave(def); 
       
-      const res = await api.post(`/workflows/${workflow.id}/run`, {});
+      // Get manual trigger data if exists
+      const manualTrigger = nodes.find(n => n.type === 'trigger_manual');
+      const triggerData = manualTrigger && manualTrigger.data.testPayload 
+        ? (typeof manualTrigger.data.testPayload === 'string' ? JSON.parse(manualTrigger.data.testPayload) : manualTrigger.data.testPayload)
+        : {};
+
+      const res = await api.post(`/workflows/${workflow.id}/run`, triggerData);
       
       if (res.data.execution_log) {
         setNodes(nds => nds.map(n => {
@@ -196,8 +202,9 @@ function EditorContent({ workflow, onSave, onCancel }: WorkflowEditorProps) {
           const log = err.response.data.execution_log.find((l: any) => l.node_id === n.id);
           return log ? { ...n, data: { ...n.data, executionStatus: log.status, executionOutput: log.output, executionError: log.error, executionDuration: log.duration_ms } } : n;
         }));
+      } else {
+        alert(`Execution Error: ${err.response?.data?.error || err.message || 'Unknown error'}`);
       }
-      alert(`Execution Error: ${err.message || 'Unknown error'}`);
     } finally {
       setIsRunning(false);
     }
@@ -277,6 +284,22 @@ function EditorContent({ workflow, onSave, onCancel }: WorkflowEditorProps) {
         <div className="w-72 bg-card border-l p-4 flex flex-col gap-4 overflow-y-auto z-10 shadow-lg">
           <h3 className="font-semibold border-b pb-2">Edit: {selectedNode.type}</h3>
           
+          {selectedNode.type === 'trigger_manual' && (
+            <>
+              <div>
+                <label className="text-xs font-medium block mb-1">Test Payload (JSON)</label>
+                <textarea 
+                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
+                  rows={6}
+                  placeholder='{"feedback": "This is great!"}'
+                  value={selectedNode.data.testPayload as string || ''}
+                  onChange={e => updateNodeData('testPayload', e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">This payload will be sent as triggerData when you manually run the workflow from the editor.</p>
+              </div>
+            </>
+          )}
+
           {selectedNode.type === 'trigger_schedule' && (
             <>
               <div>
@@ -365,20 +388,100 @@ function EditorContent({ workflow, onSave, onCancel }: WorkflowEditorProps) {
                 <p className="text-[10px] text-muted-foreground mt-1">E.g., {`{"name":"{{trigger.name}}"}`}</p>
               </div>
               <div>
-                <label className="text-xs font-medium">Operations (JSON Array)</label>
-                <textarea 
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
-                  rows={5}
-                  value={selectedNode.data.operations ? (typeof selectedNode.data.operations === 'string' ? selectedNode.data.operations : JSON.stringify(selectedNode.data.operations, null, 2)) : '[]'} 
-                  onChange={e => {
-                    try {
-                      updateNodeData('operations', JSON.parse(e.target.value));
-                    } catch {
-                      updateNodeData('operations', e.target.value); // Keep string while typing
-                    }
-                  }} 
-                />
-                <p className="text-[10px] text-muted-foreground mt-1">E.g., {`[{"type":"uppercase","field":"name"}]`}</p>
+                <div>
+                  <label className="text-xs font-medium block mb-2">Operations</label>
+                  <div className="space-y-3">
+                    {Array.isArray(selectedNode.data.operations) && selectedNode.data.operations.map((op: any, i: number) => (
+                      <div key={i} className="p-2 border rounded bg-muted/30 space-y-2 relative">
+                        <button onClick={() => {
+                          const ops = [...(selectedNode.data.operations as any[])];
+                          ops.splice(i, 1);
+                          updateNodeData('operations', ops);
+                        }} className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs">x</button>
+                        
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <label className="text-[10px] text-muted-foreground">Type</label>
+                            <select 
+                              className="w-full border rounded p-1 text-xs" 
+                              value={op.type || ''} 
+                              onChange={e => {
+                                const ops = [...(selectedNode.data.operations as any[])];
+                                ops[i] = { ...ops[i], type: e.target.value };
+                                updateNodeData('operations', ops);
+                              }}
+                            >
+                              <option value="uppercase">Uppercase</option>
+                              <option value="lowercase">Lowercase</option>
+                              <option value="trim">Trim</option>
+                              <option value="to_number">To Number</option>
+                              <option value="to_string">To String</option>
+                              <option value="to_boolean">To Boolean</option>
+                              <option value="pick">Pick Fields</option>
+                              <option value="rename">Rename Field</option>
+                              <option value="remove">Remove Field</option>
+                              <option value="concat">Concat</option>
+                              <option value="add">Add</option>
+                              <option value="subtract">Subtract</option>
+                              <option value="multiply">Multiply</option>
+                              <option value="divide">Divide</option>
+                            </select>
+                          </div>
+                          
+                          {op.type !== 'pick' && (
+                            <div className="flex-1">
+                              <label className="text-[10px] text-muted-foreground">Field (optional)</label>
+                              <Input className="h-6 text-xs" value={op.field || ''} onChange={e => {
+                                const ops = [...(selectedNode.data.operations as any[])];
+                                ops[i] = { ...ops[i], field: e.target.value };
+                                updateNodeData('operations', ops);
+                              }} />
+                            </div>
+                          )}
+                        </div>
+
+                        {op.type === 'rename' && (
+                          <div>
+                            <label className="text-[10px] text-muted-foreground">New Field Name</label>
+                            <Input className="h-6 text-xs" value={op.newField || ''} onChange={e => {
+                              const ops = [...(selectedNode.data.operations as any[])];
+                              ops[i] = { ...ops[i], newField: e.target.value };
+                              updateNodeData('operations', ops);
+                            }} />
+                          </div>
+                        )}
+
+                        {op.type === 'pick' && (
+                          <div>
+                            <label className="text-[10px] text-muted-foreground">Fields (comma separated)</label>
+                            <Input className="h-6 text-xs" value={Array.isArray(op.fields) ? op.fields.join(',') : ''} onChange={e => {
+                              const ops = [...(selectedNode.data.operations as any[])];
+                              ops[i] = { ...ops[i], fields: e.target.value.split(',').map((s:string)=>s.trim()).filter(Boolean) };
+                              updateNodeData('operations', ops);
+                            }} />
+                          </div>
+                        )}
+
+                        {['concat', 'add', 'subtract', 'multiply', 'divide'].includes(op.type) && (
+                          <div>
+                            <label className="text-[10px] text-muted-foreground">Value</label>
+                            <Input className="h-6 text-xs" value={op.value || ''} onChange={e => {
+                              const ops = [...(selectedNode.data.operations as any[])];
+                              ops[i] = { ...ops[i], value: e.target.value };
+                              updateNodeData('operations', ops);
+                            }} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => {
+                      const ops = Array.isArray(selectedNode.data.operations) ? [...selectedNode.data.operations] : [];
+                      ops.push({ type: 'uppercase', field: '' });
+                      updateNodeData('operations', ops);
+                    }}>+ Add Operation</Button>
+                  </div>
+                </div>
               </div>
             </>
           )}

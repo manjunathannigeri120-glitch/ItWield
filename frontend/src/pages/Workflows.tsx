@@ -67,7 +67,6 @@ export function Workflows() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
-      setEditingWf(null);
     }
   });
 
@@ -132,7 +131,12 @@ export function Workflows() {
         </div>
         <WorkflowEditor 
           workflow={editingWf} 
-          onSave={(definition) => updateMutation.mutate({ ...editingWf, definition })}
+          onSave={async (definition) => {
+            await updateMutation.mutateAsync({ ...editingWf, definition });
+            // Do not clear editingWf if we want to stay in editor. The mutateAsync will trigger onSuccess which calls setEditingWf(null).
+            // Actually, wait, if the user clicks "Run Workflow", we don't want to close the editor!
+            // We need a separate way to save without closing.
+          }}
           onCancel={() => setEditingWf(null)}
         />
       </div>
