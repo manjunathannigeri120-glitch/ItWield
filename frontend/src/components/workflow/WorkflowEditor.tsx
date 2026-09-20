@@ -83,7 +83,13 @@ function serializeGraph(nodes: Node[], edges: Edge[]) {
   const startNode = trigger ? trigger.id : (nodes[0]?.id || null);
 
   const outNodes = nodes.map(n => {
-    const out: any = { id: n.id, type: n.type, position: n.position, config: { ...n.data } };
+    const config = { ...n.data };
+    delete config.executionStatus;
+    delete config.executionOutput;
+    delete config.executionError;
+    delete config.executionDuration;
+
+    const out: any = { id: n.id, type: n.type, position: n.position, config };
     if (n.type === 'control_condition') {
       const trueEdge = edges.find(e => e.source === n.id && e.sourceHandle === 'true');
       const falseEdge = edges.find(e => e.source === n.id && e.sourceHandle === 'false');

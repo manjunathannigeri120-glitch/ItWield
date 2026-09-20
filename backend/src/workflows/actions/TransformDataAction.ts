@@ -10,7 +10,16 @@ export class TransformDataAction implements Action {
       throw new Error('Operations must be an array');
     }
 
-    let data: any = typeof input === 'string' ? input : JSON.parse(JSON.stringify(input));
+    let data: any = input;
+    if (typeof input === 'string') {
+      try {
+        data = JSON.parse(input);
+      } catch (err) {
+        // If it fails to parse, leave it as string
+      }
+    } else {
+      data = JSON.parse(JSON.stringify(input));
+    }
 
     for (const op of operations) {
       if (!op || !op.type) throw new Error('Invalid operation: missing type');

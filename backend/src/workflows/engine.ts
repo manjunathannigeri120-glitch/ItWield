@@ -61,9 +61,12 @@ export class WorkflowEngine {
 
     const updateRunStatus = async (st: string, err?: any) => {
       if (supabase) {
-        await supabase.from('workflow_runs')
+        const { error: updErr } = await supabase.from('workflow_runs')
           .update({ status: st, error: err, execution_log, completed_at: new Date().toISOString() })
           .eq('id', runId);
+        if (updErr) {
+          console.error('[WorkflowEngine] Failed to update run status:', updErr);
+        }
       }
     };
 
@@ -132,22 +135,25 @@ export class WorkflowEngine {
           let output: any = null;
           let nextNodeId = node.next;
 
-          const action = ActionRegistry.get(node.type);
-          if (action) {
-            output = await action.execute(config, {
-              supabase,
-              runId,
-              userId,
-              workspaceId: workflow.workspace_id,
-              attempt
-            });
-
-            if (node.type === 'control_condition') {
-              nextNodeId = output.evaluated_true ? config.true_next : config.false_next;
-            }
+          if (node.type.startsWith('trigger_')) {
+            output = context.trigger || {};
           } else {
-            output = { error: `Action type ${node.type} not registered` };
-            // Fail if not registered? Or just pass? Let's just output error message.
+            const action = ActionRegistry.get(node.type);
+            if (action) {
+              output = await action.execute(config, {
+                supabase,
+                runId,
+                userId,
+                workspaceId: workflow.workspace_id,
+                attempt
+              });
+
+              if (node.type === 'control_condition') {
+                nextNodeId = output.evaluated_true ? config.true_next : config.false_next;
+              }
+            } else {
+              output = { error: `Action type ${node.type} not registered` };
+            }
           }
 
           context.steps[node.id] = { output };
