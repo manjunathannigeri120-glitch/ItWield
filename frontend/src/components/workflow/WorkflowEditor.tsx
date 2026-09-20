@@ -180,7 +180,7 @@ function EditorContent({ workflow, onSave, onCancel }: WorkflowEditorProps) {
       const def = serializeGraph(nodes, edges);
       onSave(def); 
       
-      const res = await api.post(`/api/v1/workflows/${workflow.id}/run`, {});
+      const res = await api.post(`/workflows/${workflow.id}/run`, {});
       
       if (res.data.execution_log) {
         setNodes(nds => nds.map(n => {
