@@ -29,37 +29,37 @@ ALTER TABLE public.workflows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workflow_runs ENABLE ROW LEVEL SECURITY;
 
 -- Workflows Policies
-DO $ $ BEGIN
+DO $ BEGIN
   CREATE POLICY "Users can view workflows in their workspaces" ON public.workflows FOR SELECT USING (
     EXISTS (SELECT 1 FROM public.workspaces w WHERE w.id = workspace_id AND (w.owner_id = auth.uid() OR EXISTS (SELECT 1 FROM public.workspace_members wm WHERE wm.workspace_id = workspace_id AND wm.user_id = auth.uid())))
   );
-EXCEPTION WHEN duplicate_object THEN null; END $ $;
+EXCEPTION WHEN duplicate_object THEN null; END $;
 
-DO $ $ BEGIN
+DO $ BEGIN
   CREATE POLICY "Users can manage workflows in their workspaces" ON public.workflows FOR ALL USING (
     EXISTS (SELECT 1 FROM public.workspaces w WHERE w.id = workspace_id AND (w.owner_id = auth.uid() OR EXISTS (SELECT 1 FROM public.workspace_members wm WHERE wm.workspace_id = workspace_id AND wm.user_id = auth.uid())))
   );
-EXCEPTION WHEN duplicate_object THEN null; END $ $;
+EXCEPTION WHEN duplicate_object THEN null; END $;
 
 -- Workflow Runs Policies
-DO $ $ BEGIN
+DO $ BEGIN
   CREATE POLICY "Users can view runs of workflows in their workspaces" ON public.workflow_runs FOR SELECT USING (
     EXISTS (SELECT 1 FROM public.workflows wf WHERE wf.id = workflow_id AND EXISTS (SELECT 1 FROM public.workspaces w WHERE w.id = wf.workspace_id AND (w.owner_id = auth.uid() OR EXISTS (SELECT 1 FROM public.workspace_members wm WHERE wm.workspace_id = workspace_id AND wm.user_id = auth.uid()))))
   );
-EXCEPTION WHEN duplicate_object THEN null; END $ $;
+EXCEPTION WHEN duplicate_object THEN null; END $;
 
-DO $ $ BEGIN
+DO $ BEGIN
   CREATE POLICY "Users can insert runs of workflows in their workspaces" ON public.workflow_runs FOR INSERT WITH CHECK (
     user_id = auth.uid() AND
     EXISTS (SELECT 1 FROM public.workflows wf WHERE wf.id = workflow_id AND EXISTS (SELECT 1 FROM public.workspaces w WHERE w.id = wf.workspace_id AND (w.owner_id = auth.uid() OR EXISTS (SELECT 1 FROM public.workspace_members wm WHERE wm.workspace_id = workspace_id AND wm.user_id = auth.uid()))))
   );
-EXCEPTION WHEN duplicate_object THEN null; END $ $;
+EXCEPTION WHEN duplicate_object THEN null; END $;
 
-DO $ $ BEGIN
+DO $ BEGIN
   CREATE POLICY "Users can update their runs" ON public.workflow_runs FOR UPDATE USING (
     user_id = auth.uid()
   );
-EXCEPTION WHEN duplicate_object THEN null; END $ $;
+EXCEPTION WHEN duplicate_object THEN null; END $;
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_workflows_workspace_id ON public.workflows(workspace_id);
