@@ -13,6 +13,8 @@ const AgentSchema = z.object({
   system_prompt: z.string().optional(),
   model: z.string().default('mock-model-v1'),
   temperature: z.number().min(0).max(2).default(0.7),
+  status: z.string().default('idle'),
+  capabilities: z.any().optional(),
   tools: z.array(z.string()).optional(),
   knowledge_bases: z.array(z.string()).optional()
 });

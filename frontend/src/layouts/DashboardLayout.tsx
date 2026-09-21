@@ -19,7 +19,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const navItems = [
-    { name: 'Dashboard', href: '/', icon: Home },
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Agents', href: '/agents', icon: Bot },
     { name: 'Knowledge', href: '/knowledge', icon: BookOpen },
     { name: 'Workflows', href: '/workflows', icon: GitMerge },

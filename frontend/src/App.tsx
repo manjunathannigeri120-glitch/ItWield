@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { Login } from '@/pages/Login';
+import Dashboard from '@/pages/Dashboard';
 import { Agents } from '@/pages/Agents';
 import { AgentNew } from '@/pages/AgentNew';
 import { AgentChat } from '@/pages/AgentChat';
@@ -33,7 +34,8 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Navigate to="/agents" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
           <Route path="/agents" element={<ProtectedRoute><DashboardLayout><Agents /></DashboardLayout></ProtectedRoute>} />
           <Route path="/agents/new" element={<ProtectedRoute><DashboardLayout><AgentNew /></DashboardLayout></ProtectedRoute>} />
           <Route path="/agents/:id/chat" element={<ProtectedRoute><DashboardLayout><AgentChat /></DashboardLayout></ProtectedRoute>} />
