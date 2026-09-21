@@ -3,17 +3,21 @@ import OpenAI from 'openai';
 import { WorkflowEngine } from '../workflows/engine';
 
 export class CEOService {
-  static async run(supabase: SupabaseClient, workspaceId: string, objective: string, userId: string) {
+  static async run(supabase: any, workspaceId: string, objective: string, userId: string = 'service_role', sourceWorkflowId?: string, actualNextRunAt?: string) {
     console.log(`[CEOService] Initiating CEO run for workspace: ${workspaceId}`);
     
-    // 1. Gather Company Context
+    // 1. Gather Company Context and Lock Workspace
     const { data: company, error: cErr } = await supabase
       .from('workspaces')
-      .select('*')
+      .update({ status: 'evaluating' })
       .eq('id', workspaceId)
+      .neq('status', 'evaluating')
+      .select('*')
       .single();
-    if (cErr || !company) throw new Error('Company not found');
-
+    if (cErr || !company) {
+      console.log(`[CEOService] Workspace ${workspaceId} locked or not found.`);
+      return;
+    }
     const { data: agents } = await supabase
       .from('agents')
       .select('id, name, description, status, capabilities')
@@ -80,6 +84,7 @@ Do not output anything outside the JSON structure.`;
     });
 
     let ceoDecision: any;
+    let decisionSource = 'LIVE_LLM';
     try {
       if (process.env.OPENROUTER_API_KEY) {
         const response = await openai.chat.completions.create({
@@ -91,6 +96,7 @@ Do not output anything outside the JSON structure.`;
         ceoDecision = JSON.parse(content);
       } else {
         // Mock fallback for testing without API key
+        decisionSource = 'DETERMINISTIC_FALLBACK';
         ceoDecision = {
           assessment: "Development mock assessment.",
           priority: "medium",
@@ -108,6 +114,7 @@ Do not output anything outside the JSON structure.`;
         };
       }
     } catch (e: any) {
+      await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
       throw new Error(`AI CEO orchestration failed: ${e.message}`);
     }
 
@@ -117,7 +124,7 @@ Do not output anything outside the JSON structure.`;
     if (ceoDecision.tasks && Array.isArray(ceoDecision.tasks)) {
       for (const t of ceoDecision.tasks) {
         // Verify agent exists
-        const agentExists = agents?.find(a => a.id === t.agent_id);
+        const agentExists = agents?.find((a: any) => a.id === t.agent_id);
         if (!agentExists) {
           console.warn(`[CEOService] Agent ${t.agent_id} does not exist. Skipping task creation.`);
           continue;
@@ -150,7 +157,7 @@ Do not output anything outside the JSON structure.`;
           task_id: createdTask.id,
           workspace_id: workspaceId,
           event_type: 'TASK_CREATED',
-          details: { source: 'CEO', title: createdTask.title }
+          details: { source: 'CEO', decision_source: decisionSource, title: createdTask.title }
         });
 
         // 4. Trigger Workflow if specified
@@ -168,6 +175,13 @@ Do not output anything outside the JSON structure.`;
           }
         }
       }
+    }
+
+    // Unlock workspace
+    await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
+
+    if (sourceWorkflowId && actualNextRunAt) {
+      await supabase.from('workflows').update({ next_run_at: actualNextRunAt }).eq('id', sourceWorkflowId);
     }
 
     return {
@@ -392,16 +406,17 @@ Output strictly valid JSON exactly matching this schema:
       details: ceoEvaluation
     });
 
-    const currentDepth = task.input?.chain_depth || 1;
-    if (currentDepth > 3) {
+    const currentDepth = task.input?.chain_depth || 0;
+    if (currentDepth >= 3) {
       console.log('[CEOService] Autonomous chain limit reached for task', taskId);
       await supabase.from('task_events').insert({
         task_id: taskId,
         workspace_id: workspaceId,
         event_type: 'ESCALATED',
-        details: { error: 'Autonomous chain limit reached.' }
+        details: { reason: 'Autonomous chain limit reached.' }
       });
-      return; // Pause the chain
+      await supabase.from('tasks').update({ status: 'ESCALATED' }).eq('id', taskId);
+      return;
     }
 
     // Create follow up tasks if the CEO requested them

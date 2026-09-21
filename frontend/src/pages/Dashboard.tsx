@@ -40,6 +40,11 @@ export default function Dashboard() {
     }
   };
 
+  let orchestratorStatus = 'WAITING';
+  if (tasks.some(t => t.status === 'RUNNING' || t.status === 'PENDING' || t.status === 'ASSIGNED')) orchestratorStatus = 'OPERATING';
+  else if (tasks.some(t => t.status === 'ESCALATED')) orchestratorStatus = 'ACTION_REQUIRED';
+  else if (tasks.some(t => t.status === 'BLOCKED')) orchestratorStatus = 'BLOCKED';
+
   const runCEO = async () => {
     setLoading(true);
     try {
@@ -71,7 +76,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Briefcase className="w-5 h-5" /> Orchestrator</CardTitle>
             <CardDescription>
-              Status: <span className="font-bold">{loading ? 'Operating' : 'Waiting'}</span>
+              Status: <span className="font-bold">{loading ? 'Operating' : orchestratorStatus}</span>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
