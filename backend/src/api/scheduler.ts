@@ -74,6 +74,29 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       ).catch(err => console.error(`[Scheduler] CEO invocation failed for ${workflow.id}:`, err));
     }
 
+    // 2b. Recover crashed/stuck RUNNING tasks via execution_lease_until
+    // Worker processes heartbeat this lease. If it expires, the process crashed or hung.
+    const now = new Date().toISOString();
+    const { data: staleTasks } = await supabase
+      .from('tasks')
+      .update({ status: 'PENDING', error: 'Execution lease expired. Worker crash assumed. Retrying.' })
+      .eq('status', 'RUNNING')
+      .not('execution_lease_until', 'is', null)
+      .lt('execution_lease_until', now)
+      .select('id, workspace_id');
+
+    if (staleTasks && staleTasks.length > 0) {
+      for (const t of staleTasks) {
+        console.log(`[Scheduler] Recovered stale RUNNING task ${t.id}`);
+        await supabase.from('task_events').insert({
+          task_id: t.id,
+          workspace_id: t.workspace_id,
+          event_type: 'RETRY',
+          details: { error: 'Execution lease expired. Worker crash assumed. Retrying.' }
+        });
+      }
+    }
+
     // 3. Recover stuck PENDING tasks (crash recovery for retries & follow-ups)
     const { data: stuckWorkspaces } = await supabase
       .from('tasks')

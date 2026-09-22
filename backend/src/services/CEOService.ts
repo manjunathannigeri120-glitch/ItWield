@@ -134,10 +134,13 @@ Do not output anything outside the JSON structure.`;
           workspace_id: workspaceId,
           title: t.title,
           description: t.description,
+          workflow_id: t.workflow_id,
           assigned_agent_id: t.agent_id,
           priority: t.priority || 'normal',
           status: 'PENDING',
           input: t.input || {},
+          source_workflow_id: sourceWorkflowId || null,
+          execution_lease_until: new Date(Date.now() + 15 * 60000).toISOString()
         };
 
         const { data: createdTask, error: ctErr } = await supabase
@@ -147,6 +150,10 @@ Do not output anything outside the JSON structure.`;
           .single();
 
         if (ctErr) {
+          if (ctErr.code === '23505') {
+            console.log(`[CEOService] Idempotency catch: Task for observation workflow ${sourceWorkflowId} is already active. Skipping.`);
+            continue;
+          }
           console.error(`[CEOService] Failed to create task:`, ctErr);
           continue;
         }
@@ -197,7 +204,9 @@ Do not output anything outside the JSON structure.`;
 
   static async executeTaskWorkflow(supabase: SupabaseClient, taskId: string, workflowId: string, inputData: any, userId: string, agentId?: string) {
     // Mark task running and agent working
-    await supabase.from('tasks').update({ status: 'RUNNING', started_at: new Date().toISOString() }).eq('id', taskId);
+    const { data: taskData } = await supabase.from('tasks').update({ status: 'RUNNING', started_at: new Date().toISOString() }).eq('id', taskId).select('workspace_id').single();
+    const workspaceId = taskData?.workspace_id;
+
     if (agentId) {
       await supabase.from('agents').update({ status: 'working' }).eq('id', agentId);
     }
@@ -206,7 +215,7 @@ Do not output anything outside the JSON structure.`;
     const { data: workflow } = await supabase.from('workflows').select('*').eq('id', workflowId).single();
     if (!workflow) {
       await supabase.from('tasks').update({ status: 'FAILED', error: 'Workflow not found', completed_at: new Date().toISOString() }).eq('id', taskId);
-      await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workflow.workspace_id, event_type: 'TASK_FAILED' });
+      await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workspaceId, event_type: 'TASK_FAILED' });
       return;
     }
 

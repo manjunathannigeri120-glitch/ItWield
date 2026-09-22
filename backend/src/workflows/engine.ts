@@ -59,7 +59,33 @@ export class WorkflowEngine {
     let status = 'completed';
     let error = null;
 
-    const updateRunStatus = async (st: string, err?: any) => {
+    let heartbeatInterval: any;
+    if (supabase) {
+      heartbeatInterval = setInterval(async () => {
+        try {
+          const newLease = new Date(Date.now() + 15 * 60000).toISOString();
+          const { data, error, count } = await supabase
+            .from('tasks')
+            .update({ execution_lease_until: newLease })
+            .eq('workflow_run_id', runId)
+            .eq('status', 'RUNNING')
+            .select('id');
+
+          if (error) {
+            console.error('[WorkflowEngine] Heartbeat failed:', error.message);
+          } else if (!data || data.length === 0) {
+            console.log(`[WorkflowEngine] Heartbeat affected 0 rows for run ${runId}. Task may no longer be RUNNING.`);
+          } else {
+             // successfully renewed
+          }
+        } catch (err) {
+          console.error('[WorkflowEngine] Heartbeat threw error:', err);
+        }
+      }, 5 * 60000);
+    }
+
+    try {
+      const updateRunStatus = async (st: string, err?: any) => {
       if (supabase) {
         const { error: updErr } = await supabase.from('workflow_runs')
           .update({ status: st, error: err, execution_log, completed_at: new Date().toISOString() })
@@ -180,5 +206,8 @@ export class WorkflowEngine {
     const finalOutput = execution_log.length > 0 ? execution_log[execution_log.length - 1].output : null;
     await updateRunStatus(status, error);
     return { status, error, output: finalOutput };
+  } finally {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+  }
   }
 }
