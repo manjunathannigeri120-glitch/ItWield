@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import { getServiceSupabase } from '../db/supabaseClient';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 import { calculateNextRunAt } from '../workflows/scheduler';
 import { CEOService } from '../services/CEOService';
+import { IntelligenceService } from '../services/IntelligenceService';
 
 const router = Router();
 
@@ -9,14 +11,14 @@ const router = Router();
 function requireSchedulerAuth(req: any, res: any, next: any) {
   const token = req.headers['authorization'];
   if (token !== `Bearer ${process.env.SCHEDULER_SECRET || 'dev-secret'}`) {
-    return res.status(401).json({ error: 'Unauthorized scheduler trigger' });
+    return res.status(401).json({ ok: false, error: 'Unauthorized' });
   }
   next();
 }
 
 router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
   const supabase = getServiceSupabase();
-  if (!supabase) return res.status(500).json({ error: 'Database not available' });
+  if (!supabase) return res.status(500).json({ ok: false, error: 'DB unavailable' });
 
   try {
     const { data: candidates, error: findError } = await supabase
@@ -27,7 +29,7 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       .limit(10);
 
     if (findError || !candidates || candidates.length === 0) {
-      return res.json({ triggered: 0 });
+      return res.json({ ok: true, triggered: 0 });
     }
 
     let triggeredCount = 0;
@@ -54,12 +56,13 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       triggeredCount++;
 
       // Log claim
-      await supabase.from('task_events').insert({
-        task_id: workflow.id, // using workflow id for lack of task id yet
+      const { error: claimEvtErr } = await supabase.from('task_events').insert({
+        task_id: null, // no task yet; workflow.id violates FK constraint on tasks(id)
         workspace_id: workflow.workspace_id,
         event_type: 'OBSERVATION_CLAIMED',
-        details: { lease_timeout, actual_next_run_at }
+        details: { workflow_id: workflow.id, lease_timeout, actual_next_run_at }
       });
+      if (claimEvtErr) console.error('[Scheduler] Failed to log OBSERVATION_CLAIMED event:', claimEvtErr);
 
       CEOService.run(
         supabase,
@@ -87,10 +90,30 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       }
     }
 
-    return res.json({ triggered: triggeredCount });
+    // 4. Intelligence Loop
+    const { data: activeWorkspaces } = await supabase.from('workspaces').select('id, status').eq('status', 'operating');
+    if (activeWorkspaces) {
+      for (const w of activeWorkspaces) {
+        try {
+          const snapshot = await IntelligenceService.generateSnapshot(supabase, w.id);
+          const anomalies = IntelligenceService.detectAnomalies(snapshot);
+          const changed = await IntelligenceService.syncIncidents(supabase, w.id, anomalies, snapshot.incidents);
+          
+          if (changed) {
+            console.log(`[Scheduler] Anomalies changed for workspace ${w.id}, triggering CEO`);
+            CEOService.run(supabase, w.id, 'Review new company incidents and anomalies.').catch(console.error);
+            triggeredCount++;
+          }
+        } catch (e) {
+          console.error('[Scheduler] Intelligence error for workspace', w.id, e);
+        }
+      }
+    }
+
+    return res.json({ ok: true, triggered: triggeredCount });
   } catch (err: any) {
     console.error('[Scheduler] Tick error:', err);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ ok: false, error: 'Internal tick error' });
   }
 });
 
