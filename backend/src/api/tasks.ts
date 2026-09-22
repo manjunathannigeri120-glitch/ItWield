@@ -8,7 +8,7 @@ router.use(requireAuth);
 router.get('/', async (req: AuthRequest, res) => {
   try {
     if (!req.supabase) return res.status(500).json({ error: 'Supabase client not initialized' });
-    const { workspaceId } = req.query;
+    const workspaceId = req.query.workspaceId || req.query.workspace_id;
     if (!workspaceId) return res.status(400).json({ error: 'workspaceId is required' });
 
     // Verify workspace access

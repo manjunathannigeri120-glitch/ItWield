@@ -46,7 +46,7 @@ export default function Dashboard() {
 
       const [evtsRes, tasksRes, agentsRes] = await Promise.all([
         api.get(`/workspaces/${ws.id}/events`),
-        api.get(`/tasks?workspace_id=${ws.id}`),
+        api.get(`/tasks?workspaceId=${ws.id}`),
         api.get(`/agents/workspace/${ws.id}`)
       ]);
 
