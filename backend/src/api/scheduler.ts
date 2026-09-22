@@ -18,7 +18,7 @@ function requireSchedulerAuth(req: any, res: any, next: any) {
 
 router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
   const supabase = getServiceSupabase();
-  if (!supabase) return res.status(500).json({ ok: false, error: 'DB unavailable' });
+  if (!supabase) return res.status(500).json({ ok: false, error: 'Internal tick error' });
 
   try {
     const { data: candidates, error: findError } = await supabase
@@ -29,7 +29,7 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       .limit(10);
 
     if (findError || !candidates || candidates.length === 0) {
-      return res.json({ ok: true, triggered: 0 });
+      return res.status(200).json({ ok: true, triggered: 0 });
     }
 
     let triggeredCount = 0;
@@ -110,7 +110,7 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       }
     }
 
-    return res.json({ ok: true, triggered: triggeredCount });
+    return res.status(200).json({ ok: true, triggered: triggeredCount });
   } catch (err: any) {
     console.error('[Scheduler] Tick error:', err);
     return res.status(500).json({ ok: false, error: 'Internal tick error' });
