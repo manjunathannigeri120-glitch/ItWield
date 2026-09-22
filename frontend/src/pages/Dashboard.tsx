@@ -47,7 +47,7 @@ export default function Dashboard() {
       const [evtsRes, tasksRes, agentsRes] = await Promise.all([
         api.get(`/workspaces/${ws.id}/events`),
         api.get(`/tasks?workspace_id=${ws.id}`),
-        api.get(`/agents?workspace_id=${ws.id}`)
+        api.get(`/agents/workspace/${ws.id}`)
       ]);
 
       setEvents(evtsRes.data || []);
@@ -91,7 +91,7 @@ export default function Dashboard() {
                 {needsAttention.map((e, i) => (
                   <li key={i} className="flex justify-between items-center bg-white p-3 rounded shadow-sm border border-amber-100">
                     <span className="text-sm text-gray-700">{formatEventText(e, tasks)}</span>
-                    <Button variant="outline" size="sm" className="ml-4 shrink-0 text-amber-700 border-amber-300 hover:bg-amber-100">Review</Button>
+                    <Button variant="outline" size="sm" className="ml-4 shrink-0 text-amber-700 border-amber-300 hover:bg-amber-100" onClick={() => window.location.href="/workflows"}>Review</Button>
                   </li>
                 ))}
               </ul>

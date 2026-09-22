@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 
 export function Onboarding() {
@@ -120,7 +118,7 @@ export function Onboarding() {
               </div>
               <div className="space-y-2">
                 <label>Short Description</label>
-                <Textarea value={formData.short_description} onChange={e => setFormData({ ...formData, short_description: e.target.value })} />
+                <textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" value={formData.short_description} onChange={e => setFormData({ ...formData, short_description: e.target.value })} />
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
@@ -152,7 +150,7 @@ export function Onboarding() {
               </div>
               <div className="space-y-2">
                 <label>Current Biggest Problems</label>
-                <Textarea value={formData.biggest_problems} onChange={e => setFormData({ ...formData, biggest_problems: e.target.value })} />
+                <textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" value={formData.biggest_problems} onChange={e => setFormData({ ...formData, biggest_problems: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <label>Competitors (comma separated)</label>
@@ -175,16 +173,16 @@ export function Onboarding() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <h4 className="font-medium">AI can automatically:</h4>
-                <div className="flex items-center space-x-2"><Checkbox checked={aiPreferences.monitor_health} onCheckedChange={(c: boolean) => setAiPreferences({ ...aiPreferences, monitor_health: c })} /> <label>Monitor application health</label></div>
-                <div className="flex items-center space-x-2"><Checkbox checked={aiPreferences.investigate_issues} onCheckedChange={(c: boolean) => setAiPreferences({ ...aiPreferences, investigate_issues: c })} /> <label>Investigate non-critical issues</label></div>
-                <div className="flex items-center space-x-2"><Checkbox checked={aiPreferences.create_proposals} onCheckedChange={(c: boolean) => setAiPreferences({ ...aiPreferences, create_proposals: c })} /> <label>Create improvement proposals</label></div>
-                <div className="flex items-center space-x-2"><Checkbox checked={aiPreferences.execute_low_risk} onCheckedChange={(c: boolean) => setAiPreferences({ ...aiPreferences, execute_low_risk: c })} /> <label>Execute approved low-risk improvements</label></div>
+                <div className="flex items-center space-x-2"><input type="checkbox" checked={aiPreferences.monitor_health} onChange={(e: any) => setAiPreferences({ ...aiPreferences, monitor_health: e.target.checked })} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" /> <label>Monitor application health</label></div>
+                <div className="flex items-center space-x-2"><input type="checkbox" checked={aiPreferences.investigate_issues} onChange={(e: any) => setAiPreferences({ ...aiPreferences, investigate_issues: e.target.checked })} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" /> <label>Investigate non-critical issues</label></div>
+                <div className="flex items-center space-x-2"><input type="checkbox" checked={aiPreferences.create_proposals} onChange={(e: any) => setAiPreferences({ ...aiPreferences, create_proposals: e.target.checked })} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" /> <label>Create improvement proposals</label></div>
+                <div className="flex items-center space-x-2"><input type="checkbox" checked={aiPreferences.execute_low_risk} onChange={(e: any) => setAiPreferences({ ...aiPreferences, execute_low_risk: e.target.checked })} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" /> <label>Execute approved low-risk improvements</label></div>
               </div>
               <div className="space-y-4">
                 <h4 className="font-medium text-amber-700">Requires owner approval:</h4>
-                <div className="flex items-center space-x-2"><Checkbox checked disabled /> <label className="text-gray-500">Production deployment</label></div>
-                <div className="flex items-center space-x-2"><Checkbox checked disabled /> <label className="text-gray-500">Financial actions</label></div>
-                <div className="flex items-center space-x-2"><Checkbox checked disabled /> <label className="text-gray-500">Major product changes</label></div>
+                <div className="flex items-center space-x-2"><input type="checkbox" checked disabled className="w-4 h-4 text-gray-400 rounded border-gray-300" /> <label className="text-gray-500">Production deployment</label></div>
+                <div className="flex items-center space-x-2"><input type="checkbox" checked disabled className="w-4 h-4 text-gray-400 rounded border-gray-300" /> <label className="text-gray-500">Financial actions</label></div>
+                <div className="flex items-center space-x-2"><input type="checkbox" checked disabled className="w-4 h-4 text-gray-400 rounded border-gray-300" /> <label className="text-gray-500">Major product changes</label></div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
