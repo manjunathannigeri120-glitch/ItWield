@@ -24,7 +24,7 @@ router.get('/', async (req: AuthRequest, res) => {
 
     const { data, error } = await req.supabase
       .from('tasks')
-      .select('*, assigned_agent:agents(id, name, role)')
+      .select('*, assigned_agent:agents(id, name)')
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
 
@@ -41,7 +41,7 @@ router.get('/:id', async (req: AuthRequest, res) => {
     if (!req.supabase) return res.status(500).json({ error: 'Supabase client not initialized' });
     const { data, error } = await req.supabase
       .from('tasks')
-      .select('*, assigned_agent:agents(id, name, role)')
+      .select('*, assigned_agent:agents(id, name)')
       .eq('id', req.params.id)
       .single();
 
