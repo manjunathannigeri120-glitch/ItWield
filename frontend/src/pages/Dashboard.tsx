@@ -83,6 +83,22 @@ export default function Dashboard() {
           
           {/* Column 1: Since you were away & Workforce */}
           <div className="space-y-6">
+            {(ceoBriefingData.activeGoals && ceoBriefingData.activeGoals.length > 0) && (
+              <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg">
+                <h3 className="text-xs font-bold text-blue-800 tracking-wider uppercase mb-1">GOAL</h3>
+                <p className="text-sm text-gray-900 font-medium mb-3">{ceoBriefingData.activeGoals[0].goal}</p>
+
+                <h3 className="text-xs font-bold text-blue-800 tracking-wider uppercase mb-1">CURRENT ACTION</h3>
+                <p className="text-sm text-gray-700 mb-3">{ceoBriefingData.activeGoals[0].executive} is overseeing: {ceoBriefingData.activeGoals[0].action}</p>
+
+                <h3 className="text-xs font-bold text-blue-800 tracking-wider uppercase mb-1">WORKFORCE</h3>
+                <p className="text-sm text-gray-700 mb-3">{ceoBriefingData.activeGoals[0].worker} — Working</p>
+
+                <h3 className="text-xs font-bold text-blue-800 tracking-wider uppercase mb-1">WHY</h3>
+                <p className="text-sm text-gray-600 italic">{ceoBriefingData.activeGoals[0].why}</p>
+              </div>
+            )}
+            
             <div>
               <h3 className="text-sm font-bold text-gray-400 tracking-wider uppercase mb-3 flex items-center"><span className="mr-2">🕒</span> Since you were away</h3>
               {whileAway.length === 0 ? (

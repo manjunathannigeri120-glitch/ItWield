@@ -146,7 +146,7 @@ describe('MVP Autonomous Operations Loop', () => {
     it('executes inline health check lifecycle successfully', async () => {
       (global.fetch as any).mockResolvedValueOnce({ status: 200 });
       
-      await CEOService.executeInlineHealthCheck(
+      await CEOService.executeInlineTask(
         mockSupabase, 
         'task-1', 
         { task_type: 'APPLICATION_MONITORING', delegate_to: 'mon-1', website: 'https://test.vercel.app' }, 

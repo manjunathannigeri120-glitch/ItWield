@@ -86,42 +86,73 @@ Do not output anything outside the JSON structure.`;
     let ceoDecision: any;
     let decisionSource = 'LIVE_LLM';
     try {
-      if (objective === 'SCHEDULED_OBSERVATION' || !process.env.OPENROUTER_API_KEY) {
+      if (objective.startsWith('SCHEDULED_OBSERVATION') || !process.env.OPENROUTER_API_KEY) {
         // Deterministic MVP fallback — no OpenRouter key OR explicit scheduled observation
         decisionSource = 'DETERMINISTIC_FALLBACK';
+        const tasksToCreate = objective.includes(':') ? objective.split(':')[1].split(',') : ['APPLICATION_MONITORING'];
 
-        // Find Application Monitor agent for monitoring tasks
-        const appMonitor = agents?.find((a: any) => a.name === 'Application Monitor');
-        const cto = agents?.find((a: any) => a.name === 'AI CTO');
-        // Prefer CTO as initial assignee (mirrors real hierarchy), fallback to Application Monitor directly
-        const assignee = cto || appMonitor || (agents && agents.length > 0 ? agents[0] : null);
+        const generatedTasks = [];
 
-        // Extract website from operational_context if available
-        let website = 'https://example.com';
-        try {
-          const ctx = JSON.parse(company.operational_context || '{}');
-          if (ctx.website) website = ctx.website;
-        } catch (_) { /* ignore parse errors */ }
+        for (const taskType of tasksToCreate) {
+          if (taskType === 'APPLICATION_MONITORING') {
+            const appMonitor = agents?.find((a: any) => a.name === 'Application Monitor');
+            const cto = agents?.find((a: any) => a.name === 'AI CTO');
+            const assignee = cto || appMonitor || (agents && agents.length > 0 ? agents[0] : null);
+
+            let website = 'https://example.com';
+            try {
+              const ctx = JSON.parse(company.operational_context || '{}');
+              if (ctx.website) website = ctx.website;
+            } catch (_) { /* ignore parse errors */ }
+
+            if (assignee) {
+              generatedTasks.push({
+                title: 'Application Health Check',
+                description: `Check application health for ${company.name}. Verify the website is reachable, record HTTP status, and report results.`,
+                agent_id: assignee.id,
+                priority: 'high',
+                workflow_id: null,
+                input: {
+                  task_type: 'APPLICATION_MONITORING',
+                  website,
+                  delegate_to: appMonitor ? appMonitor.id : null
+                }
+              });
+            }
+          }
+
+          if (taskType === 'COMPETITIVE_ANALYSIS') {
+            const compAnalyst = agents?.find((a: any) => a.name === 'Competitor Analyst');
+            const cmo = agents?.find((a: any) => a.name === 'AI CMO');
+            const assignee = cmo || compAnalyst || (agents && agents.length > 0 ? agents[0] : null);
+
+            if (assignee) {
+              generatedTasks.push({
+                title: 'Competitive Analysis',
+                description: `Analyze market competitors for ${company.name} based on the stated goal to acquire customers.`,
+                agent_id: assignee.id,
+                priority: 'medium',
+                workflow_id: null,
+                input: {
+                  task_type: 'COMPETITIVE_ANALYSIS',
+                  delegate_to: compAnalyst ? compAnalyst.id : null
+                }
+              });
+            }
+          }
+        }
+
+        let assessmentText = `Initiating scheduled observation tasks for ${company.name}.`;
+        if (tasksToCreate.includes('COMPETITIVE_ANALYSIS')) {
+          assessmentText = `Detected customer acquisition goal. Initiating competitive analysis and operational tasks for ${company.name}.`;
+        }
 
         ceoDecision = {
-          assessment: `Initiating standard operational health check for ${company.name}. Delegating application monitoring task to the technical team.`,
+          assessment: assessmentText,
           priority: 'high',
           decision: 'delegate',
-          tasks: assignee ? [
-            {
-              title: 'Application Health Check',
-              description: `Check application health for ${company.name}. Verify the website is reachable, record HTTP status, and report results.`,
-              agent_id: assignee.id,
-              priority: 'high',
-              workflow_id: null,
-              input: {
-                task_type: 'APPLICATION_MONITORING',
-                website,
-                delegate_to: appMonitor ? appMonitor.id : null
-              }
-            }
-          ] : [],
-          owner_update: `CEO initiated application health check for ${company.name}. Monitoring team has been alerted.`
+          tasks: generatedTasks,
+          owner_update: `CEO initiated operations for ${company.name}.`
         };
       } else {
         const response = await openai.chat.completions.create({
@@ -186,14 +217,30 @@ Do not output anything outside the JSON structure.`;
           details: { source: 'CEO', decision_source: decisionSource, title: createdTask.title }
         });
 
+        if (t.input?.task_type === 'COMPETITIVE_ANALYSIS') {
+          await supabase.from('task_events').insert({
+            task_id: createdTask.id,
+            workspace_id: workspaceId,
+            event_type: 'CEO_GOAL_ACTION_CREATED',
+            details: {
+              goal: 'Acquire early customers',
+              objective: t.title,
+              reason: 'Initiated from stated customer-acquisition goal',
+              authority: 'Deterministic fallback / System default',
+              assignedExecutive: t.agent_id,
+              assignedWorker: t.input?.delegate_to
+            }
+          });
+        }
+
         // 4. Trigger Workflow or Inline Task if specified
         if (t.workflow_id) {
           // Fire and forget execution
           this.executeTaskWorkflow(supabase, createdTask.id, t.workflow_id, t.input, userId, t.agent_id).catch(err => {
             console.error(`[CEOService] Workflow execution failed for task ${createdTask.id}:`, err);
           });
-        } else if (t.input && t.input.task_type === 'APPLICATION_MONITORING') {
-          this.executeInlineHealthCheck(supabase, createdTask.id, t.input, userId, t.agent_id).catch(err => {
+        } else if (t.input && (t.input.task_type === 'APPLICATION_MONITORING' || t.input.task_type === 'COMPETITIVE_ANALYSIS')) {
+          this.executeInlineTask(supabase, createdTask.id, t.input, userId, t.agent_id).catch(err => {
             console.error(`[CEOService] Inline execution failed for task ${createdTask.id}:`, err);
           });
         } else {
@@ -241,51 +288,72 @@ Do not output anything outside the JSON structure.`;
       .eq('workspace_id', workspaceId)
       .in('status', ['PENDING', 'ASSIGNED', 'RUNNING']);
 
+    // Phase 2 - Goals evaluation
     const hasMonitoring = activeTasks?.some(t => t.input && t.input.task_type === 'APPLICATION_MONITORING');
-    if (hasMonitoring) return;
+    const goals = company.company_goals?.toLowerCase() || '';
+    const wantsCustomers = goals.includes('acquire') || goals.includes('customer') || goals.includes('competitor') || goals.includes('growth');
+    const hasCompAnalysis = activeTasks?.some(t => t.input && t.input.task_type === 'COMPETITIVE_ANALYSIS');
 
-    if (!website) {
-      // Phase 1 - No website configured, do not invent. Prevent duplicate blocks (once per day).
-      const { data: recentBlocked } = await supabase.from('task_events')
-        .select('id, created_at')
-        .eq('workspace_id', workspaceId)
-        .eq('event_type', 'OBSERVATION_BLOCKED')
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      if (recentBlocked && recentBlocked.length > 0 && new Date(recentBlocked[0].created_at) > oneDayAgo) {
-        return; // Checked recently
+    let triggerMonitoring = false;
+    let triggerCompetitor = false;
+
+    if (!hasMonitoring) {
+      if (!website) {
+        // No website configured, do not invent. Prevent duplicate blocks (once per day).
+        const { data: recentBlocked } = await supabase.from('task_events')
+          .select('id, created_at')
+          .eq('workspace_id', workspaceId)
+          .eq('event_type', 'OBSERVATION_BLOCKED')
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        if (!recentBlocked || recentBlocked.length === 0 || new Date(recentBlocked[0].created_at) < oneDayAgo) {
+          await supabase.from('task_events').insert({
+            workspace_id: workspaceId,
+            event_type: 'OBSERVATION_BLOCKED',
+            details: { reason: "Application monitoring cannot run because this company has no website/application connection configured." }
+          });
+        }
+      } else {
+        const { data: recentSuccess } = await supabase.from('tasks')
+          .select('id, completed_at, input')
+          .eq('workspace_id', workspaceId)
+          .eq('status', 'COMPLETED')
+          .order('completed_at', { ascending: false })
+          .limit(20);
+        const latestMonitoring = recentSuccess?.find(t => t.input && t.input.task_type === 'APPLICATION_MONITORING');
+        const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
+        if (!latestMonitoring || !latestMonitoring.completed_at || new Date(latestMonitoring.completed_at) < fifteenMinsAgo) {
+          triggerMonitoring = true;
+        }
       }
-
-      await supabase.from('task_events').insert({
-        workspace_id: workspaceId,
-        event_type: 'OBSERVATION_BLOCKED',
-        details: { reason: "Application monitoring cannot run because this company has no website/application connection configured." }
-      });
-      return;
     }
 
-    // Phase 2 - Website exists and has not been checked recently (e.g. 15 mins)
-    const { data: recentSuccess } = await supabase.from('tasks')
-      .select('id, completed_at, input')
-      .eq('workspace_id', workspaceId)
-      .eq('status', 'COMPLETED')
-      .order('completed_at', { ascending: false })
-      .limit(20);
-
-    const latestMonitoring = recentSuccess?.find(t => t.input && t.input.task_type === 'APPLICATION_MONITORING');
-    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
-    
-    if (latestMonitoring && latestMonitoring.completed_at) {
-      if (new Date(latestMonitoring.completed_at) > fifteenMinsAgo) return;
+    if (wantsCustomers && !hasCompAnalysis) {
+      const { data: recentSuccess } = await supabase.from('tasks')
+        .select('id, completed_at, input')
+        .eq('workspace_id', workspaceId)
+        .eq('status', 'COMPLETED')
+        .order('completed_at', { ascending: false })
+        .limit(20);
+      const latestComp = recentSuccess?.find(t => t.input && t.input.task_type === 'COMPETITIVE_ANALYSIS');
+      const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+      if (!latestComp || !latestComp.completed_at || new Date(latestComp.completed_at) < twelveHoursAgo) {
+        triggerCompetitor = true;
+      }
     }
 
-    // Trigger CEO orchestration for monitoring
-    await CEOService.run(supabase, workspaceId, "SCHEDULED_OBSERVATION", 'service_role');
+    const triggers = [];
+    if (triggerMonitoring) triggers.push('APPLICATION_MONITORING');
+    if (triggerCompetitor) triggers.push('COMPETITIVE_ANALYSIS');
+
+    if (triggers.length > 0) {
+      await CEOService.run(supabase, workspaceId, `SCHEDULED_OBSERVATION:${triggers.join(',')}`, 'service_role');
+    }
   }
 
-  static async executeInlineHealthCheck(supabase: SupabaseClient, taskId: string, inputData: any, userId: string, agentId?: string) {
+  static async executeInlineTask(supabase: SupabaseClient, taskId: string, inputData: any, userId: string, agentId?: string) {
     const { data: taskData } = await supabase.from('tasks').update({ status: 'RUNNING', started_at: new Date().toISOString() }).eq('id', taskId).select('workspace_id').single();
     const workspaceId = taskData?.workspace_id;
 
@@ -293,7 +361,7 @@ Do not output anything outside the JSON structure.`;
       await supabase.from('agents').update({ status: 'working' }).eq('id', agentId);
     }
     
-    await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workspaceId, event_type: 'TASK_STARTED', details: { type: 'inline_health_check' } });
+    await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workspaceId, event_type: 'TASK_STARTED', details: { type: inputData.task_type || 'inline_task' } });
 
     let executorId = agentId;
     if (inputData.delegate_to && inputData.delegate_to !== agentId) {
@@ -305,13 +373,21 @@ Do not output anything outside the JSON structure.`;
     }
 
     try {
-      // Execute the deterministic HealthCheckAction
-      const { HealthCheckAction } = await import('../workflows/actions/HealthCheckAction');
-      const action = new HealthCheckAction();
+      let action;
+      if (inputData.task_type === 'COMPETITIVE_ANALYSIS') {
+        const { CompetitorAnalysisAction } = await import('../workflows/actions/CompetitorAnalysisAction');
+        action = new CompetitorAnalysisAction();
+      } else {
+        const { HealthCheckAction } = await import('../workflows/actions/HealthCheckAction');
+        action = new HealthCheckAction();
+      }
       
-      const result = await action.execute({ url: inputData.website || 'https://itwield.vercel.app' }, { supabase, runId: '', userId, workspaceId, attempt: 1 });
+      const result = await action.execute(
+        { url: inputData.website || 'https://itwield.vercel.app' }, 
+        { supabase, runId: '', userId, workspaceId, attempt: 1 }
+      );
       
-      const finalState = { error: result.success ? null : result.error || 'Health check failed', output: result };
+      const finalState = { error: result.success ? null : result.error || 'Task failed', output: result };
       const finalStatus = result.success ? 'COMPLETED' : 'FAILED';
       
       await supabase.from('tasks').update({ 

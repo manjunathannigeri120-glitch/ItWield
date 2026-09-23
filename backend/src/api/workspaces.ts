@@ -447,13 +447,38 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
       });
     }
 
+    const { data: goalEvents } = await req.supabase
+      .from('task_events')
+      .select('task_id, details')
+      .eq('workspace_id', workspaceId)
+      .eq('event_type', 'CEO_GOAL_ACTION_CREATED')
+      .in('task_id', (activeTasks || []).map((t: any) => t.id));
+
     // Compute Workforce
-    const workforce = {
-      activeTasks: (activeTasks || []).map((t: any) => ({
+    const activeGoals = [];
+    const formattedTasks = [];
+
+    for (const t of (activeTasks || [])) {
+      formattedTasks.push({
         title: t.title,
         agent: (t as any).assigned_agent?.name || 'Unassigned',
         status: t.status
-      })),
+      });
+
+      const goalEvent = goalEvents?.find((e: any) => e.task_id === t.id);
+      if (goalEvent && goalEvent.details) {
+        activeGoals.push({
+          goal: goalEvent.details.goal,
+          action: t.title,
+          executive: goalEvent.details.assignedExecutive ? (agents || []).find((a: any) => a.id === goalEvent.details.assignedExecutive)?.name || 'AI Executive' : 'AI Executive',
+          worker: (t as any).assigned_agent?.name || 'Worker',
+          why: goalEvent.details.reason
+        });
+      }
+    }
+
+    const workforce = {
+      activeTasks: formattedTasks,
       idleAgents: (agents || []).filter((a: any) => {
          const hasTask = (activeTasks || []).some((t: any) => (t as any).assigned_agent?.name === a.name);
          return !hasTask && a.name.startsWith('AI '); // mainly execs
@@ -486,6 +511,7 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
       statusReason,
       attentionItems,
       workforce,
+      activeGoals,
       recommendations,
       generatedAt: new Date().toISOString()
     });
