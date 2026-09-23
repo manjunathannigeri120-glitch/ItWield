@@ -6,31 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 // Helper to translate raw events to business English
-const formatEventText = (evt: any, allTasks: any[]) => {
-  const task = allTasks.find(t => t.id === evt.task_id);
-  const taskTitle = task?.title || 'a task';
-  const workerName = task?.assigned_agent?.name || 'an agent';
-
-  if (evt.event_type === 'CEO_EVALUATION') return `CEO investigated: "${evt.details?.ownerUpdate || 'Reported findings'}"`;
-
-  switch (evt.event_type) {
-    case 'TASK_CREATED': return `CEO assigned a new task: "${taskTitle}" to ${workerName}.`;
-    case 'TASK_STARTED': return `${workerName} began executing "${taskTitle}".`;
-    case 'TASK_COMPLETED': return `${workerName} successfully completed "${taskTitle}".`;
-    case 'TASK_FAILED': return `${workerName} encountered a failure while executing "${taskTitle}".`;
-    case 'TASK_BLOCKED': return `"${taskTitle}" was paused because ${workerName} requires additional capabilities.`;
-    case 'TASK_ESCALATED': return `CEO paused "${taskTitle}" because additional autonomous actions require attention.`;
-    case 'APPROVAL_REQUIRED': return `Owner approval is required for "${taskTitle}".`;
-    case 'OBSERVATION_CLAIMED': return `System scheduled an automatic health observation.`;
-    case 'INCIDENT_DETECTED': return `System detected an issue: ${evt.details?.title || 'Operational Anomaly'}.`;
-    default: return `System logged a new ${evt.event_type} event.`;
-  }
-};
-
 export default function Dashboard() {
   const [workspace, setWorkspace] = useState<any>(null);
-  const [events, setEvents] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [whileAwayData, setWhileAwayData] = useState<any>(null);
   const [agents, setAgents] = useState<any[]>([]);
 
   useEffect(() => {
@@ -46,14 +24,12 @@ export default function Dashboard() {
       if (!ws) return;
       setWorkspace(ws);
 
-      const [evtsRes, tasksRes, agentsRes] = await Promise.all([
-        api.get(`/workspaces/${ws.id}/events`),
-        api.get(`/tasks?workspaceId=${ws.id}`),
+      const [whileAwayRes, agentsRes] = await Promise.all([
+        api.get(`/workspaces/${ws.id}/while-away`),
         api.get(`/agents/workspace/${ws.id}`)
       ]);
 
-      setEvents(evtsRes.data || []);
-      setTasks(tasksRes.data || []);
+      setWhileAwayData(whileAwayRes.data);
       setAgents(agentsRes.data || []);
     } catch (e) {
       console.error('Failed to load dashboard', e);
@@ -62,8 +38,9 @@ export default function Dashboard() {
 
   if (!workspace) return <div className="p-8">Loading or no active company...</div>;
 
-  const needsAttention = events.filter(e => e.event_type === 'APPROVAL_REQUIRED' || e.event_type === 'INCIDENT_DETECTED' || e.event_type === 'TASK_FAILED').slice(0, 5);
-  const whileAway = events.filter(e => e.event_type !== 'APPROVAL_REQUIRED' && e.event_type !== 'INCIDENT_DETECTED').slice(0, 5);
+  const items = whileAwayData?.items || [];
+  const needsAttention = items.filter((a: any) => a.requiresAttention).slice(0, 5);
+  const whileAway = items.filter((a: any) => !a.requiresAttention).slice(0, 5);
 
   const execs = agents.filter(a => a.name.startsWith('AI '));
   const workers = agents.filter(a => !a.name.startsWith('AI '));
@@ -74,7 +51,9 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold">{workspace.name} Dashboard</h1>
         <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-sm">
           <span className="text-sm font-medium">COMPANY HEALTH:</span>
-          <span className="text-green-600 font-bold flex items-center"><span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Healthy</span>
+          <span className="text-green-600 font-bold flex items-center">
+            <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>Healthy
+          </span>
         </div>
       </div>
 
@@ -90,10 +69,26 @@ export default function Dashboard() {
               <p className="text-gray-500 italic">No active incidents or approvals required.</p>
             ) : (
               <ul className="space-y-4">
-                {needsAttention.map((e, i) => (
-                  <li key={i} className="flex justify-between items-center bg-white p-3 rounded shadow-sm border border-amber-100">
-                    <span className="text-sm text-gray-700">{formatEventText(e, tasks)}</span>
-                    <Button variant="outline" size="sm" className="ml-4 shrink-0 text-amber-700 border-amber-300 hover:bg-amber-100" onClick={() => window.location.href="/workflows"}>Review</Button>
+                {needsAttention.map((item: any) => (
+                  <li key={item.id} className="bg-white p-4 rounded shadow-sm border border-amber-100">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-bold text-amber-900">{item.title}</h4>
+                      <Button variant="outline" size="sm" className="text-amber-700 border-amber-300 hover:bg-amber-100" onClick={() => window.location.href="/workflows"}>Review</Button>
+                    </div>
+                    <p className="text-sm text-gray-700 mb-2">{item.description}</p>
+                    {item.details?.whatWeDid && (
+                      <div className="text-xs text-gray-600 bg-amber-50 p-2 rounded">
+                        <strong className="block mb-1">What ItWield did:</strong>
+                        <ul className="list-disc pl-4 space-y-1">
+                          {item.details.whatWeDid.map((action: string, i: number) => <li key={i}>{action}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                    {item.details?.ownerAction && (
+                      <div className="text-xs text-amber-800 mt-2 font-medium">
+                        Owner Action: {item.details.ownerAction}
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -108,13 +103,32 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {whileAway.length === 0 ? (
-              <p className="text-gray-500 italic">No activity yet.</p>
+              <p className="text-gray-500 italic">{whileAwayData?.summary || 'No autonomous activity yet. ItWield is ready.'}</p>
             ) : (
-              <ul className="space-y-2">
-                {whileAway.map((e, i) => (
-                  <li key={i} className="flex items-start text-sm text-gray-600">
-                    <span className="text-green-500 mr-2">✓</span>
-                    {formatEventText(e, tasks)}
+              <ul className="space-y-4">
+                {whileAway.map((item: any) => (
+                  <li key={item.id} className="flex flex-col border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                    <div className="flex items-start">
+                      {item.status === 'success' ? (
+                        <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                      ) : (
+                        <span className="text-blue-500 mr-2 mt-0.5">ℹ</span>
+                      )}
+                      <div>
+                        <div className="font-semibold text-gray-800">{item.title}</div>
+                        <div className="text-sm text-gray-600">{item.description}</div>
+                        {item.type === 'health_check' && item.details && (
+                          <div className="mt-2 text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                            <span className="font-medium text-green-600 mr-3">Healthy</span>
+                            <span className="mr-3">HTTP {item.details.httpStatus}</span>
+                            <span>Response time: {item.details.durationMs} ms</span>
+                          </div>
+                        )}
+                        {item.type === 'health_check' && (
+                          <div className="text-xs text-gray-400 mt-1">No action was required.</div>
+                        )}
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>

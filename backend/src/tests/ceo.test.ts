@@ -6,7 +6,7 @@ import { ActionRegistry } from '../workflows/actions/ActionRegistry';
 // Mock global fetch for health check
 global.fetch = vi.fn();
 
-const createQueryChain = (data: any, error = null, count = 0) => {
+const createQueryChain = (data: any, error: any = null, count = 0) => {
   let insertedData: any = data;
   const chain: any = {
     eq: vi.fn(() => chain),

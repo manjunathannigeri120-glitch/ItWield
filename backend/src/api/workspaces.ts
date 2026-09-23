@@ -242,19 +242,119 @@ router.post('/:id/activate', async (req: AuthRequest, res) => {
   }
 });
 
-// Fetch events for workspace
-router.get('/:id/events', async (req: AuthRequest, res) => {
+// Fetch while-you-were-away activity summary
+router.get('/:id/while-away', async (req: AuthRequest, res) => {
   try {
     if (!req.supabase) return res.status(400).json({ error: 'DB required' });
-    const { data, error } = await req.supabase
-      .from('task_events')
+    const workspaceId = req.params.id;
+    const timeWindow = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: tasks } = await req.supabase
+      .from('tasks')
+      .select('id, title, status, input, output, created_at, completed_at, error, assigned_agent:agents(name, manager_id)')
+      .eq('workspace_id', workspaceId)
+      .gte('created_at', timeWindow)
+      .order('created_at', { ascending: false });
+
+    const { data: incidents } = await req.supabase
+      .from('incidents')
       .select('*')
-      .eq('workspace_id', req.params.id)
-      .order('created_at', { ascending: false })
-      .limit(50);
-    
-    if (error) throw error;
-    res.json(data);
+      .eq('workspace_id', workspaceId)
+      .gte('created_at', timeWindow)
+      .order('created_at', { ascending: false });
+
+    const { data: events } = await req.supabase
+      .from('task_events')
+      .select('event_type, details, created_at, task_id')
+      .eq('workspace_id', workspaceId)
+      .gte('created_at', timeWindow)
+      .in('event_type', ['OWNER_APPROVAL_REQUIRED', 'OBSERVATION_BLOCKED'])
+      .order('created_at', { ascending: false });
+
+    const activities: any[] = [];
+
+    // 1. Process Incidents (High priority)
+    for (const inc of (incidents || [])) {
+      activities.push({
+        id: `inc_${inc.id}`,
+        type: 'incident',
+        title: 'Application issue detected',
+        description: inc.description || inc.title || 'An operational issue was detected.',
+        status: inc.severity === 'critical' ? 'critical' : 'warning',
+        timestamp: inc.created_at,
+        requiresAttention: inc.status !== 'RESOLVED',
+        details: {
+           whatWeDid: ['CEO created a technical incident', 'CTO investigation was initiated'],
+           ownerAction: 'Production changes require owner approval.'
+        }
+      });
+    }
+
+    // 2. Process Approvals & Blocks
+    for (const ev of (events || [])) {
+      if (ev.event_type === 'OWNER_APPROVAL_REQUIRED') {
+        activities.push({
+          id: `ev_${ev.task_id || Math.random()}`,
+          type: 'approval_required',
+          title: 'Owner Approval Required',
+          description: ev.details?.reason || 'A task requires your approval to proceed.',
+          status: 'warning',
+          timestamp: ev.created_at,
+          requiresAttention: true
+        });
+      } else if (ev.event_type === 'OBSERVATION_BLOCKED') {
+        activities.push({
+          id: `ev_${Math.random()}`,
+          type: 'blocked',
+          title: 'Observation Blocked',
+          description: ev.details?.reason || 'System is blocked from performing an observation.',
+          status: 'info',
+          timestamp: ev.created_at,
+          requiresAttention: false
+        });
+      }
+    }
+
+    // 3. Process completed/failed tasks (Application Monitoring)
+    for (const task of (tasks || [])) {
+      if (task.input?.task_type === 'APPLICATION_MONITORING' && task.status === 'COMPLETED') {
+        activities.push({
+          id: `task_${task.id}`,
+          type: 'health_check',
+          title: 'Application health',
+          description: 'Application Monitor checked the company website.',
+          status: 'success',
+          timestamp: task.completed_at || task.created_at,
+          requiresAttention: false,
+          details: {
+            healthy: true,
+            httpStatus: task.output?.httpStatus,
+            durationMs: task.output?.durationMs
+          }
+        });
+      } else if (task.status === 'COMPLETED' && task.input?.task_type !== 'APPLICATION_MONITORING') {
+        let agentName = (task as any).assigned_agent?.name;
+        activities.push({
+          id: `task_${task.id}`,
+          type: 'task_completed',
+          title: task.title,
+          description: agentName ? `Your AI CTO coordinated execution through ${agentName}.` : 'Task completed successfully.',
+          status: 'success',
+          timestamp: task.completed_at || task.created_at,
+          requiresAttention: false
+        });
+      }
+    }
+
+    res.json({
+      summary: activities.length > 0 ? "Here is what happened while you were away." : "No autonomous activity yet.",
+      items: activities,
+      counts: {
+        completed: activities.filter(a => a.status === 'success').length,
+        issues: activities.filter(a => a.type === 'incident').length,
+        approvals: activities.filter(a => a.type === 'approval_required').length
+      }
+    });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
