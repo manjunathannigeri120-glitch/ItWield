@@ -3,6 +3,7 @@ import { MockProvider } from '../ai/mockProvider';
 import { OpenAIProvider } from '../ai/openaiProvider';
 import { supabase } from '../db/supabase';
 import { getTool } from '../tools';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 const MAX_AGENT_STEPS = 10;
 
