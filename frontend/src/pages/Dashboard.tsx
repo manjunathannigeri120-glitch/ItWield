@@ -166,7 +166,7 @@ export default function Dashboard() {
       {missions.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {missions.map(m => (
-            <Card key={m.id} className="shadow-sm border border-gray-200 bg-white">
+            <Link to={`/missions/${m.id}`} key={m.id} className="block group"><Card className="shadow-sm border border-gray-200 bg-white group-hover:border-indigo-400 group-hover:shadow-md transition-all h-full">
               <CardContent className="p-6 flex flex-col justify-between h-full">
                 <div>
                   <div className="flex justify-between items-start mb-3">
@@ -188,7 +188,7 @@ export default function Dashboard() {
                   ) : null}
                 </div>
               </CardContent>
-            </Card>
+            </Card></Link>
           ))}
         </div>
       )}
@@ -594,3 +594,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
