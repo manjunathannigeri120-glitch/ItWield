@@ -86,7 +86,44 @@ Do not output anything outside the JSON structure.`;
     let ceoDecision: any;
     let decisionSource = 'LIVE_LLM';
     try {
-      if (process.env.OPENROUTER_API_KEY) {
+      if (objective === 'SCHEDULED_OBSERVATION' || !process.env.OPENROUTER_API_KEY) {
+        // Deterministic MVP fallback — no OpenRouter key OR explicit scheduled observation
+        decisionSource = 'DETERMINISTIC_FALLBACK';
+
+        // Find Application Monitor agent for monitoring tasks
+        const appMonitor = agents?.find((a: any) => a.name === 'Application Monitor');
+        const cto = agents?.find((a: any) => a.name === 'AI CTO');
+        // Prefer CTO as initial assignee (mirrors real hierarchy), fallback to Application Monitor directly
+        const assignee = cto || appMonitor || (agents && agents.length > 0 ? agents[0] : null);
+
+        // Extract website from operational_context if available
+        let website = 'https://example.com';
+        try {
+          const ctx = JSON.parse(company.operational_context || '{}');
+          if (ctx.website) website = ctx.website;
+        } catch (_) { /* ignore parse errors */ }
+
+        ceoDecision = {
+          assessment: `Initiating standard operational health check for ${company.name}. Delegating application monitoring task to the technical team.`,
+          priority: 'high',
+          decision: 'delegate',
+          tasks: assignee ? [
+            {
+              title: 'Application Health Check',
+              description: `Check application health for ${company.name}. Verify the website is reachable, record HTTP status, and report results.`,
+              agent_id: assignee.id,
+              priority: 'high',
+              workflow_id: null,
+              input: {
+                task_type: 'APPLICATION_MONITORING',
+                website,
+                delegate_to: appMonitor ? appMonitor.id : null
+              }
+            }
+          ] : [],
+          owner_update: `CEO initiated application health check for ${company.name}. Monitoring team has been alerted.`
+        };
+      } else {
         const response = await openai.chat.completions.create({
           model: 'openrouter/free',
           messages: [{ role: 'system', content: systemPrompt }],
@@ -94,24 +131,6 @@ Do not output anything outside the JSON structure.`;
         });
         const content = response.choices[0].message.content || '{}';
         ceoDecision = JSON.parse(content);
-      } else {
-        // Mock fallback for testing without API key
-        decisionSource = 'DETERMINISTIC_FALLBACK';
-        ceoDecision = {
-          assessment: "Development mock assessment.",
-          priority: "medium",
-          decision: "delegate",
-          tasks: [
-            {
-              title: "Check application health",
-              description: "Run the configured application health check and report the result.",
-              agent_id: agents && agents.length > 0 ? agents[0].id : null,
-              workflow_id: workflows && workflows.length > 0 ? workflows[0].id : null,
-              priority: "high"
-            }
-          ],
-          owner_update: "API key missing, generated mock assessment to run health check."
-        };
       }
     } catch (e: any) {
       await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
@@ -167,11 +186,15 @@ Do not output anything outside the JSON structure.`;
           details: { source: 'CEO', decision_source: decisionSource, title: createdTask.title }
         });
 
-        // 4. Trigger Workflow if specified
+        // 4. Trigger Workflow or Inline Task if specified
         if (t.workflow_id) {
           // Fire and forget execution
           this.executeTaskWorkflow(supabase, createdTask.id, t.workflow_id, t.input, userId, t.agent_id).catch(err => {
             console.error(`[CEOService] Workflow execution failed for task ${createdTask.id}:`, err);
+          });
+        } else if (t.input && t.input.task_type === 'APPLICATION_MONITORING') {
+          this.executeInlineHealthCheck(supabase, createdTask.id, t.input, userId, t.agent_id).catch(err => {
+            console.error(`[CEOService] Inline execution failed for task ${createdTask.id}:`, err);
           });
         } else {
           // Block task and agent if no executable capability
@@ -200,6 +223,125 @@ Do not output anything outside the JSON structure.`;
       ownerUpdate: ceoDecision.owner_update,
       status: 'COMPLETED'
     };
+  }
+
+  static async observeWorkspace(supabase: SupabaseClient, workspaceId: string) {
+    const { data: company } = await supabase.from('workspaces').select('*').eq('id', workspaceId).single();
+    if (!company) return;
+
+    let website = null;
+    try {
+      const ctx = JSON.parse(company.operational_context || '{}');
+      website = ctx.website;
+    } catch (e) {}
+
+    // Phase 8 - Duplicate Prevention
+    const { data: activeTasks } = await supabase.from('tasks')
+      .select('id, input')
+      .eq('workspace_id', workspaceId)
+      .in('status', ['PENDING', 'ASSIGNED', 'RUNNING']);
+
+    const hasMonitoring = activeTasks?.some(t => t.input && t.input.task_type === 'APPLICATION_MONITORING');
+    if (hasMonitoring) return;
+
+    if (!website) {
+      // Phase 1 - No website configured, do not invent. Prevent duplicate blocks (once per day).
+      const { data: recentBlocked } = await supabase.from('task_events')
+        .select('id, created_at')
+        .eq('workspace_id', workspaceId)
+        .eq('event_type', 'OBSERVATION_BLOCKED')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      if (recentBlocked && recentBlocked.length > 0 && new Date(recentBlocked[0].created_at) > oneDayAgo) {
+        return; // Checked recently
+      }
+
+      await supabase.from('task_events').insert({
+        workspace_id: workspaceId,
+        event_type: 'OBSERVATION_BLOCKED',
+        details: { reason: "Application monitoring cannot run because this company has no website/application connection configured." }
+      });
+      return;
+    }
+
+    // Phase 2 - Website exists and has not been checked recently (e.g. 15 mins)
+    const { data: recentSuccess } = await supabase.from('tasks')
+      .select('id, completed_at, input')
+      .eq('workspace_id', workspaceId)
+      .eq('status', 'COMPLETED')
+      .order('completed_at', { ascending: false })
+      .limit(20);
+
+    const latestMonitoring = recentSuccess?.find(t => t.input && t.input.task_type === 'APPLICATION_MONITORING');
+    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
+    
+    if (latestMonitoring && latestMonitoring.completed_at) {
+      if (new Date(latestMonitoring.completed_at) > fifteenMinsAgo) return;
+    }
+
+    // Trigger CEO orchestration for monitoring
+    await CEOService.run(supabase, workspaceId, "SCHEDULED_OBSERVATION", 'service_role');
+  }
+
+  static async executeInlineHealthCheck(supabase: SupabaseClient, taskId: string, inputData: any, userId: string, agentId?: string) {
+    const { data: taskData } = await supabase.from('tasks').update({ status: 'RUNNING', started_at: new Date().toISOString() }).eq('id', taskId).select('workspace_id').single();
+    const workspaceId = taskData?.workspace_id;
+
+    if (agentId) {
+      await supabase.from('agents').update({ status: 'working' }).eq('id', agentId);
+    }
+    
+    await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workspaceId, event_type: 'TASK_STARTED', details: { type: 'inline_health_check' } });
+
+    let executorId = agentId;
+    if (inputData.delegate_to && inputData.delegate_to !== agentId) {
+      executorId = inputData.delegate_to;
+      await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workspaceId, event_type: 'TASK_ASSIGNED', details: { assigned_to: executorId, note: 'Delegated by manager' } });
+      await supabase.from('tasks').update({ assigned_agent_id: executorId }).eq('id', taskId);
+      if (agentId) await supabase.from('agents').update({ status: 'idle' }).eq('id', agentId);
+      if (executorId) await supabase.from('agents').update({ status: 'working' }).eq('id', executorId);
+    }
+
+    try {
+      // Execute the deterministic HealthCheckAction
+      const { HealthCheckAction } = await import('../workflows/actions/HealthCheckAction');
+      const action = new HealthCheckAction();
+      
+      const result = await action.execute({ url: inputData.website || 'https://itwield.vercel.app' }, { supabase, runId: '', userId, workspaceId, attempt: 1 });
+      
+      const finalState = { error: result.success ? null : result.error || 'Health check failed', output: result };
+      const finalStatus = result.success ? 'COMPLETED' : 'FAILED';
+      
+      await supabase.from('tasks').update({ 
+        status: finalStatus, 
+        output: finalState.output || {}, 
+        error: finalState.error || null,
+        completed_at: new Date().toISOString()
+      }).eq('id', taskId);
+
+      await supabase.from('task_events').insert({ 
+        task_id: taskId, 
+        workspace_id: workspaceId, 
+        event_type: result.success ? 'TASK_COMPLETED' : 'TASK_FAILED',
+        details: { output: finalState.output, error: finalState.error }
+      });
+      
+      if (executorId) {
+        await supabase.from('agents').update({ status: 'idle' }).eq('id', executorId);
+      }
+      
+      await CEOService.evaluateTaskResult(supabase, taskId, workspaceId, userId, executorId);
+    } catch (e: any) {
+      await supabase.from('tasks').update({ status: 'FAILED', error: e.message, completed_at: new Date().toISOString() }).eq('id', taskId);
+      await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workspaceId, event_type: 'TASK_FAILED', details: { error: e.message } });
+      
+      if (agentId) await supabase.from('agents').update({ status: 'idle' }).eq('id', agentId);
+      if (executorId && executorId !== agentId) await supabase.from('agents').update({ status: 'idle' }).eq('id', executorId);
+      
+      await CEOService.evaluateTaskResult(supabase, taskId, workspaceId, userId, executorId);
+    }
   }
 
   static async executeTaskWorkflow(supabase: SupabaseClient, taskId: string, workflowId: string, inputData: any, userId: string, agentId?: string) {
@@ -373,7 +515,8 @@ Output strictly valid JSON exactly matching this schema:
     {
       "title": "String",
       "description": "String",
-      "priority": "low" | "medium" | "high" | "critical"
+      "priority": "low" | "medium" | "high" | "critical",
+      "delegate_to_role": "CTO" | "Application Monitor" | "None"
     }
   ],
   "owner_update": "String concisely summarizing the outcome and any next steps for the owner."
@@ -415,6 +558,27 @@ Output strictly valid JSON exactly matching this schema:
       details: ceoEvaluation
     });
 
+    // Phase 6 - Create Incident for PROBLEM/FAILURE/CRITICAL
+    if (ceoEvaluation.conclusion === 'PROBLEM' || ceoEvaluation.conclusion === 'FAILURE' || ceoEvaluation.conclusion === 'CRITICAL') {
+      const severity = ceoEvaluation.conclusion === 'CRITICAL' ? 'critical' : 'high';
+      await supabase.from('incidents').insert({
+        workspace_id: workspaceId,
+        type: 'application_health',
+        severity: severity,
+        status: 'DETECTED',
+        title: `Operational Issue Detected: ${task.title}`,
+        description: ceoEvaluation.evaluation,
+        source: 'CEO_EVALUATION'
+      });
+      
+      await supabase.from('task_events').insert({
+        task_id: taskId,
+        workspace_id: workspaceId,
+        event_type: 'INCIDENT_CREATED',
+        details: { title: `Operational Issue Detected: ${task.title}`, severity }
+      });
+    }
+
     const currentDepth = task.input?.chain_depth || 0;
     if (currentDepth >= 3) {
       console.log('[CEOService] Autonomous chain limit reached for task', taskId);
@@ -425,15 +589,29 @@ Output strictly valid JSON exactly matching this schema:
         details: { reason: 'Autonomous chain limit reached.' }
       });
       await supabase.from('tasks').update({ status: 'ESCALATED' }).eq('id', taskId);
+      
+      // Notify owner approval required
+      await supabase.from('task_events').insert({
+        task_id: taskId,
+        workspace_id: workspaceId,
+        event_type: 'OWNER_APPROVAL_REQUIRED',
+        details: { reason: 'Autonomous chain limit reached. Human review required for further execution.' }
+      });
       return;
     }
 
     // Create follow up tasks if the CEO requested them
     if (ceoEvaluation.follow_up_tasks && ceoEvaluation.follow_up_tasks.length > 0) {
+      // Find CTO for technical investigations
+      const { data: agents } = await supabase.from('agents').select('id, name').eq('workspace_id', workspaceId);
+      const cto = agents?.find((a: any) => a.name === 'AI CTO');
+      const fallbackAssignee = cto || agents?.[0];
+
       for (const ft of ceoEvaluation.follow_up_tasks) {
         const { data: newT } = await supabase.from('tasks').insert({
           workspace_id: workspaceId,
           parent_task_id: taskId,
+          assigned_agent_id: ft.delegate_to_role === 'CTO' ? cto?.id : fallbackAssignee?.id,
           title: ft.title,
           description: ft.description,
           priority: ft.priority,

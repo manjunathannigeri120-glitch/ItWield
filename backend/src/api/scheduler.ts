@@ -113,7 +113,7 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       }
     }
 
-    // 4. Intelligence Loop
+    // 4. Intelligence Loop & 5. Autonomous Observation
     const { data: activeWorkspaces } = await supabase.from('workspaces').select('id, status').eq('status', 'operating');
     if (activeWorkspaces) {
       for (const w of activeWorkspaces) {
@@ -127,8 +127,12 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
             CEOService.run(supabase, w.id, 'Review new company incidents and anomalies.').catch(console.error);
             triggeredCount++;
           }
+          
+          // Phase 1-3 - Trigger deterministic observations
+          await CEOService.observeWorkspace(supabase, w.id);
+
         } catch (e) {
-          console.error('[Scheduler] Intelligence error for workspace', w.id, e);
+          console.error('[Scheduler] Intelligence/Observation error for workspace', w.id, e);
         }
       }
     }

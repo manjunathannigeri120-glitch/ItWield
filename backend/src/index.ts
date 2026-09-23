@@ -74,6 +74,8 @@ import { GoogleSheetsAddRowAction } from './workflows/actions/GoogleSheetsAddRow
 import { GoogleSheetsFindRowAction } from './workflows/actions/GoogleSheetsFindRowAction';
 import { GoogleSheetsUpdateRowAction } from './workflows/actions/GoogleSheetsUpdateRowAction';
 
+import { HealthCheckAction } from './workflows/actions/HealthCheckAction';
+
 ActionRegistry.register(new HttpAction());
 ActionRegistry.register(new AiAgentAction());
 ActionRegistry.register(new ConditionAction());
@@ -85,6 +87,8 @@ ActionRegistry.register(new DiscordSendMessageAction());
 ActionRegistry.register(new GoogleSheetsAddRowAction());
 ActionRegistry.register(new GoogleSheetsFindRowAction());
 ActionRegistry.register(new GoogleSheetsUpdateRowAction());
+ActionRegistry.register(new HealthCheckAction());
+
 
 app.use('/api/v1', apiRoutes);
 
