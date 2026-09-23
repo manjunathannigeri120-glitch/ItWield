@@ -17,10 +17,16 @@ export interface AgentConfig {
 export class AgentRuntime {
   
   static getProvider(): AIProvider {
-    const key = process.env.OPENAI_API_KEY;
-    if (key) return new OpenAIProvider(key);
+    const key = process.env.OPENROUTER_API_KEY;
+    if (key) {
+      return new OpenAIProvider(key, 'https://openrouter.ai/api/v1', {
+        'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
+        'X-Title': 'ItWield Agent Chat'
+      });
+    }
     return new MockProvider();
   }
+
 
   static async logEvent(supabase: any, runId: string, eventType: string, durationMs?: number, toolName?: string, details?: any) {
     if (!supabase || !runId) return;

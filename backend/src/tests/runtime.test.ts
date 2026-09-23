@@ -42,7 +42,7 @@ describe('AgentRuntime', () => {
     // Override db returns to have no authorized tools
     
     const result = await AgentRuntime.runChat(mockSupabase, agentConfig, 'conv-123', 'Hello', 'user-123');
-    expect(result).toContain('Mock AI Response');
+    expect(result).toContain('The AI provider is currently unavailable');
   });
 
   it('terminates after MAX_AGENT_STEPS', async () => {

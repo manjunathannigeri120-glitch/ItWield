@@ -4,8 +4,8 @@ import { AIProvider, GenerateResult, Message, ToolDefinition } from './provider'
 export class OpenAIProvider implements AIProvider {
   private client: OpenAI;
 
-  constructor(apiKey: string) {
-    this.client = new OpenAI({ apiKey });
+  constructor(apiKey: string, baseURL?: string, defaultHeaders?: any) {
+    this.client = new OpenAI({ apiKey, baseURL, defaultHeaders });
   }
 
   async generateText(

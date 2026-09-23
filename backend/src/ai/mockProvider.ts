@@ -36,7 +36,7 @@ export class MockProvider implements AIProvider {
     }
 
     return {
-      text: `[Mock AI Response to: "${lastUserMessage}"] - I am a simulated agent response since no API key is provided.`,
+      text: `The AI provider is currently unavailable. Please configure the OPENROUTER_API_KEY to enable chat capabilities. (Received: "${lastUserMessage}")`,
       model: model || 'mock-model-v1',
       usage: {
         prompt_tokens: 10,
