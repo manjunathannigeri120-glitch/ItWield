@@ -132,6 +132,9 @@ router.get('/:missionId', async (req: any, res) => {
     }
 
     const progress = await MissionProgressService.calculateProgress(supabase, workspaceId, missionId);
+    
+    const { MissionPlanningService } = await import('../services/MissionPlanningService');
+    const planData = await MissionPlanningService.getOrCreateActivePlan(supabase, workspaceId, missionId, mission.type);
 
     const { data: recentResults } = await supabase
       .from('mission_results')
@@ -198,6 +201,26 @@ router.get('/:missionId', async (req: any, res) => {
     res.json({
       mission,
       progress,
+      plan: {
+        id: planData.plan.id,
+        version: planData.plan.version,
+        status: planData.plan.status,
+        objective: planData.plan.objective,
+        steps: planData.steps.map((s: any) => ({
+          id: s.id,
+          order: s.step_order,
+          title: s.title,
+          description: s.description,
+          status: s.status,
+          worker_role: s.worker_role,
+          authorization_class: s.authorization_class,
+          success_criteria: s.success_criteria,
+          depends_on_step_id: s.depends_on_step_id,
+          created_at: s.created_at,
+          updated_at: s.updated_at,
+          completed_at: s.completed_at
+        }))
+      },
       results: {
         recent: recentResults || [],
         verified: progress.results.verified,

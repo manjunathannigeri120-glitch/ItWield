@@ -53,7 +53,7 @@ describe('Mission Command Center API Endpoints', () => {
         'business_missions': { data: [{ id: 'm-1', type: 'GET_CUSTOMERS', status: 'ACTIVE', target_count: 25 }] },
         'tasks': { data: [{ id: 't-1', status: 'PENDING' }] },
         'mission_results': { data: [{ id: 'r-1', verification_status: 'VERIFIED' }] },
-        'mission_events': { data: [{ id: 'e-1', event_type: 'MISSION_CREATED' }] },
+        'mission_events': { data: [{ id: 'e-1', event_type: 'MISSION_CREATED' }] }, 'mission_plans': { data: [{ id: 'p-1', version: 1, status: 'ACTIVE' }] }, 'mission_plan_steps': { data: [{ id: 's-1', status: 'PENDING' }] },
         'approvals': { data: [] }
     };
     mockUserId = 'user-A';
@@ -107,3 +107,4 @@ describe('Mission Command Center API Endpoints', () => {
     expect(res.status).toBe(404);
   });
 });
+

@@ -163,6 +163,49 @@ export function MissionDetail() {
             </CardContent>
           </Card>
 
+          {data.plan && (
+          <Card>
+            <CardHeader className="flex flex-row justify-between items-center">
+              <CardTitle>Mission Plan</CardTitle>
+              <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded border">v{data.plan.version} {data.plan.status}</span>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {data.plan.steps.map((step: any) => (
+                  <div key={step.id} className="flex items-start">
+                    <div className="mr-3 mt-0.5">
+                      {step.status === 'COMPLETED' ? (
+                        <div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-xs">✓</div>
+                      ) : step.status === 'RUNNING' ? (
+                        <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">●</div>
+                      ) : step.status === 'BLOCKED' || step.status === 'FAILED' ? (
+                        <div className="w-5 h-5 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs">!</div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center"></div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div className={`font-semibold text-sm ${step.status === 'COMPLETED' ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                          Step {step.order}: {step.title}
+                        </div>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                          step.status === 'RUNNING' ? 'bg-blue-100 text-blue-800' :
+                          step.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                          step.status === 'BLOCKED' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {step.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">{step.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          )}
+
           {/* Results Tab-like view */}
           <Card>
             <CardHeader>

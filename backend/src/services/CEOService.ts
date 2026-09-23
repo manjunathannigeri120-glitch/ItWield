@@ -407,29 +407,91 @@ Do not output anything outside the JSON structure.`;
         .eq('workspace_id', workspaceId)
         .in('status', ['PENDING', 'ASSIGNED', 'RUNNING']);
 
-    // Phase 1B - Mission Orchestration
+        // Phase 1B - Mission Orchestration
     const { data: missions } = await supabase.from('business_missions')
       .select('*')
       .eq('workspace_id', workspaceId)
-      .eq('status', 'ACTIVE');
+      .in('status', ['ACTIVE']);
       
     if (missions && missions.length > 0) {
+      const { MissionProgressService } = await import('./MissionProgressService');
+
       for (const mission of missions) {
-        const missionHasActiveTask = activeTasks?.some(t => t.mission_id === mission.id);
-        if (missionHasActiveTask) continue;
-        
-        let taskType = null;
-        if (mission.type === 'GET_CUSTOMERS') taskType = 'LEAD_RESEARCH';
-        else if (mission.type === 'UNDERSTAND_COMPETITORS') taskType = 'COMPETITIVE_ANALYSIS';
-        else if (mission.type === 'MONITOR_BUSINESS') taskType = 'APPLICATION_MONITORING';
-        else if (mission.type === 'IMPROVE_PRODUCT') taskType = 'PRODUCT_RESEARCH';
-        else if (mission.type === 'REDUCE_MANUAL_WORK') taskType = 'WORKFLOW_DISCOVERY';
-        
-        if (taskType) {
-          shouldUnlock = false;
-          await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
-          await CEOService.run(supabase, workspaceId, `SCHEDULED_OBSERVATION:${taskType}`, 'service_role', undefined, undefined, mission.id);
-          return; // orchestrate one mission per tick to prevent race conditions easily
+        try {
+          // 1. Authoritative Derived State
+          const progress = await MissionProgressService.calculateProgress(supabase, workspaceId, mission.id);
+          console.log('[CEOService] Diagnostic - Mission progress:', {
+            verified: progress.results.verified,
+            target: progress.target.count,
+            pending: progress.work.pending,
+            running: progress.work.running,
+            blocker: progress.blocker,
+            completionEligible: progress.completionEligible,
+            nextAction: progress.nextAction
+          });
+          
+          // 2. DETERMINISTIC SAFETY GATE
+          if (progress.status !== 'ACTIVE') continue;
+          
+          if (progress.completionEligible) {
+             // Stop creating work and invoke lifecycle completion
+             await supabase.from('business_missions').update({ status: 'COMPLETED', updated_at: new Date().toISOString() }).eq('id', mission.id);
+             await supabase.from('mission_events').insert({ mission_id: mission.id, workspace_id: workspaceId, event_type: 'STATUS_CHANGED', details: { old_status: 'ACTIVE', new_status: 'COMPLETED', reason: 'Success criteria reached' } });
+             console.log('[CEOService] Mission ' + mission.id + ' completed successfully.');
+             continue;
+          }
+
+          if (progress.blocker) {
+             // E.g., CONNECTION_REQUIRED or OWNER_APPROVAL_REQUIRED.
+             // Do not create duplicate work. Surface blocker.
+             console.log('[CEOService] Mission ' + mission.id + ' is blocked: ' + progress.blocker.type);
+             continue;
+          }
+
+          if (progress.work.running > 0 || progress.work.pending > 0) {
+             // Do not create duplicate work if useful authorized work is already running or assigned/pending
+             console.log('[CEOService] Mission ' + mission.id + ' has active work. Waiting.');
+             continue;
+          }
+
+          // 3. Adaptive Mission Planning Orchestration
+          const { MissionPlanningService } = await import('./MissionPlanningService');
+          const planData = await MissionPlanningService.getOrCreateActivePlan(supabase, workspaceId, mission.id, mission.type);
+          const { readyStep, isComplete } = await MissionPlanningService.evaluatePlanState(supabase, workspaceId, planData.plan, planData.steps);
+
+          if (isComplete) {
+              await MissionPlanningService.completePlan(supabase, planData.plan.id);
+              console.log(`[CEOService] Mission plan for ${mission.id} is fully completed.`);
+              // For MVP, completing the plan just awaits further planning or mission completion check next tick.
+              continue;
+          }
+
+          if (readyStep) {
+              // Safety auth check
+              const authResult = AuthorizationRegistry.authorize(readyStep.authorization_class, {});
+              if (!authResult.authorized && !authResult.requiresApproval) {
+                 console.log(`[CEOService] Mission plan step blocked by registry (PROHIBITED): ${readyStep.authorization_class}`);
+                 await supabase.from('mission_plan_steps').update({ status: 'BLOCKED' }).eq('id', readyStep.id);
+                 continue;
+              }
+              if (authResult.requiresApproval) {
+                 console.log(`[CEOService] Mission plan step blocked by registry (APPROVAL_REQUIRED): ${readyStep.authorization_class}`);
+                 await supabase.from('mission_plan_steps').update({ status: 'BLOCKED' }).eq('id', readyStep.id);
+                 continue;
+              }
+
+              shouldUnlock = false;
+              await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
+              
+              // Mark step running
+              await MissionPlanningService.markStepRunning(supabase, readyStep.id);
+              
+              // Spawn ONE bounded task
+              await CEOService.run(supabase, workspaceId, 'SCHEDULED_OBSERVATION:' + readyStep.step_type, 'service_role', undefined, undefined, mission.id);
+              return; // orchestrate one mission per tick to prevent race conditions easily
+          }
+        } catch (missionErr) {
+          console.error('[CEOService] Mission orchestration error for ' + mission.id + ':', missionErr);
         }
       }
     }
@@ -761,6 +823,51 @@ Do not output anything outside the JSON structure.`;
     const { data: task } = await supabase.from('tasks').select('*, assigned_agent:agents(id, name, capabilities)').eq('id', taskId).single();
     if (!task) return;
 
+    // --- PHASE 4: GET_CUSTOMERS VERIFICATION INTEGRATION ---
+    if (task.status === 'COMPLETED' && task.mission_id) {
+      try {
+         const { MissionResultPipelineService } = await import('./MissionResultPipelineService');
+         const { MissionPlanningService } = await import('./MissionPlanningService');
+         const { data: mission } = await supabase.from('business_missions').select('*').eq('id', task.mission_id).single();
+         
+         if (mission) {
+            const results = MissionResultPipelineService.extractResults(task, mission);
+            if (results.length > 0) {
+              await MissionResultPipelineService.persistResults(supabase, results);
+              console.log('[CEOService] MissionResultPipeline extracted ' + results.length + ' results.');
+            }
+         }
+
+         // Complete the running plan step for this mission
+         const { data: runningSteps } = await supabase.from('mission_plan_steps')
+            .select('id')
+            .eq('mission_id', task.mission_id)
+            .eq('status', 'RUNNING');
+         
+         if (runningSteps && runningSteps.length > 0) {
+            for (const s of runningSteps) {
+                await MissionPlanningService.completeStep(supabase, s.id);
+            }
+         }
+      } catch (pipelineErr) {
+         console.error('[CEOService] Mission Result Pipeline / Planning Error:', pipelineErr);
+      }
+    }
+    if (task.status === 'FAILED' && task.mission_id) {
+        try {
+            const { data: runningSteps } = await supabase.from('mission_plan_steps')
+                .select('id')
+                .eq('mission_id', task.mission_id)
+                .eq('status', 'RUNNING');
+             if (runningSteps && runningSteps.length > 0) {
+                for (const s of runningSteps) {
+                    await supabase.from('mission_plan_steps').update({ status: 'FAILED', updated_at: new Date().toISOString() }).eq('id', s.id);
+                }
+             }
+        } catch (err) {}
+    }
+    // --- END PHASE 4 ---
+
     let agentName = task.assigned_agent?.name || 'Unknown Worker';
     const isCompetitive = task.input?.task_type === 'COMPETITIVE_ANALYSIS';
 
@@ -975,3 +1082,7 @@ Output strictly valid JSON exactly matching this schema:
   }
 
 }
+
+
+
+
