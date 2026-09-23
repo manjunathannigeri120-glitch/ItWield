@@ -95,10 +95,6 @@ export function AgentChat() {
         
         <div className="text-xs space-y-2 mt-4 border-t pt-4">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Model</span>
-            <span className="font-mono">{agent?.model}</span>
-          </div>
-          <div className="flex justify-between">
             <span className="text-muted-foreground">Status</span>
             <span className="text-green-500">{agent?.status}</span>
           </div>
