@@ -1,7 +1,7 @@
 import { Action, ActionContext } from './Action';
 
 export class StoreDataAction implements Action {
-  id = 'action_store_data';
+  id = 'STORE_BUSINESS_DATA';
 
   async execute(config: any, context: ActionContext): Promise<any> {
     const { collection, data } = config;

@@ -9,7 +9,7 @@ import { Action, ActionContext } from './Action';
  * - Pricing-safe: does not touch workspaces, billing, or plans.
  */
 export class HealthCheckAction implements Action {
-  id = 'action_health_check';
+  id = 'APPLICATION_MONITORING';
 
   async execute(config: any, _context: ActionContext): Promise<any> {
     const url: string = config.url;
@@ -59,7 +59,8 @@ export class HealthCheckAction implements Action {
         checkedAt: new Date().toISOString(),
         summary: success
           ? `Application health check passed. Website: ${parsedUrl.hostname} | HTTP ${status} | ${durationMs}ms`
-          : `Application health check failed. Website: ${parsedUrl.hostname} | HTTP ${status} | ${durationMs}ms`
+          : `Application health check failed. Website: ${parsedUrl.hostname} | HTTP ${status} | ${durationMs}ms`,
+        verification: { verified: true, checks: [`HTTP request returned ${status}`] }
       };
     } catch (err: any) {
       const durationMs = Date.now() - startMs;
@@ -71,7 +72,8 @@ export class HealthCheckAction implements Action {
         durationMs,
         checkedAt: new Date().toISOString(),
         error: isTimeout ? 'Health check timed out after 10 seconds.' : err.message,
-        summary: `Application health check failed. Website: ${parsedUrl.hostname} | ${isTimeout ? 'Timeout' : err.message}`
+        summary: `Application health check failed. Website: ${parsedUrl.hostname} | ${isTimeout ? 'Timeout' : err.message}`,
+        verification: { verified: false, checks: [] }
       };
     }
   }

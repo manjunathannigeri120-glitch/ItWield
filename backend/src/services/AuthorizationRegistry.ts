@@ -8,6 +8,7 @@ export interface ActionDefinition {
   readOnly: boolean;
   modifiesExternal: boolean;
   requiredPermission?: string;
+  requiredConnection?: string;
 }
 
 export class AuthorizationRegistry {
@@ -53,6 +54,70 @@ export class AuthorizationRegistry {
       requiresOwnerApproval: false,
       readOnly: false,
       modifiesExternal: true,
+    },
+
+    'WEB_RESEARCH': {
+      id: 'WEB_RESEARCH',
+      name: 'Web Research',
+      owningExecutive: 'AI CMO',
+      riskLevel: 'low',
+      isAutonomous: true,
+      requiresOwnerApproval: false,
+      readOnly: true,
+      modifiesExternal: false,
+      requiredConnection: 'web_search',
+    },
+    'COMPETITOR_RESEARCH': {
+      id: 'COMPETITOR_RESEARCH',
+      name: 'Competitor Research',
+      owningExecutive: 'AI CMO',
+      riskLevel: 'low',
+      isAutonomous: true,
+      requiresOwnerApproval: false,
+      readOnly: true,
+      modifiesExternal: false,
+      requiredConnection: 'web_search',
+    },
+    'LEAD_RESEARCH': {
+      id: 'LEAD_RESEARCH',
+      name: 'Lead Research',
+      owningExecutive: 'AI CMO',
+      riskLevel: 'low',
+      isAutonomous: true,
+      requiresOwnerApproval: false,
+      readOnly: true,
+      modifiesExternal: false,
+      requiredConnection: 'web_search',
+    },
+    'DATA_TRANSFORMATION': {
+      id: 'DATA_TRANSFORMATION',
+      name: 'Data Transformation',
+      owningExecutive: 'AI CTO',
+      riskLevel: 'low',
+      isAutonomous: true,
+      requiresOwnerApproval: false,
+      readOnly: true,
+      modifiesExternal: false,
+    },
+    'STORE_BUSINESS_DATA': {
+      id: 'STORE_BUSINESS_DATA',
+      name: 'Store Business Data',
+      owningExecutive: 'AI CTO',
+      riskLevel: 'low',
+      isAutonomous: true,
+      requiresOwnerApproval: false,
+      readOnly: false,
+      modifiesExternal: false,
+    },
+    'GENERATE_BUSINESS_REPORT': {
+      id: 'GENERATE_BUSINESS_REPORT',
+      name: 'Generate Business Report',
+      owningExecutive: 'AI CEO',
+      riskLevel: 'low',
+      isAutonomous: true,
+      requiresOwnerApproval: false,
+      readOnly: true,
+      modifiesExternal: false,
     },
 
     // High-Risk Actions (Approval Required)

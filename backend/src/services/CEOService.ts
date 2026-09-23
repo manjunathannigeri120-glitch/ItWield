@@ -4,6 +4,7 @@ import { WorkflowEngine } from '../workflows/engine';
 import { AuthorizationRegistry } from './AuthorizationRegistry';
 import { CompanyMemoryService } from './CompanyMemoryService';
 import { ContinuousImprovementService } from './ContinuousImprovementService';
+import { ActionRegistry } from '../workflows/actions/ActionRegistry';
 
 
 export class CEOService {
@@ -462,19 +463,42 @@ Do not output anything outside the JSON structure.`;
     }
 
     try {
-      let action;
-      if (inputData.task_type === 'COMPETITIVE_ANALYSIS') {
-        const { CompetitorAnalysisAction } = await import('../workflows/actions/CompetitorAnalysisAction');
-        action = new CompetitorAnalysisAction();
-      } else {
-        const { HealthCheckAction } = await import('../workflows/actions/HealthCheckAction');
-        action = new HealthCheckAction();
+      const actionType = inputData.task_type || inputData.action || 'APPLICATION_MONITORING';
+      
+      // 1. Worker Capability Validation
+      if (executorId) {
+        const { data: executor } = await supabase.from('agents').select('capabilities').eq('id', executorId).single();
+        if (executor) {
+          const capabilities = executor.capabilities || [];
+          if (!capabilities.includes(actionType)) {
+             throw new Error(`Worker missing required capability: ${actionType}`);
+          }
+        }
       }
+
+      // 2. Connection Validation
+      const authResult = AuthorizationRegistry.authorize(actionType);
+      const reqConn = authResult.definition?.requiredConnection;
+      if (reqConn) {
+        if (reqConn === 'web_search' && !process.env.TAVILY_API_KEY && process.env.NODE_ENV !== 'test') {
+           throw new Error(`CONNECTION_REQUIRED: ${reqConn}`);
+        }
+      }
+
+      const action = ActionRegistry.get(actionType);
+      
+      if (!action) {
+        throw new Error(`Action not registered or not available: ${actionType}`);
+      }
+
+      // Merge inputs to config
+      const config = { url: inputData.website || 'https://itwield.vercel.app', ...inputData };
       
       const result = await action.execute(
-        { url: inputData.website || 'https://itwield.vercel.app' }, 
+        config, 
         { supabase, runId: '', userId, workspaceId, attempt: 1 }
       );
+
       
       const finalState = { error: result.success ? null : result.error || 'Task failed', output: result };
       const finalStatus = result.success ? 'COMPLETED' : 'FAILED';

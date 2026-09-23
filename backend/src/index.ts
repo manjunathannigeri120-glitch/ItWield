@@ -89,6 +89,18 @@ ActionRegistry.register(new GoogleSheetsFindRowAction());
 ActionRegistry.register(new GoogleSheetsUpdateRowAction());
 ActionRegistry.register(new HealthCheckAction());
 
+import { WebResearchAction } from './workflows/actions/WebResearchAction';
+import { LeadResearchAction } from './workflows/actions/LeadResearchAction';
+import { CompetitorResearchAction } from './workflows/actions/CompetitorResearchAction';
+import { GenerateBusinessReportAction } from './workflows/actions/GenerateBusinessReportAction';
+import { CompetitorAnalysisAction } from './workflows/actions/CompetitorAnalysisAction';
+
+ActionRegistry.register(new WebResearchAction());
+ActionRegistry.register(new LeadResearchAction());
+ActionRegistry.register(new CompetitorResearchAction());
+ActionRegistry.register(new GenerateBusinessReportAction());
+ActionRegistry.register(new CompetitorAnalysisAction());
+
 
 app.use('/api/v1', apiRoutes);
 

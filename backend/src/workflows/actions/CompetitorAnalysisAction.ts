@@ -10,7 +10,7 @@ import { Action, ActionContext } from './Action';
  * - Relies strictly on verified data in the competitors table.
  */
 export class CompetitorAnalysisAction implements Action {
-  id = 'action_competitor_analysis';
+  id = 'COMPETITIVE_ANALYSIS';
 
   async execute(config: any, context: ActionContext): Promise<any> {
     const { workspaceId, supabase } = context;

@@ -158,7 +158,7 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <h3 className="text-sm font-bold text-gray-400 tracking-wider uppercase mb-3 flex items-center"><span className="mr-2">💼</span> Workforce Status</h3>
+              <h3 className="text-sm font-bold text-gray-400 tracking-wider uppercase mb-3 flex items-center"><span className="mr-2">💼</span> AI WORK IN PROGRESS</h3>
               <div className="text-sm space-y-2">
                 {workforceInfo.activeTasks.length > 0 ? (
                   workforceInfo.activeTasks.map((t: any, i: number) => (

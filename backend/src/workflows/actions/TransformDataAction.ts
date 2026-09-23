@@ -1,7 +1,7 @@
 import { Action, ActionContext } from './Action';
 
 export class TransformDataAction implements Action {
-  id = 'action_transform_data';
+  id = 'DATA_TRANSFORMATION';
 
   async execute(config: any, context: ActionContext): Promise<any> {
     const { input, operations } = config;

@@ -151,11 +151,11 @@ describe('ActionRegistry', () => {
   
   it('should resolve StoreDataAction', () => {
     ActionRegistry.register(new StoreDataAction());
-    expect(ActionRegistry.get('action_store_data')).toBeDefined();
+    expect(ActionRegistry.get('STORE_BUSINESS_DATA')).toBeDefined();
   });
   
   it('should resolve TransformDataAction', () => {
     ActionRegistry.register(new TransformDataAction());
-    expect(ActionRegistry.get('action_transform_data')).toBeDefined();
+    expect(ActionRegistry.get('DATA_TRANSFORMATION')).toBeDefined();
   });
 });

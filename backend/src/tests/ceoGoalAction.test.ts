@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
+import { ActionRegistry } from '../workflows/actions/ActionRegistry';
+import { CompetitorAnalysisAction } from '../workflows/actions/CompetitorAnalysisAction';
 
+ActionRegistry.register(new CompetitorAnalysisAction());
 // Deterministic AI mock — eliminates all live OpenRouter calls
 vi.mock('openai', () => {
   const ceoEvaluation = JSON.stringify({
