@@ -675,7 +675,7 @@ Output strictly valid JSON exactly matching this schema:
   "owner_update": "String concisely summarizing the outcome and any next steps for the owner."
 }`;
 
-    const openai = new (require('openai').OpenAI)({
+    const openai = new OpenAI({
       apiKey: process.env.OPENROUTER_API_KEY || 'mock',
       baseURL: 'https://openrouter.ai/api/v1',
       defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173', 'X-Title': 'ItWield CEO' }

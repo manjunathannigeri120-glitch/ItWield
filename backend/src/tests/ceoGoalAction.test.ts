@@ -1,4 +1,33 @@
 import { describe, it, expect, vi } from 'vitest';
+
+// Deterministic AI mock — eliminates all live OpenRouter calls
+vi.mock('openai', () => {
+  const ceoEvaluation = JSON.stringify({
+    evaluation: 'Mock evaluation. Task completed successfully.',
+    conclusion: 'HEALTHY',
+    follow_up_tasks: [],
+    owner_update: 'Task evaluated. Result looks fine.'
+  });
+  const ceoOrchestration = JSON.stringify({
+    assessment: 'Mock CEO assessment.',
+    priority: 'high',
+    decision: 'delegate',
+    tasks: [],
+    owner_update: 'Mock run completed.'
+  });
+  function OpenAIConstructor(this: any) {
+    this.chat = {
+      completions: {
+        create: ({ messages }: any) => {
+          const isEval = messages?.some((m: any) => typeof m.content === 'string' && m.content.includes('evaluating a completed task'));
+          return Promise.resolve({ choices: [{ message: { content: isEval ? ceoEvaluation : ceoOrchestration } }] });
+        }
+      }
+    };
+  }
+  return { default: OpenAIConstructor, OpenAI: OpenAIConstructor };
+});
+
 import { CEOService } from '../services/CEOService';
 
 describe('AI CEO Goal-to-Action Loop', () => {
@@ -74,16 +103,20 @@ describe('AI CEO Goal-to-Action Loop', () => {
         let chain: any = {
           select: vi.fn(() => chain),
           eq: vi.fn(() => chain),
+          neq: vi.fn(() => chain),
+          in: vi.fn(() => chain),
           update: vi.fn(() => {
             if (table === 'tasks') updateCalled = true;
             return chain;
           }),
+          upsert: vi.fn(() => chain),
           insert: vi.fn((data: any) => {
             if (table === 'task_events' && data.event_type === 'TASK_COMPLETED') eventInserted = true;
             return chain;
           }),
-          single: vi.fn(() => Promise.resolve({ data: { workspace_id: 'ws-1' } })),
           order: vi.fn(() => chain),
+          limit: vi.fn(() => chain),
+          single: vi.fn(() => Promise.resolve({ data: { workspace_id: 'ws-1' } })),
           then: (resolve: any) => resolve({ data: table === 'competitors' ? [] : [] })
         };
         return chain;
