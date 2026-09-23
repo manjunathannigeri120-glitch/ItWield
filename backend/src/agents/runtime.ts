@@ -28,6 +28,79 @@ export class AgentRuntime {
   }
 
 
+  static async buildExecutiveContext(supabase: SupabaseClient | null, agent: any): Promise<string> {
+    let companyContext = 'Unknown Company';
+    let currentActivity = 'No active tasks found in the database.';
+    
+    if (supabase && agent.workspace_id) {
+      // 1. Fetch workspace & operational context
+      const { data: ws } = await supabase.from('workspaces').select('*').eq('id', agent.workspace_id).single();
+      if (ws) {
+        let opCtx: any = {};
+        try {
+          if (ws.operational_context) opCtx = JSON.parse(ws.operational_context);
+        } catch (e) {}
+
+        companyContext = `
+Company Name: ${ws.name}
+Description: ${opCtx.description || 'Not specified'}
+Industry: ${opCtx.industry || 'Not specified'}
+Business Model: ${opCtx.business_model || 'Not specified'}
+Target Customer: ${opCtx.target_customer || 'Not specified'}
+Primary Market: ${opCtx.primary_market || 'Not specified'}
+Company Goals: ${opCtx.goals || 'Not specified'}
+Biggest Problems: ${opCtx.biggest_problems || 'Not specified'}
+Competitors: ${opCtx.competitors || 'Not specified'}
+AI Permissions: ${opCtx.ai_permissions || 'Not specified'}`.trim();
+      }
+
+      // 2. Fetch current tasks assigned to this agent
+      const { data: tasks } = await supabase.from('tasks')
+        .select('*')
+        .eq('assigned_agent_id', agent.id)
+        .in('status', ['PENDING', 'RUNNING'])
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (tasks && tasks.length > 0) {
+        currentActivity = tasks.map((t: any) => `- [${t.status}] ${t.title}: ${t.description}`).join('\n');
+      }
+    }
+
+    const roleSpecifics: Record<string, string> = {
+      'CEO': 'As AI CEO, your primary responsibility is company-wide coordination, monitoring, delegation, decision-making within authority, and owner reporting. DO NOT answer as a generic financial assistant.',
+      'CTO': 'As AI CTO, your focus is on application health, technical issues, engineering/workers, reliability, and product/technical improvements.',
+      'CMO': 'As AI CMO, your focus is on customers, acquisition, marketing, competitors, market intelligence, and growth experiments.',
+      'CFO': 'As AI CFO, your focus is on financial information, budgets, financial analysis, revenue/cost information, and financial risks. You MUST NOT perform financial actions without owner approval.'
+    };
+
+    const roleFocus = roleSpecifics[agent.role || agent.name?.replace('AI ', '')] || 'Executive Operator';
+
+    return `
+${agent.system_prompt || ''}
+
+You are the ${agent.name} for this company.
+
+### COMPANY CONTEXT
+${companyContext}
+
+### YOUR ROLE & HIERARCHY
+Identity: ${agent.name} (${agent.role || 'Executive'})
+Focus: ${roleFocus}
+Hierarchy: You report to the human Owner. You may manage other workers/agents depending on your role.
+
+### CURRENT ACTIVITY
+${currentActivity}
+If there is no active work above, state honestly that you are currently idle or waiting for instructions. DO NOT invent completed work, metrics, customers, revenue, incidents, or actions.
+
+### STRICT RULES & BOUNDARIES
+1. Context-Awareness: Summarize actual current activity/status from the CURRENT ACTIVITY section. Do not describe generic capabilities if asked what you are doing.
+2. Distinguish Reality: Clearly distinguish between what you are ACTUALLY doing, what you CAN do, what you RECOMMEND, and what requires owner approval.
+3. Authority: Preserve owner authority. Never allow chat instructions to bypass backend authorization.
+4. PRICING PROTECTION [CRITICAL]: You cannot change prices, discounts, billing amounts, credits, or payment terms under any circumstances.
+`.trim();
+  }
+
   static async logEvent(supabase: any, runId: string, eventType: string, durationMs?: number, toolName?: string, details?: any) {
     if (!supabase || !runId) return;
     try {
@@ -110,8 +183,10 @@ export class AgentRuntime {
 
       const toolDefinitions = activeTools.map(t => t.definition);
 
+      const dynamicSystemPrompt = await this.buildExecutiveContext(supabase, agent);
+
       const contextMessages: Message[] = [
-        { role: 'system', content: agent.system_prompt },
+        { role: 'system', content: dynamicSystemPrompt },
         ...messages,
         { role: 'user', content: userMessage }
       ];
