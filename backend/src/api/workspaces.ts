@@ -207,14 +207,16 @@ router.post('/:id/activate', async (req: AuthRequest, res) => {
     const cfoId = await insertAgent('AI CFO', 'Financial monitoring', ['financial_alerts'], ceoId);
 
     // Insert workers and link managers
-    const insertWorker = async (name: string, system_prompt: string, managerId: string) => {
+    const insertWorker = async (name: string, system_prompt: string, managerId: string, capabilities: string[] = []) => {
       if (existingNames.has(name)) return;
-      await req.supabase!.from('agents').insert({ workspace_id: workspaceId, name, system_prompt, manager_id: managerId, status: 'idle' });
+      await req.supabase!.from('agents').insert({ workspace_id: workspaceId, name, system_prompt, manager_id: managerId, capabilities, status: 'idle' });
     };
 
-    await insertWorker('Application Monitor', 'You monitor the health of the application.', ctoId);
-    await insertWorker('Builder Analyst', 'You research and build new features.', ctoId);
-    await insertWorker('Competitor Analyst', 'You analyze competitor movements.', cmoId);
+    await insertWorker('Application Monitor', 'You monitor the health of the application.', ctoId, ['APPLICATION_MONITORING']);
+    await insertWorker('Builder Analyst', 'You research and build new features.', ctoId, ['GITHUB_LIST_REPOSITORIES', 'GITHUB_LIST_ISSUES', 'GITHUB_LIST_PULL_REQUESTS', 'GITHUB_GET_REPOSITORY_ACTIVITY', 'GITHUB_GET_ISSUE', 'GITHUB_GET_PULL_REQUEST']);
+    await insertWorker('Competitor Analyst', 'You analyze competitor movements.', cmoId, ['COMPETITOR_RESEARCH', 'WEB_RESEARCH', 'SLACK_LIST_CHANNELS', 'SLACK_READ_CHANNEL', 'SLACK_SEARCH_MESSAGES', 'SLACK_GET_RECENT_ACTIVITY', 'GOOGLE_SHEETS_LIST', 'GOOGLE_SHEETS_READ']);
+    // Might also want a generic lead/sales one if it exists, or just give CMO's lead stuff to someone.
+    await insertWorker('Lead Researcher', 'You research new leads.', cmoId, ['LEAD_RESEARCH', 'WEB_RESEARCH', 'GOOGLE_SHEETS_READ']);
 
     // 3. Inject default baseline workflows (check if exists first)
     const { data: existingWf } = await req.supabase.from('workflows').select('id').eq('workspace_id', workspaceId).eq('name', 'Routine Health Check').single();

@@ -479,9 +479,19 @@ Do not output anything outside the JSON structure.`;
       // 2. Connection Validation
       const authResult = AuthorizationRegistry.authorize(actionType);
       const reqConn = authResult.definition?.requiredConnection;
+      let decryptedConnection = null;
       if (reqConn) {
         if (reqConn === 'web_search' && !process.env.TAVILY_API_KEY && process.env.NODE_ENV !== 'test') {
+           await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workspaceId, event_type: 'CONNECTION_REQUIRED', details: { provider: reqConn, note: `Worker needs a ${reqConn} connection to execute ${actionType}.` } });
            throw new Error(`CONNECTION_REQUIRED: ${reqConn}`);
+        } else if (reqConn !== 'web_search') {
+           const { data: conn } = await supabase.from('connections').select('*').eq('workspace_id', workspaceId).eq('provider', reqConn).single();
+           if (!conn || conn.status === 'disconnected' || conn.status === 'error') {
+              await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workspaceId, event_type: 'CONNECTION_REQUIRED', details: { provider: reqConn, note: `Worker needs an active ${reqConn} connection to execute ${actionType}.` } });
+              throw new Error(`CONNECTION_REQUIRED: ${reqConn}`);
+           }
+           const { decryptObject } = await import('../utils/encryption');
+           decryptedConnection = decryptObject(conn.credentials);
         }
       }
 
@@ -492,7 +502,7 @@ Do not output anything outside the JSON structure.`;
       }
 
       // Merge inputs to config
-      const config = { url: inputData.website || 'https://itwield.vercel.app', ...inputData };
+      const config = { url: inputData.website || 'https://itwield.vercel.app', connection: decryptedConnection, ...inputData };
       
       const result = await action.execute(
         config, 

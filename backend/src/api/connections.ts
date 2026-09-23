@@ -118,11 +118,13 @@ router.get('/:provider/connect', async (req: AuthRequest, res) => {
         url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('https://www.googleapis.com/auth/spreadsheets')}&access_type=offline&prompt=consent&state=${stateToken}`;
     } else if (provider === 'slack') {
         const clientId = process.env.SLACK_CLIENT_ID;
-        // user_scope vs scope depending on slack bot vs user install. usually chat:write for bot
-        url = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=chat:write&state=${stateToken}`;
+        url = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=chat:write,channels:history,channels:read,search:read&state=${stateToken}`;
     } else if (provider === 'discord') {
         const clientId = process.env.DISCORD_CLIENT_ID;
         url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=webhook.incoming&state=${stateToken}`;
+    } else if (provider === 'github') {
+        const clientId = process.env.GITHUB_CLIENT_ID;
+        url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo&state=${stateToken}`;
     } else {
         return res.status(400).json({ error: 'Unsupported provider' });
     }
@@ -224,6 +226,24 @@ router.post('/:provider/callback', async (req: AuthRequest, res) => {
                 credentials = { token: tokenData.access_token }; // or bot token depending on install
                 connectionName = 'Discord Connection';
             }
+        } else if (provider === 'github') {
+            const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json' 
+                },
+                body: JSON.stringify({
+                    client_id: process.env.GITHUB_CLIENT_ID,
+                    client_secret: process.env.GITHUB_CLIENT_SECRET,
+                    code,
+                    redirect_uri: redirectUri
+                })
+            });
+            const tokenData = await tokenRes.json();
+            if (!tokenRes.ok || tokenData.error) throw new Error(tokenData.error_description || 'Failed to exchange GitHub code');
+            credentials = { token: tokenData.access_token };
+            connectionName = 'GitHub Connection';
         }
     } catch (err: any) {
         return res.status(400).json({ error: err.message });

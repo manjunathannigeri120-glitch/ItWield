@@ -174,6 +174,7 @@ function ConnectionsManager() {
         <Button onClick={handleConnectGoogle} variant="outline">Connect Google Sheets</Button>
         <Button onClick={handleConnectSlack} variant="outline">Connect Slack</Button>
         <Button onClick={handleConnectDiscord} variant="outline">Connect Discord</Button>
+        <Button onClick={() => handleOAuthConnect('github')} variant="outline">Connect GitHub</Button>
       </div>
 
       <div className="rounded-md border">
@@ -185,7 +186,9 @@ function ConnectionsManager() {
               <div key={c.id} className="flex items-center justify-between p-4">
                 <div className="flex flex-col">
                   <span className="font-medium">{c.name} ({c.provider})</span>
-                  <span className="text-xs text-muted-foreground">Status: {c.status}</span>
+                  <span className="text-xs text-muted-foreground mt-1">Status: {c.status === 'active' ? 'Connected' : 'Action Required'}</span>
+                  <span className="text-xs text-muted-foreground">Last updated: {new Date(c.updated_at).toLocaleString()}</span>
+                  {c.metadata?.capabilities && <span className="text-xs text-muted-foreground">Capabilities: {c.metadata.capabilities.join(', ')}</span>}
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => handleOAuthConnect(c.provider)}>Reconnect</Button>

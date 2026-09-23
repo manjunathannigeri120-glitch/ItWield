@@ -27,18 +27,25 @@ describe('Business Actions Execution Framework', () => {
     mockUpdate = vi.fn().mockReturnThis();
   });
 
-  const getMockSupabase = (agentCapabilities: string[], workspaceIntegrations: any = {}) => {
+  const getMockSupabase = (agentCapabilities: string[], workspaceIntegrations: any = {}, connectionProvider: string | null = null, connectionCredentials: any = null) => {
     return {
       from: vi.fn((table: string) => {
         const chain: any = {
           update: mockUpdate,
           eq: vi.fn(() => chain),
           select: vi.fn(() => chain),
-          single: vi.fn(() => {
-            if (table === 'tasks') return Promise.resolve({ data: { workspace_id: 'ws-1' } });
-            if (table === 'agents') return Promise.resolve({ data: { capabilities: agentCapabilities } });
-            if (table === 'workspaces') return Promise.resolve({ data: { integrations: workspaceIntegrations } });
-            return Promise.resolve({ data: {} });
+          single: vi.fn(async () => {
+            if (table === 'tasks') return { data: { workspace_id: 'ws-1' } };
+            if (table === 'agents') return { data: { capabilities: agentCapabilities } };
+            if (table === 'workspaces') return { data: { integrations: workspaceIntegrations } };
+            if (table === 'connections') {
+              if (connectionProvider) {
+                 const { encryptObject } = await import('../utils/encryption');
+                 return { data: { provider: connectionProvider, credentials: encryptObject(connectionCredentials), status: 'active' } };
+              }
+              return { data: null };
+            }
+            return { data: {} };
           }),
           insert: vi.fn(() => chain)
         };
@@ -94,6 +101,35 @@ describe('Business Actions Execution Framework', () => {
 
     expect(mockAction.execute).toHaveBeenCalled();
     // Should be completed
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'COMPLETED'
+    }));
+  });
+
+  it('Github connection required (fails if missing)', async () => {
+    const supabase = getMockSupabase(['GITHUB_GET_REPOSITORY_ACTIVITY'], {}); 
+    await CEOService.executeInlineTask(supabase as any, 'task-1', { task_type: 'GITHUB_GET_REPOSITORY_ACTIVITY', repo: 'itwield' }, 'user-1', 'agent-1');
+
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'FAILED',
+      error: expect.stringContaining('CONNECTION_REQUIRED: github')
+    }));
+  });
+
+  it('Github connection valid (executes if connection exists)', async () => {
+    // Return a mock connection for github
+    const supabase = getMockSupabase(['GITHUB_GET_REPOSITORY_ACTIVITY'], {}, 'github', { token: 'mock_token' });
+    
+    // Register action
+    const mockAction = {
+      id: 'GITHUB_GET_REPOSITORY_ACTIVITY',
+      execute: vi.fn().mockResolvedValue({ success: true, verification: { verified: true } })
+    };
+    ActionRegistry.register(mockAction as any);
+    
+    await CEOService.executeInlineTask(supabase as any, 'task-1', { task_type: 'GITHUB_GET_REPOSITORY_ACTIVITY', repo: 'itwield' }, 'user-1', 'agent-1');
+
+    expect(mockAction.execute).toHaveBeenCalled();
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
       status: 'COMPLETED'
     }));

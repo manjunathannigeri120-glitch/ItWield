@@ -94,12 +94,16 @@ import { LeadResearchAction } from './workflows/actions/LeadResearchAction';
 import { CompetitorResearchAction } from './workflows/actions/CompetitorResearchAction';
 import { GenerateBusinessReportAction } from './workflows/actions/GenerateBusinessReportAction';
 import { CompetitorAnalysisAction } from './workflows/actions/CompetitorAnalysisAction';
+import { GithubGetRepositoryActivityAction } from './workflows/actions/GithubGetRepositoryActivityAction';
+import { SlackReadChannelAction } from './workflows/actions/SlackReadChannelAction';
 
 ActionRegistry.register(new WebResearchAction());
 ActionRegistry.register(new LeadResearchAction());
 ActionRegistry.register(new CompetitorResearchAction());
 ActionRegistry.register(new GenerateBusinessReportAction());
 ActionRegistry.register(new CompetitorAnalysisAction());
+ActionRegistry.register(new GithubGetRepositoryActivityAction());
+ActionRegistry.register(new SlackReadChannelAction());
 
 
 app.use('/api/v1', apiRoutes);

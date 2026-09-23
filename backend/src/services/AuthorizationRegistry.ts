@@ -119,6 +119,22 @@ export class AuthorizationRegistry {
       readOnly: true,
       modifiesExternal: false,
     },
+    // External System Read-Only Actions
+    'GITHUB_LIST_REPOSITORIES': { id: 'GITHUB_LIST_REPOSITORIES', name: 'GitHub List Repositories', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'github' },
+    'GITHUB_LIST_ISSUES': { id: 'GITHUB_LIST_ISSUES', name: 'GitHub List Issues', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'github' },
+    'GITHUB_LIST_PULL_REQUESTS': { id: 'GITHUB_LIST_PULL_REQUESTS', name: 'GitHub List PRs', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'github' },
+    'GITHUB_GET_REPOSITORY_ACTIVITY': { id: 'GITHUB_GET_REPOSITORY_ACTIVITY', name: 'GitHub Get Repository Activity', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'github' },
+    'GITHUB_GET_ISSUE': { id: 'GITHUB_GET_ISSUE', name: 'GitHub Get Issue', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'github' },
+    'GITHUB_GET_PULL_REQUEST': { id: 'GITHUB_GET_PULL_REQUEST', name: 'GitHub Get PR', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'github' },
+    
+    'SLACK_LIST_CHANNELS': { id: 'SLACK_LIST_CHANNELS', name: 'Slack List Channels', owningExecutive: 'AI CMO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'slack' },
+    'SLACK_READ_CHANNEL': { id: 'SLACK_READ_CHANNEL', name: 'Slack Read Channel', owningExecutive: 'AI CMO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'slack' },
+    'SLACK_SEARCH_MESSAGES': { id: 'SLACK_SEARCH_MESSAGES', name: 'Slack Search Messages', owningExecutive: 'AI CMO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'slack' },
+    'SLACK_GET_RECENT_ACTIVITY': { id: 'SLACK_GET_RECENT_ACTIVITY', name: 'Slack Get Recent Activity', owningExecutive: 'AI CMO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'slack' },
+
+    'GOOGLE_SHEETS_LIST': { id: 'GOOGLE_SHEETS_LIST', name: 'Google Sheets List', owningExecutive: 'AI CMO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'google_sheets' },
+    'GOOGLE_SHEETS_READ': { id: 'GOOGLE_SHEETS_READ', name: 'Google Sheets Read', owningExecutive: 'AI CMO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'google_sheets' },
+
 
     // High-Risk Actions (Approval Required)
     'PRODUCTION_DEPLOYMENT': {
