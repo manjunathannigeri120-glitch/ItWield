@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+
 import { api } from '@/lib/api';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -129,15 +131,17 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {execs.length === 0 && <p className="text-gray-500 col-span-4">No executives configured.</p>}
           {execs.map(ex => (
-            <Card key={ex.id} className="shadow-sm border-t-4 border-t-blue-500">
-              <CardContent className="pt-6">
-                <div className="font-bold text-lg">{ex.name}</div>
-                <div className="flex items-center mt-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  <span className="text-sm text-gray-600">{ex.status === 'idle' ? 'Operating' : ex.status}</span>
-                </div>
-              </CardContent>
-            </Card>
+            <Link key={ex.id} to={`/agents/${ex.id}/chat`} className="block">
+              <Card className="shadow-sm border-t-4 border-t-blue-500 hover:bg-muted/50 transition-colors cursor-pointer">
+                <CardContent className="pt-6">
+                  <div className="font-bold text-lg">{ex.name}</div>
+                  <div className="flex items-center mt-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    <span className="text-sm text-gray-600">{ex.status === 'idle' ? 'Operating' : ex.status}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
 
