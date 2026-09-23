@@ -49,7 +49,7 @@ describe('Executive Context Injection', () => {
     expect(prompt).toContain('RivalInc');
     expect(prompt).toContain('[RUNNING] Fix Auth: Fix auth bug');
     expect(prompt).toContain('PRICING PROTECTION [CRITICAL]');
-    expect(prompt).toContain('DO NOT invent completed work');
+    expect(prompt).toContain('Do not invent activity');
   });
 
   it('builds CFO identity correctly', async () => {
@@ -70,8 +70,65 @@ describe('Executive Context Injection', () => {
     expect(prompt).toContain('As AI CMO, your focus is on customers, acquisition, marketing');
   });
 
-  it('includes base system prompt if available', async () => {
+  it('prevents generic refusal for CTO with zero tasks and full company context', async () => {
+    const ctoSupabase: any = {
+      from: vi.fn((table: string) => {
+        if (table === 'workspaces') {
+          return {
+            select: () => ({
+              eq: () => ({
+                single: () => Promise.resolve({
+                  data: {
+                    name: 'NovaDesk AI',
+                    operational_context: JSON.stringify({
+                      industry: 'AI SaaS',
+                      competitors: 'Intercom, Zendesk, Freshdesk, Help Scout'
+                    })
+                  }
+                })
+              })
+            })
+          };
+        }
+        if (table === 'tasks') {
+          return {
+            select: () => ({
+              eq: () => ({
+                in: () => ({
+                  order: () => ({
+                    limit: () => Promise.resolve({
+                      data: [] // Zero active tasks
+                    })
+                  })
+                })
+              })
+            })
+          };
+        }
+        return { select: vi.fn() };
+      })
+    };
+
+    const prompt = await AgentRuntime.buildExecutiveContext(ctoSupabase, { role: 'CTO', name: 'AI CTO', workspace_id: 'ws-nova' });
+    
+    // Explicit directives verification
+    expect(prompt).toContain('You are the AI CTO of this specific company.');
+    expect(prompt).toContain('You have access to the company context provided below.');
+    expect(prompt).toContain('Use only the supplied company/task context when describing current activity.');
+    expect(prompt).toContain('If there is no active task listed above, say there is no active task.');
+    expect(prompt).toContain('Do not say you lack access to company operations or real-time data');
+    expect(prompt).toContain('Do not invent activity');
+
+    // Data verification
+    expect(prompt).toContain('NovaDesk AI');
+    expect(prompt).toContain('AI SaaS');
+    expect(prompt).toContain('Intercom, Zendesk, Freshdesk, Help Scout');
+    expect(prompt).toContain('No active tasks found');
+  });
+
+  it('includes base system prompt if available at the bottom', async () => {
     const prompt = await AgentRuntime.buildExecutiveContext(null, { role: 'CEO', name: 'AI CEO', system_prompt: 'Base prompt.' });
     expect(prompt).toContain('Base prompt.');
+    expect(prompt.endsWith('Base prompt.')).toBe(true);
   });
 });
