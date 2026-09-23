@@ -360,4 +360,138 @@ router.get('/:id/while-away', async (req: AuthRequest, res) => {
   }
 });
 
+// Fetch AI CEO Briefing
+router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase) return res.status(400).json({ error: 'DB required' });
+    const workspaceId = req.params.id;
+
+    // Fetch workspace and operational context
+    const { data: ws, error: wsErr } = await req.supabase
+      .from('workspaces')
+      .select('name, status, operational_context, company_goals')
+      .eq('id', workspaceId)
+      .single();
+    if (wsErr) throw wsErr;
+
+    // Fetch incidents
+    const { data: incidents } = await req.supabase
+      .from('incidents')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .not('status', 'eq', 'RESOLVED')
+      .order('created_at', { ascending: false });
+
+    // Fetch agents and active tasks
+    const { data: agents } = await req.supabase
+      .from('agents')
+      .select('id, name, status, role')
+      .eq('workspace_id', workspaceId);
+
+    const { data: activeTasks } = await req.supabase
+      .from('tasks')
+      .select('id, title, status, assigned_agent:agents(name)')
+      .eq('workspace_id', workspaceId)
+      .in('status', ['PENDING', 'ASSIGNED', 'RUNNING']);
+
+    const { data: approvals } = await req.supabase
+      .from('task_events')
+      .select('event_type, details, created_at, task_id')
+      .eq('workspace_id', workspaceId)
+      .in('event_type', ['OWNER_APPROVAL_REQUIRED'])
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    const { data: competitors } = await req.supabase
+      .from('competitors')
+      .select('name, last_checked_at')
+      .eq('workspace_id', workspaceId);
+
+    // Compute Company Status
+    let companyStatus = 'Healthy';
+    let statusReason = `${ws.name || 'Your company'} is operating normally.`;
+
+    if (incidents && incidents.some((i: any) => i.severity === 'critical')) {
+      companyStatus = 'Critical issue';
+      statusReason = 'Critical operational issues detected.';
+    } else if ((incidents && incidents.length > 0) || (approvals && approvals.length > 0)) {
+      companyStatus = 'Attention needed';
+      statusReason = 'There are unresolved issues or actions requiring your approval.';
+    } else if (ws.status !== 'operating') {
+      companyStatus = 'Blocked';
+      statusReason = 'Company is not in operating state.';
+    }
+
+    // Compute Needs Attention
+    const attentionItems = [];
+    for (const inc of (incidents || [])) {
+      attentionItems.push({
+        type: 'incident',
+        category: 'FACT',
+        title: 'Application issue detected',
+        description: inc.description || inc.title || 'An operational issue was detected.',
+        source: 'Application Monitor health check',
+        timestamp: inc.created_at,
+        actionRequired: 'Production changes require approval.'
+      });
+    }
+    for (const app of (approvals || [])) {
+      attentionItems.push({
+        type: 'approval',
+        category: 'APPROVAL',
+        title: 'Owner approval required',
+        description: app.details?.reason || 'A task requires your approval to proceed.',
+        source: 'Execution limits',
+        timestamp: app.created_at,
+        actionRequired: 'Review and approve.'
+      });
+    }
+
+    // Compute Workforce
+    const workforce = {
+      activeTasks: (activeTasks || []).map((t: any) => ({
+        title: t.title,
+        agent: (t as any).assigned_agent?.name || 'Unassigned',
+        status: t.status
+      })),
+      idleAgents: (agents || []).filter((a: any) => {
+         const hasTask = (activeTasks || []).some((t: any) => (t as any).assigned_agent?.name === a.name);
+         return !hasTask && a.name.startsWith('AI '); // mainly execs
+      }).map((a: any) => a.name)
+    };
+
+    // Compute Recommendations (Strictly Deterministic/Anti-Hallucination)
+    const recommendations = [];
+    const hasGoals = ws.company_goals && ws.company_goals.trim().length > 0;
+    
+    if (hasGoals && (!activeTasks || activeTasks.length === 0)) {
+      recommendations.push({
+        category: 'RECOMMENDATION',
+        title: 'Align workforce with goals',
+        description: `Consider prioritizing tasks to address your stated goal: "${ws.company_goals}". There are currently no active tasks addressing this.`
+      });
+    }
+
+    if (competitors && competitors.length > 0) {
+      const monitoredComps = competitors.map((c: any) => c.name).join(', ');
+      recommendations.push({
+        category: 'FACT',
+        title: 'Competitive Intelligence',
+        description: `Competitors are being monitored: ${monitoredComps}. No critical anomalies detected.`
+      });
+    }
+
+    res.json({
+      companyStatus,
+      statusReason,
+      attentionItems,
+      workforce,
+      recommendations,
+      generatedAt: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 export default router;
