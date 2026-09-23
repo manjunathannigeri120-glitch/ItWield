@@ -268,7 +268,7 @@ router.get('/:id/while-away', async (req: AuthRequest, res) => {
       .select('event_type, details, created_at, task_id')
       .eq('workspace_id', workspaceId)
       .gte('created_at', timeWindow)
-      .in('event_type', ['OWNER_APPROVAL_REQUIRED', 'OBSERVATION_BLOCKED'])
+      .in('event_type', ['OWNER_APPROVAL_REQUIRED', 'OBSERVATION_BLOCKED', 'ACTION_AUTHORIZED'])
       .order('created_at', { ascending: false });
 
     const activities: any[] = [];
@@ -309,6 +309,16 @@ router.get('/:id/while-away', async (req: AuthRequest, res) => {
           title: 'Observation Blocked',
           description: ev.details?.reason || 'System is blocked from performing an observation.',
           status: 'info',
+          timestamp: ev.created_at,
+          requiresAttention: false
+        });
+      } else if (ev.event_type === 'ACTION_AUTHORIZED') {
+        activities.push({
+          id: `ev_auth_${Math.random()}`,
+          type: 'authorized',
+          title: 'Action Authorized',
+          description: `Authorized ${ev.details?.action?.toLowerCase().replace(/_/g, ' ')}. ${ev.details?.reason}`,
+          status: 'success',
           timestamp: ev.created_at,
           requiresAttention: false
         });
@@ -436,15 +446,28 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
       });
     }
     for (const app of (approvals || [])) {
-      attentionItems.push({
-        type: 'approval',
-        category: 'APPROVAL',
-        title: 'Owner approval required',
-        description: app.details?.reason || 'A task requires your approval to proceed.',
-        source: 'Execution limits',
-        timestamp: app.created_at,
-        actionRequired: 'Review and approve.'
-      });
+      if (app.details?.authorization_source === 'AuthorizationRegistry') {
+        const executiveName = (agents || []).find((a: any) => a.id === app.details.executive)?.name || 'AI Executive';
+        attentionItems.push({
+          type: 'approval',
+          category: 'APPROVAL',
+          title: 'Action requires approval',
+          description: `${executiveName} prepared a ${app.details.action?.toLowerCase().replace(/_/g, ' ')}.`,
+          source: `Why: ${app.details.reason}`,
+          timestamp: app.created_at,
+          actionRequired: 'Review action'
+        });
+      } else {
+        attentionItems.push({
+          type: 'approval',
+          category: 'APPROVAL',
+          title: 'Owner approval required',
+          description: app.details?.reason || 'A task requires your approval to proceed.',
+          source: 'Execution limits',
+          timestamp: app.created_at,
+          actionRequired: 'Review and approve.'
+        });
+      }
     }
 
     const { data: goalEvents } = await req.supabase

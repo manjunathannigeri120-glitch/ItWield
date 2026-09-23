@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { WorkflowEngine } from '../workflows/engine';
+import { AuthorizationRegistry } from './AuthorizationRegistry';
 
 export class CEOService {
   static async run(supabase: any, workspaceId: string, objective: string, userId: string = 'service_role', sourceWorkflowId?: string, actualNextRunAt?: string) {
@@ -179,6 +180,50 @@ Do not output anything outside the JSON structure.`;
           console.warn(`[CEOService] Agent ${t.agent_id} does not exist. Skipping task creation.`);
           continue;
         }
+
+        const actionId = t.input?.task_type || (t.workflow_id ? 'WORKFLOW_EXECUTION' : 'UNKNOWN');
+        
+        let aiPermissions = {};
+        try {
+          const ctx = JSON.parse(company.operational_context || '{}');
+          aiPermissions = ctx.ai_permissions || {};
+        } catch (_) {}
+
+        const authResult = AuthorizationRegistry.authorize(actionId, aiPermissions);
+
+        if (!authResult.authorized) {
+          console.warn(`[CEOService] Action BLOCKED by registry: ${actionId}. Reason: ${authResult.reason}`);
+          
+          await supabase.from('task_events').insert({
+            task_id: null,
+            workspace_id: workspaceId,
+            event_type: authResult.requiresApproval ? 'OWNER_APPROVAL_REQUIRED' : 'ACTION_BLOCKED',
+            details: {
+              action: actionId,
+              decision: authResult.requiresApproval ? 'OWNER_APPROVAL_REQUIRED' : 'BLOCKED',
+              reason: authResult.reason,
+              executive: t.agent_id,
+              objective: t.title,
+              authorization_source: 'AuthorizationRegistry'
+            }
+          });
+          continue;
+        }
+
+        // Action Authorized
+        await supabase.from('task_events').insert({
+          task_id: null,
+          workspace_id: workspaceId,
+          event_type: 'ACTION_AUTHORIZED',
+          details: {
+            action: actionId,
+            decision: 'AUTHORIZED',
+            reason: authResult.reason,
+            executive: t.agent_id,
+            objective: t.title,
+            authorization_source: 'AuthorizationRegistry'
+          }
+        });
 
         const taskInsert = {
           workspace_id: workspaceId,
