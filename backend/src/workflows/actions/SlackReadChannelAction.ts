@@ -1,9 +1,9 @@
-import { Action, ActionContext, ActionOutput } from './ActionRegistry';
+import { Action, ActionContext } from './Action';
 
 export class SlackReadChannelAction implements Action {
   id = 'SLACK_READ_CHANNEL';
   
-  async execute(config: any, context: ActionContext): Promise<ActionOutput> {
+  async execute(config: any, context: ActionContext): Promise<any> {
     const { connection, channelId, limit = 10 } = config;
     
     if (!connection || !connection.token) {

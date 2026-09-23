@@ -1,9 +1,9 @@
-import { Action, ActionContext, ActionOutput } from './ActionRegistry';
+import { Action, ActionContext } from './Action';
 
 export class GithubGetRepositoryActivityAction implements Action {
   id = 'GITHUB_GET_REPOSITORY_ACTIVITY';
   
-  async execute(config: any, context: ActionContext): Promise<ActionOutput> {
+  async execute(config: any, context: ActionContext): Promise<any> {
     const { connection, owner, repo } = config;
     
     if (!connection || !connection.token) {

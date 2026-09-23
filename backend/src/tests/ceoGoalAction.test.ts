@@ -76,8 +76,9 @@ describe('AI CEO Goal-to-Action Loop', () => {
           order: vi.fn(() => chain),
           limit: vi.fn(() => chain),
           insert: vi.fn(() => chain),
+          update: vi.fn(() => chain),
           single: vi.fn(() => {
-            if (table === 'workspaces') return Promise.resolve({ data: { name: 'Test', company_goals: 'Acquire early customers' } });
+            if (table === 'workspaces') return Promise.resolve({ data: { name: 'Test', company_goals: 'Acquire early customers', status: 'operating', id: 'ws-1' } });
             return Promise.resolve({ data: null });
           }),
           then: (resolve: any) => resolve({ data: table === 'tasks' ? [{ input: { task_type: 'COMPETITIVE_ANALYSIS' } }] : [] })

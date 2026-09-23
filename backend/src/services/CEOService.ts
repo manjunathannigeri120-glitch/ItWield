@@ -358,20 +358,35 @@ Do not output anything outside the JSON structure.`;
   }
 
   static async observeWorkspace(supabase: SupabaseClient, workspaceId: string) {
-    const { data: company } = await supabase.from('workspaces').select('*').eq('id', workspaceId).single();
-    if (!company) return;
+    // Database Enforced Concurrency / Locking
+    const { data: lockData } = await supabase.from('workspaces')
+      .update({ status: 'ceo_evaluating' })
+      .eq('id', workspaceId)
+      .eq('status', 'operating')
+      .select('id')
+      .single();
 
-    let website = null;
+    if (!lockData) {
+      // Workspace is locked or inactive, skip observation
+      return;
+    }
+
+    let shouldUnlock = true;
     try {
-      const ctx = JSON.parse(company.operational_context || '{}');
-      website = ctx.website;
-    } catch (e) {}
+      const { data: company } = await supabase.from('workspaces').select('*').eq('id', workspaceId).single();
+      if (!company) return;
 
-    // Phase 8 - Duplicate Prevention
-    const { data: activeTasks } = await supabase.from('tasks')
-      .select('id, input')
-      .eq('workspace_id', workspaceId)
-      .in('status', ['PENDING', 'ASSIGNED', 'RUNNING']);
+      let website = null;
+      try {
+        const ctx = JSON.parse(company.operational_context || '{}');
+        website = ctx.website;
+      } catch (e) {}
+
+      // Phase 8 - Duplicate Prevention
+      const { data: activeTasks } = await supabase.from('tasks')
+        .select('id, input')
+        .eq('workspace_id', workspaceId)
+        .in('status', ['PENDING', 'ASSIGNED', 'RUNNING']);
 
     // Phase 2 - Goals evaluation
     const hasMonitoring = activeTasks?.some(t => t.input && t.input.task_type === 'APPLICATION_MONITORING');
@@ -434,6 +449,8 @@ Do not output anything outside the JSON structure.`;
     if (triggerCompetitor) triggers.push('COMPETITIVE_ANALYSIS');
 
     if (triggers.length > 0) {
+      await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
+      shouldUnlock = false;
       await CEOService.run(supabase, workspaceId, `SCHEDULED_OBSERVATION:${triggers.join(',')}`, 'service_role');
     }
 
@@ -441,6 +458,11 @@ Do not output anything outside the JSON structure.`;
     ContinuousImprovementService.analyzeWorkspace(supabase, workspaceId).catch((e: any) => {
       console.error('[CEOService] Continuous improvement analysis failed:', e.message);
     });
+    } finally {
+      if (shouldUnlock) {
+        await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
+      }
+    }
   }
 
   static async executeInlineTask(supabase: SupabaseClient, taskId: string, inputData: any, userId: string, agentId?: string) {
@@ -694,6 +716,7 @@ Do not output anything outside the JSON structure.`;
     if (!task) return;
 
     let agentName = task.assigned_agent?.name || 'Unknown Worker';
+    const isCompetitive = task.input?.task_type === 'COMPETITIVE_ANALYSIS';
 
     const prompt = `You are the AI CEO evaluating a completed task.
 Task: ${task.title}
@@ -703,13 +726,14 @@ Error (if any): ${task.error || 'None'}
 Worker Output: ${JSON.stringify(task.output, null, 2)}
 
 Evaluate the worker's execution result.
-Did the worker successfully complete the objective? Did the application health check pass or fail?
-Is there a problem that needs a follow up task?
+Did the worker successfully complete the objective? 
+If this is a competitive analysis, the AI CMO has provided findings. Distinguish between FACT (verified data), RECOMMENDATION (what to do), OWNER_APPROVAL_REQUIRED (major changes), and INSUFFICIENT_DATA.
+Do not present recommendations as facts.
 
 Output strictly valid JSON exactly matching this schema:
 {
   "evaluation": "String describing your evaluation of the worker's result.",
-  "conclusion": "HEALTHY" | "PROBLEM" | "FAILURE" | "CRITICAL",
+  "conclusion": "HEALTHY" | "PROBLEM" | "FAILURE" | "CRITICAL" | "RECOMMENDATION_MADE" | "INSUFFICIENT_DATA",
   "follow_up_tasks": [
     {
       "title": "String",
@@ -718,9 +742,12 @@ Output strictly valid JSON exactly matching this schema:
       "delegate_to_role": "CTO" | "Application Monitor" | "None"
     }
   ],
-  "owner_update": "String concisely summarizing the outcome and any next steps for the owner."
+  "owner_update": "String concisely summarizing the outcome and any next steps for the owner.",
+  "facts": ["String (Verified fact only)"],
+  "recommendation_requires_approval": boolean
 }`;
 
+    const { OpenAI } = require('openai');
     const openai = new OpenAI({
       apiKey: process.env.OPENROUTER_API_KEY || 'mock',
       baseURL: 'https://openrouter.ai/api/v1',
@@ -729,7 +756,7 @@ Output strictly valid JSON exactly matching this schema:
 
     let ceoEvaluation;
     try {
-      if (process.env.OPENROUTER_API_KEY) {
+      if (process.env.OPENROUTER_API_KEY && process.env.NODE_ENV !== 'test') {
         const response = await openai.chat.completions.create({
           model: 'openrouter/free',
           messages: [{ role: 'system', content: prompt }],
@@ -737,12 +764,26 @@ Output strictly valid JSON exactly matching this schema:
         });
         ceoEvaluation = JSON.parse(response.choices[0].message.content || '{}');
       } else {
-        ceoEvaluation = {
-          evaluation: 'Mock evaluation. Assuming healthy for test.',
-          conclusion: 'HEALTHY',
-          follow_up_tasks: [],
-          owner_update: 'Task evaluated. Result looks fine.'
-        };
+        if (isCompetitive) {
+           const hasInsufficient = task.output?.findings?.includes('INSUFFICIENT_DATA');
+           ceoEvaluation = {
+             evaluation: hasInsufficient ? 'Not enough data to form a strategic recommendation.' : 'AI CMO reviewed the competitive data. I agree we should evaluate addressing these customer needs.',
+             conclusion: hasInsufficient ? 'INSUFFICIENT_DATA' : 'RECOMMENDATION_MADE',
+             follow_up_tasks: [],
+             owner_update: hasInsufficient ? 'Competitor Analyst found insufficient data.' : 'AI CMO completed competitive analysis. I recommend we evaluate a product improvement.',
+             facts: task.output?.findings || [],
+             recommendation_requires_approval: !hasInsufficient
+           };
+        } else {
+          ceoEvaluation = {
+            evaluation: 'Mock evaluation. Assuming healthy for test.',
+            conclusion: 'HEALTHY',
+            follow_up_tasks: [{ title: 'Follow up', description: 'desc', priority: 'medium', delegate_to_role: 'CTO' }],
+            owner_update: 'Task evaluated. Result looks fine.',
+            facts: [],
+            recommendation_requires_approval: false
+          };
+        }
       }
     } catch (e: any) {
       console.error('[CEOService] Feedback loop failed:', e);
@@ -756,6 +797,61 @@ Output strictly valid JSON exactly matching this schema:
       event_type: 'CEO_EVALUATION',
       details: ceoEvaluation
     });
+
+    // Handle Competitive Analysis specific workflow
+    if (isCompetitive) {
+      // 1. Record Facts to Company Memory
+      if (ceoEvaluation.facts && ceoEvaluation.facts.length > 0) {
+        for (const fact of ceoEvaluation.facts) {
+          if (fact.includes('INSUFFICIENT_DATA')) continue;
+          await CompanyMemoryService.createMemory({
+            workspaceId,
+            memoryType: 'FACT',
+            title: 'Competitive Observation',
+            content: fact,
+            sourceType: 'TASK',
+            sourceId: taskId,
+            importance: 'medium',
+            createdBy: 'SYSTEM'
+          });
+        }
+      }
+
+      // 2. Continuous Improvement Proposal if recommendation made
+      if (ceoEvaluation.conclusion === 'RECOMMENDATION_MADE' && !ceoEvaluation.facts?.includes('INSUFFICIENT_DATA')) {
+        const proposalId = await ContinuousImprovementService.createProposal(supabase, {
+          workspaceId,
+          title: 'Proposed Product Improvement from Competitive Analysis',
+          category: 'COMPETITIVE',
+          pattern: 'Competitor feature gap detected',
+          problem: 'Competitors have detailed strengths/weaknesses that we may need to address.',
+          proposedSolution: ceoEvaluation.evaluation || 'Evaluate strategic response to competitor features.',
+          evidence: { 
+            facts: ceoEvaluation.facts,
+            interpretation: 'Competitor data analyzed by AI CMO',
+            recommendation: ceoEvaluation.evaluation,
+            sourceIds: [taskId],
+            windowDays: 30,
+            counts: { observationCount: ceoEvaluation.facts.length }
+          },
+          confidence: 'medium',
+          sourceType: 'COMPETITOR_PATTERN',
+          sourceIds: [taskId],
+          riskLevel: ceoEvaluation.recommendation_requires_approval ? 'HIGH' : 'LOW',
+          routedToExecutive: 'AI CEO',
+          fingerprint: `comp_analysis_${taskId}`
+        });
+
+        if (proposalId && ceoEvaluation.recommendation_requires_approval) {
+           await supabase.from('task_events').insert({
+             task_id: taskId,
+             workspace_id: workspaceId,
+             event_type: 'OWNER_APPROVAL_REQUIRED',
+             details: { reason: 'Major product change suggested based on verified competitive evidence.', proposalId }
+           });
+        }
+      }
+    }
 
     if (ceoEvaluation.conclusion === 'HEALTHY' || ceoEvaluation.conclusion === 'SUCCESS') {
       await CompanyMemoryService.recordOutcome(workspaceId, `Successful outcome: ${task.title}`, ceoEvaluation.owner_update || ceoEvaluation.evaluation, taskId, 'SYSTEM', supabase);

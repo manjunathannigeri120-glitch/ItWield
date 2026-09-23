@@ -4,18 +4,20 @@ import { ActionRegistry } from '../workflows/actions/ActionRegistry';
 import { AuthorizationRegistry } from '../services/AuthorizationRegistry';
 
 vi.mock('openai', () => {
-  return {
-    default: function() {
-      return {
-        chat: {
-          completions: {
-            create: vi.fn().mockResolvedValue({
-              choices: [{ message: { content: JSON.stringify({}) } }]
-            })
-          }
+  const mockOpenAI = function() {
+    return {
+      chat: {
+        completions: {
+          create: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: JSON.stringify({}) } }]
+          })
         }
-      };
-    }
+      }
+    };
+  };
+  return {
+    default: mockOpenAI,
+    OpenAI: mockOpenAI
   };
 });
 

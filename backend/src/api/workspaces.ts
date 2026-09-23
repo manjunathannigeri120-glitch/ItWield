@@ -115,6 +115,20 @@ router.post('/:id/analyze-company', async (req: AuthRequest, res) => {
 
     if (updateErr) throw updateErr;
 
+    if (goals && goals.trim().length > 0) {
+      const { CompanyMemoryService } = require('../services/CompanyMemoryService');
+      await CompanyMemoryService.createMemory({
+        workspaceId,
+        memoryType: 'GOAL',
+        title: 'Primary Company Goal',
+        content: goals,
+        sourceType: 'OWNER',
+        sourceId: 'onboarding_goal',
+        importance: 'high',
+        createdBy: req.user?.id || 'SYSTEM'
+      }, req.supabase).catch((e: any) => console.error('[Workspaces] Failed to create onboarding goal memory:', e));
+    }
+
     // Handle competitors
     if (req.body.competitors) {
       const compList = req.body.competitors.split(',').map((c: string) => c.trim()).filter(Boolean);

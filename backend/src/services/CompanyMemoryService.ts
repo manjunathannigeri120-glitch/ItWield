@@ -23,8 +23,10 @@ export interface CreateMemoryParams {
 }
 
 export class CompanyMemoryService {
-  static async createMemory(params: CreateMemoryParams) {
+  static async createMemory(params: CreateMemoryParams, supabaseClient?: any) {
     if (!params.workspaceId) throw new Error('Workspace ID is required');
+    const client = supabaseClient || supabase;
+    
     // Security: block secret storage
     const lower = params.content.toLowerCase();
     if (lower.includes('password') || lower.includes('sk-ant-') || lower.includes('api_key') || lower.includes('secret_key')) {
@@ -32,7 +34,7 @@ export class CompanyMemoryService {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('company_memory')
         .upsert(
           {

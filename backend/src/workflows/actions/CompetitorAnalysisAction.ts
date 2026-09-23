@@ -34,42 +34,58 @@ export class CompetitorAnalysisAction implements Action {
       if (!competitors || competitors.length === 0) {
         return {
           success: true,
-          competitorsFound: 0,
-          summary: 'No verified competitors currently tracked in the database. Consider adding primary competitors to begin competitive intelligence monitoring.'
+          analysisType: 'COMPETITIVE_ANALYSIS',
+          competitorsAnalyzed: [],
+          observations: [],
+          findings: ['INSUFFICIENT_DATA'],
+          recommendations: ['Add primary competitors to the workspace to enable competitive intelligence monitoring.'],
+          summary: 'No verified competitors currently tracked in the database.',
+          verification: { verified: true, checks: ['database query successful', 'competitor count is 0'] }
         };
       }
 
-      // Analyze the data deterministically
+      // Format observation list
+      const observations = competitors.map(c => `Competitor ${c.name} tracked since ${new Date(c.created_at).toLocaleDateString()}.`);
+      const findings = [];
+      const recommendations = [];
+
       const recentCompetitors = competitors.filter(c => {
         const ageInDays = (Date.now() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24);
         return ageInDays <= 30; // Added in last 30 days
       });
 
-      const knownWeaknessesCount = competitors.filter(c => c.weaknesses && c.weaknesses.length > 5).length;
-      const strengthsCount = competitors.filter(c => c.strengths && c.strengths.length > 5).length;
-
-      let insights = `Analyzed ${competitors.length} known competitors. `;
-      
       if (recentCompetitors.length > 0) {
-        insights += `Detected ${recentCompetitors.length} recently tracked market entrants. `;
+        findings.push(`Detected ${recentCompetitors.length} recently tracked market entrants or updates.`);
       }
-      if (knownWeaknessesCount > 0) {
-        insights += `Identified documented weaknesses in ${knownWeaknessesCount} competitors that can be leveraged. `;
+
+      // Check if we have substantive data
+      const hasDetailedData = competitors.some(c => (c.strengths && c.strengths.length > 5) || (c.weaknesses && c.weaknesses.length > 5));
+
+      if (hasDetailedData) {
+        findings.push('Substantive competitive intelligence data detected.');
+        recommendations.push('Evaluate if NovaDesk AI should address the identical customer need based on competitor features.');
+      } else {
+        findings.push('INSUFFICIENT_DATA: No detailed strengths or weaknesses found in competitive observations.');
+        recommendations.push('Initiate automated web research on these competitors to gather verified features and weaknesses.');
       }
 
       return {
         success: true,
-        competitorsFound: competitors.length,
-        recentAdditions: recentCompetitors.length,
-        analyzedAt: new Date().toISOString(),
-        summary: insights.trim() || 'Completed competitive landscape analysis.'
+        analysisType: 'COMPETITIVE_ANALYSIS',
+        competitorsAnalyzed: competitors.map(c => c.name),
+        observations,
+        findings,
+        recommendations,
+        summary: `Analyzed ${competitors.length} known competitors. Found ${findings.length} patterns.`,
+        verification: { verified: true, checks: ['database query successful', `analyzed ${competitors.length} records`] }
       };
 
     } catch (err: any) {
       return {
         success: false,
+        summary: `Analysis failed: ${err.message}`,
         error: err.message,
-        summary: `Competitor analysis failed: ${err.message}`
+        verification: { verified: false, checks: ['database query threw an exception'] }
       };
     }
   }
