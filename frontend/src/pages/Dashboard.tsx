@@ -84,8 +84,14 @@ export default function Dashboard() {
       if (!ws) return;
       setWorkspace(ws);
 
-      const mRes = await api.get(`/workspaces/${ws.id}/missions`);
-      setMissions(mRes.data || []);
+      let missionsData = [];
+      try {
+        const mRes = await api.get(`/workspaces/${ws.id}/missions`);
+        missionsData = mRes.data || [];
+      } catch (e) {
+        console.error('Failed to load missions, continuing with empty list', e);
+      }
+      setMissions(missionsData);
 
       const [whileAwayRes, agentsRes, ceoBriefingRes] = await Promise.all([
         api.get(`/workspaces/${ws.id}/while-away`),

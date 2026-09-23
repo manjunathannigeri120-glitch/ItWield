@@ -9,6 +9,16 @@ router.get('/', async (req: any, res) => {
   const { workspaceId } = req.params;
   const supabase = req.supabase;
 
+  if (!supabase) {
+    console.error('[Missions API] req.supabase is missing');
+    return res.status(500).json({ error: 'Database connection missing' });
+  }
+
+  if (!workspaceId) {
+    console.error('[Missions API] workspaceId is missing');
+    return res.status(400).json({ error: 'Workspace ID required' });
+  }
+
   try {
     const { data, error } = await supabase
       .from('business_missions')
@@ -16,10 +26,19 @@ router.get('/', async (req: any, res) => {
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    res.json(data);
+    if (error) {
+      console.error('[Missions API] Supabase query error:', error);
+      throw error;
+    }
+    
+    res.json(data || []);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error('[Missions API] Exception in GET /:', error);
+    res.status(500).json({ 
+      error: error.message || 'Internal server error fetching missions',
+      details: error.details || undefined,
+      code: error.code || undefined
+    });
   }
 });
 
@@ -73,7 +92,13 @@ router.get('/:missionId', async (req: any, res) => {
       .eq('workspace_id', workspaceId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Mission not found' });
+      }
+      console.error('[Missions API] Supabase query error (GET /:id):', error);
+      throw error;
+    }
 
     const { data: events } = await supabase
       .from('mission_events')
@@ -131,7 +156,13 @@ router.post('/:missionId/:action', async (req: any, res) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Mission not found' });
+      }
+      console.error('[Missions API] Supabase query error (POST action):', error);
+      throw error;
+    }
 
     await supabase.from('mission_events').insert({
       mission_id: missionId,
