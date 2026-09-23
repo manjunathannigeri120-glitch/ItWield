@@ -57,7 +57,8 @@ export default function Dashboard() {
       setMissionForm({ type: 'GET_CUSTOMERS', title: '', description: '', success_criteria: '', objective: '' });
       loadData();
     } catch (e: any) {
-      alert("Error creating mission: " + e.message);
+      const errMsg = e.response?.data?.error || e.message;
+      alert("Error creating mission: " + errMsg);
     }
   };
 

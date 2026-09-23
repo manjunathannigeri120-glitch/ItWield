@@ -48,6 +48,23 @@ router.post('/', async (req: any, res) => {
   const supabase = req.supabase;
   const userId = req.user.id;
 
+  if (!supabase) {
+    console.error('[Missions API POST] req.supabase is missing');
+    return res.status(500).json({ error: 'Database connection missing' });
+  }
+
+  // Validation
+  const validTypes = ['GET_CUSTOMERS', 'UNDERSTAND_COMPETITORS', 'IMPROVE_PRODUCT', 'MONITOR_BUSINESS', 'REDUCE_MANUAL_WORK'];
+  if (!type || !validTypes.includes(type)) {
+    return res.status(400).json({ error: `Invalid or missing mission type. Expected one of: ${validTypes.join(', ')}` });
+  }
+  if (!title || typeof title !== 'string' || title.trim() === '') {
+    return res.status(400).json({ error: 'Mission title is required' });
+  }
+  if (!objective || typeof objective !== 'string' || objective.trim() === '') {
+    return res.status(400).json({ error: 'Mission objective is required' });
+  }
+
   try {
     const { data, error } = await supabase
       .from('business_missions')
@@ -65,18 +82,31 @@ router.post('/', async (req: any, res) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('[Missions API POST] Insert error:', { error, workspaceId, userId, type });
+      // Detect RLS violation
+      if (error.message && error.message.includes('row-level security policy')) {
+        return res.status(403).json({ error: 'Unauthorized to create missions in this workspace' });
+      }
+      throw error;
+    }
 
-    await supabase.from('mission_events').insert({
+    const { error: eventError } = await supabase.from('mission_events').insert({
       mission_id: data.id,
       workspace_id: workspaceId,
       event_type: 'MISSION_CREATED',
       details: { created_by: userId }
     });
+    
+    if (eventError) {
+      console.error('[Missions API POST] Failed to insert mission_event:', eventError);
+      // We don't fail the whole request just because event log failed, but we log it.
+    }
 
-    res.json(data);
+    res.status(201).json(data);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error('[Missions API POST] Exception:', error);
+    res.status(500).json({ error: 'Internal server error creating mission' });
   }
 });
 
