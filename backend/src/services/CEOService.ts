@@ -170,7 +170,7 @@ Do not output anything outside the JSON structure.`;
 
         if (ctErr) {
           if (ctErr.code === '23505') {
-            console.log(`[CEOService] Idempotency catch: Task for observation workflow ${sourceWorkflowId} is already active. Skipping.`);
+            console.log(`[CEOService] Idempotency catch: Task for observation workflow ${sourceWorkflowId} or type ${t.input?.task_type} is already active. Skipping.`);
             continue;
           }
           console.error(`[CEOService] Failed to create task:`, ctErr);

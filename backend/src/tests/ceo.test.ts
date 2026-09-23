@@ -181,7 +181,7 @@ describe('MVP Autonomous Operations Loop', () => {
        expect(inserts.length).toBeGreaterThan(0);
     });
 
-    it('Phase 2 & 8: duplicate monitoring task prevention', async () => {
+    it('Phase 2 & 8: duplicate monitoring task prevention (website configured but task running)', async () => {
        const supabaseRunningTask = {
          from: vi.fn((table: string) => {
            if (table === 'workspaces') return createQueryChain({ id: 'ws-1', operational_context: JSON.stringify({ website: 'https://test.app' }) });
@@ -193,6 +193,29 @@ describe('MVP Autonomous Operations Loop', () => {
        const spy = vi.spyOn(CEOService, 'run');
        await CEOService.observeWorkspace(supabaseRunningTask as any, 'ws-1');
        expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('Database Enforced Concurrency: handles simultaneous scheduler tick gracefully without duplicate tasks', async () => {
+       // Simulate that observeWorkspace bypassed the JS check because no task existed yet,
+       // but the database enforces the unique partial index (code 23505)
+       const supabaseConcurrentRace = {
+         from: vi.fn((table: string) => {
+           if (table === 'workspaces') return createQueryChain({ id: 'ws-1', name: 'ItWield' });
+           if (table === 'tasks') {
+             // Mock the insert to return a unique constraint error
+             return createQueryChain({}, { code: '23505', message: 'duplicate key value violates unique constraint "idx_unique_active_monitoring_task"' });
+           }
+           if (table === 'agents') return createQueryChain([]);
+           if (table === 'workflows') return createQueryChain([]);
+           return createQueryChain(null);
+         }),
+         auth: { admin: { getUserById: vi.fn().mockResolvedValue({ data: { user: { email: 'x' } } }) } }
+       };
+
+       // Running the task creation logic should catch the 23505 and not throw, returning 0 tasks created.
+       const result = await CEOService.run(supabaseConcurrentRace as any, 'ws-1', 'SCHEDULED_OBSERVATION', 'user-1');
+       expect(result!.tasksCreated).toBe(0);
+       expect(result!.status).toBe('COMPLETED');
     });
 
     it('Phase 5 & 6: CEO evaluation escalates chain depths', async () => {
