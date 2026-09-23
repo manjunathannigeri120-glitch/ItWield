@@ -115,6 +115,12 @@ describe('MVP Autonomous Operations Loop', () => {
         if (table === 'task_events') {
           return createQueryChain(null);
         }
+        if (table === 'improvement_proposals') {
+          return createQueryChain([]); // No active proposals by default
+        }
+        if (table === 'company_memory') {
+          return createQueryChain([]); // No memory by default
+        }
         return createQueryChain(null);
       }),
       auth: {

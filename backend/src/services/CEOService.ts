@@ -3,6 +3,8 @@ import OpenAI from 'openai';
 import { WorkflowEngine } from '../workflows/engine';
 import { AuthorizationRegistry } from './AuthorizationRegistry';
 import { CompanyMemoryService } from './CompanyMemoryService';
+import { ContinuousImprovementService } from './ContinuousImprovementService';
+
 
 export class CEOService {
   static async run(supabase: any, workspaceId: string, objective: string, userId: string = 'service_role', sourceWorkflowId?: string, actualNextRunAt?: string) {
@@ -40,6 +42,10 @@ export class CEOService {
     const relevantMemory = await CompanyMemoryService.getRelevantMemory(workspaceId, 'CEO', 20, supabase);
     const memoryContext = CompanyMemoryService.formatMemoryForContext(relevantMemory);
 
+    // Fetch active improvement proposals for CEO context
+    const activeProposals = await ContinuousImprovementService.getActiveProposals(supabase, workspaceId, 5);
+    const improvementContext = ContinuousImprovementService.formatProposalsForContext(activeProposals);
+
     const systemPrompt = `You are the AI CEO of a company. Your job is to orchestrate the workforce to accomplish the owner's objective.
     
 Company Context:	
@@ -48,6 +54,7 @@ Industry: ${company.industry || 'Unknown'}
 Goals: ${company.company_goals || 'Unknown'}
 Policies: ${company.policies || 'None'}
 ${memoryContext}
+${improvementContext}
 
 Available Workforce (Agents):
 ${JSON.stringify(agents, null, 2)}
@@ -428,6 +435,11 @@ Do not output anything outside the JSON structure.`;
     if (triggers.length > 0) {
       await CEOService.run(supabase, workspaceId, `SCHEDULED_OBSERVATION:${triggers.join(',')}`, 'service_role');
     }
+
+    // Continuous Improvement: Analyze workspace for patterns (fire-and-forget, fail-safe)
+    ContinuousImprovementService.analyzeWorkspace(supabase, workspaceId).catch((e: any) => {
+      console.error('[CEOService] Continuous improvement analysis failed:', e.message);
+    });
   }
 
   static async executeInlineTask(supabase: SupabaseClient, taskId: string, inputData: any, userId: string, agentId?: string) {

@@ -374,7 +374,7 @@ router.get('/:id/while-away', async (req: AuthRequest, res) => {
 router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
   try {
     if (!req.supabase) return res.status(400).json({ error: 'DB required' });
-    const workspaceId = req.params.id;
+    const workspaceId = String(req.params.id);
 
     // Fetch workspace and operational context
     const { data: ws, error: wsErr } = await req.supabase
@@ -550,6 +550,9 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
       incidents: rawMemory?.filter(m => m.memory_type === 'INCIDENT') || []
     };
 
+    // Fetch active improvement proposals for briefing
+    const activeImprovements = await ContinuousImprovementService.getActiveProposals(req.supabase, workspaceId, 5);
+
     res.json({
       companyMemory,
       companyStatus,
@@ -559,6 +562,19 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
       activeGoals,
       recommendations,
       approvalHistory,
+      improvements: activeImprovements.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        category: p.category,
+        pattern: p.pattern,
+        evidenceSummary: (p.evidence as any)?.facts?.join(' ') || '',
+        confidence: p.confidence,
+        status: p.state,
+        riskLevel: p.risk_level,
+        recommendation: (p.evidence as any)?.recommendation || '',
+        routedTo: p.routed_to_executive,
+        createdAt: p.created_at,
+      })),
       generatedAt: new Date().toISOString()
     });
   } catch (error: any) {
@@ -570,6 +586,8 @@ export default router;
 
 import { AuthorizationRegistry } from '../services/AuthorizationRegistry';
 import { CompanyMemoryService } from '../services/CompanyMemoryService';
+import { ContinuousImprovementService } from '../services/ContinuousImprovementService';
+
 
 router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) => {
   try {
@@ -754,5 +772,138 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
     res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ─── AI Improvements API ───────────────────────────────────────────────────
+
+/**
+ * GET /api/v1/workspaces/:id/improvements
+ * Returns active improvement proposals for the workspace.
+ * Workspace authorization is enforced — only workspace owner can access.
+ */
+router.get('/:id/improvements', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase) return res.status(400).json({ error: 'DB required' });
+    const workspaceId = String(req.params.id);
+
+    // Verify workspace ownership
+    const { data: ws, error: wsErr } = await req.supabase
+      .from('workspaces')
+      .select('id, owner_id')
+      .eq('id', workspaceId)
+      .single();
+
+    if (wsErr || !ws) return res.status(404).json({ error: 'Workspace not found' });
+    if (ws.owner_id !== req.user?.id) return res.status(403).json({ error: 'Unauthorized' });
+
+    const proposals = await ContinuousImprovementService.getActiveProposals(req.supabase, workspaceId, 20);
+
+    res.json({
+      improvements: proposals.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        category: p.category,
+        pattern: p.pattern,
+        evidenceSummary: Array.isArray(p.evidence?.facts) ? p.evidence.facts.join(' ') : '',
+        confidence: p.confidence,
+        status: p.state,
+        riskLevel: p.risk_level,
+        recommendation: p.evidence?.recommendation || '',
+        routedTo: p.routed_to_executive,
+        createdAt: p.created_at,
+      })),
+      total: proposals.length
+    });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/v1/workspaces/:id/improvements/:improvId
+ * Returns a single improvement proposal by ID.
+ */
+router.get('/:id/improvements/:improvId', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase) return res.status(400).json({ error: 'DB required' });
+    const workspaceId = String(req.params.id);
+    const improvId = String(req.params.improvId);
+
+    const { data: ws, error: wsErr } = await req.supabase
+      .from('workspaces')
+      .select('id, owner_id')
+      .eq('id', workspaceId)
+      .single();
+
+    if (wsErr || !ws) return res.status(404).json({ error: 'Workspace not found' });
+    if (ws.owner_id !== req.user?.id) return res.status(403).json({ error: 'Unauthorized' });
+
+    const { data: proposal, error: pErr } = await req.supabase
+      .from('improvement_proposals')
+      .select('*')
+      .eq('id', improvId)
+      .eq('workspace_id', workspaceId)
+      .single();
+
+    if (pErr || !proposal) return res.status(404).json({ error: 'Improvement not found' });
+
+    res.json(proposal);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/v1/workspaces/:id/improvements/:improvId/dismiss
+ * Owner can dismiss a proposed improvement.
+ * Records decision in company memory.
+ */
+router.post('/:id/improvements/:improvId/dismiss', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase) return res.status(400).json({ error: 'DB required' });
+    const workspaceId = String(req.params.id);
+    const improvId = String(req.params.improvId);
+    const reason = req.body?.reason || '';
+
+    // Verify workspace ownership
+    const { data: ws, error: wsErr } = await req.supabase
+      .from('workspaces')
+      .select('id, owner_id')
+      .eq('id', workspaceId)
+      .single();
+
+    if (wsErr || !ws) return res.status(404).json({ error: 'Workspace not found' });
+    if (ws.owner_id !== req.user?.id) return res.status(403).json({ error: 'Unauthorized' });
+
+    const { data: proposal, error: pErr } = await req.supabase
+      .from('improvement_proposals')
+      .select('title, state')
+      .eq('id', improvId)
+      .eq('workspace_id', workspaceId)
+      .single();
+
+    if (pErr || !proposal) return res.status(404).json({ error: 'Improvement not found' });
+    if (!['PROPOSED', 'VALIDATING'].includes(proposal.state)) {
+      return res.status(400).json({ error: 'Only PROPOSED or VALIDATING proposals can be dismissed.' });
+    }
+
+    const dismissed = await ContinuousImprovementService.dismissProposal(req.supabase, improvId, workspaceId);
+
+    if (!dismissed) return res.status(400).json({ error: 'Failed to dismiss proposal.' });
+
+    // Record owner dismissal as a decision in company memory
+    await CompanyMemoryService.recordDecision(
+      workspaceId,
+      `Owner dismissed improvement: ${proposal.title}`,
+      `Owner explicitly dismissed improvement proposal: "${proposal.title}". ${reason ? `Reason: ${reason}` : ''}`,
+      `improvement:${improvId}`,
+      'OWNER',
+      req.supabase
+    );
+
+    res.json({ success: true, message: 'Improvement dismissed.' });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
   }
 });

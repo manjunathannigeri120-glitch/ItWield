@@ -83,6 +83,7 @@ export default function Dashboard() {
 
   const execs = agents.filter(a => a.name.startsWith('AI '));
   const workers = agents.filter(a => !a.name.startsWith('AI '));
+  const improvements = ceoBriefingData?.improvements || [];
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8 bg-slate-50 min-h-screen">
@@ -295,6 +296,82 @@ export default function Dashboard() {
               )}
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* AI IMPROVEMENTS SECTION */}
+      {improvements.length > 0 && (
+        <div className="mt-8 border-t border-gray-200 pt-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-700">AI Improvements</h2>
+            <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+              {improvements.length} pattern{improvements.length !== 1 ? 's' : ''} detected
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {improvements.map((imp: any) => (
+              <div key={imp.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <span className="text-xs font-bold tracking-wider text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded uppercase">
+                      {imp.category}
+                    </span>
+                    <h4 className="font-bold text-gray-900 mt-2">{imp.title}</h4>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full ml-2 shrink-0
+                    ${imp.confidence === 'high' ? 'bg-green-50 text-green-700 border border-green-200' : ''}
+                    ${imp.confidence === 'medium' ? 'bg-amber-50 text-amber-700 border border-amber-200' : ''}
+                    ${imp.confidence === 'low' ? 'bg-gray-50 text-gray-600 border border-gray-200' : ''}
+                  `}>
+                    {imp.confidence?.toUpperCase()} confidence
+                  </span>
+                </div>
+
+                {/* Pattern Detected */}
+                <div className="mb-3">
+                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Pattern Detected</div>
+                  <p className="text-sm text-gray-700">{imp.pattern}</p>
+                </div>
+
+                {/* Evidence */}
+                {imp.evidenceSummary && (
+                  <div className="mb-3">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Evidence</div>
+                    <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">{imp.evidenceSummary}</p>
+                  </div>
+                )}
+
+                {/* Recommendation */}
+                {imp.recommendation && (
+                  <div className="mb-3">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Recommendation</div>
+                    <p className="text-sm text-gray-700 italic">{imp.recommendation}</p>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-0.5 rounded font-medium
+                      ${imp.status === 'PROPOSED' ? 'bg-blue-50 text-blue-700' : ''}
+                      ${imp.status === 'DISMISSED' ? 'bg-gray-50 text-gray-400' : ''}
+                      ${imp.status === 'COMPLETED' ? 'bg-green-50 text-green-700' : ''}
+                      ${imp.status === 'FAILED' ? 'bg-red-50 text-red-700' : ''}
+                    `}>
+                      {imp.status === 'PROPOSED' ? 'Recommendation' : imp.status}
+                    </span>
+                    {imp.routedTo && (
+                      <span className="text-xs text-gray-400">→ {imp.routedTo}</span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    Did ItWield change anything? {imp.status === 'COMPLETED' ? 'Yes — verified.' : 'No. This is a recommendation only.'}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
