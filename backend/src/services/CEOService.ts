@@ -8,7 +8,7 @@ import { ActionRegistry } from '../workflows/actions/ActionRegistry';
 
 
 export class CEOService {
-  static async run(supabase: any, workspaceId: string, objective: string, userId: string = 'service_role', sourceWorkflowId?: string, actualNextRunAt?: string) {
+  static async run(supabase: any, workspaceId: string, objective: string, userId: string = 'service_role', sourceWorkflowId?: string, actualNextRunAt?: string, missionId?: string) {
     console.log(`[CEOService] Initiating CEO run for workspace: ${workspaceId}`);
     
     // 1. Gather Company Context and Lock Workspace
@@ -154,6 +154,25 @@ Do not output anything outside the JSON structure.`;
               });
             }
           }
+
+          if (taskType === 'LEAD_RESEARCH') {
+            const cmo = agents?.find((a: any) => a.name === 'AI CMO');
+            const assignee = cmo || (agents && agents.length > 0 ? agents[0] : null);
+
+            if (assignee) {
+              generatedTasks.push({
+                title: 'Lead Research',
+                description: `Identify and research potential leads for ${company.name}.`,
+                agent_id: assignee.id,
+                priority: 'high',
+                workflow_id: null,
+                input: {
+                  task_type: 'LEAD_RESEARCH',
+                  delegate_to: assignee.id
+                }
+              });
+            }
+          }
         }
 
         let assessmentText = `Initiating scheduled observation tasks for ${company.name}.`;
@@ -267,6 +286,7 @@ Do not output anything outside the JSON structure.`;
 
         const taskInsert = {
           workspace_id: workspaceId,
+          mission_id: missionId || null,
           title: t.title,
           description: t.description,
           workflow_id: t.workflow_id,
@@ -382,11 +402,37 @@ Do not output anything outside the JSON structure.`;
         website = ctx.website;
       } catch (e) {}
 
-      // Phase 8 - Duplicate Prevention
       const { data: activeTasks } = await supabase.from('tasks')
-        .select('id, input')
+        .select('id, input, mission_id')
         .eq('workspace_id', workspaceId)
         .in('status', ['PENDING', 'ASSIGNED', 'RUNNING']);
+
+    // Phase 1B - Mission Orchestration
+    const { data: missions } = await supabase.from('business_missions')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .eq('status', 'ACTIVE');
+      
+    if (missions && missions.length > 0) {
+      for (const mission of missions) {
+        const missionHasActiveTask = activeTasks?.some(t => t.mission_id === mission.id);
+        if (missionHasActiveTask) continue;
+        
+        let taskType = null;
+        if (mission.type === 'GET_CUSTOMERS') taskType = 'LEAD_RESEARCH';
+        else if (mission.type === 'UNDERSTAND_COMPETITORS') taskType = 'COMPETITIVE_ANALYSIS';
+        else if (mission.type === 'MONITOR_BUSINESS') taskType = 'APPLICATION_MONITORING';
+        else if (mission.type === 'IMPROVE_PRODUCT') taskType = 'PRODUCT_RESEARCH';
+        else if (mission.type === 'REDUCE_MANUAL_WORK') taskType = 'WORKFLOW_DISCOVERY';
+        
+        if (taskType) {
+          shouldUnlock = false;
+          await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
+          await CEOService.run(supabase, workspaceId, `SCHEDULED_OBSERVATION:${taskType}`, 'service_role', undefined, undefined, mission.id);
+          return; // orchestrate one mission per tick to prevent race conditions easily
+        }
+      }
+    }
 
     // Phase 2 - Goals evaluation
     const hasMonitoring = activeTasks?.some(t => t.input && t.input.task_type === 'APPLICATION_MONITORING');

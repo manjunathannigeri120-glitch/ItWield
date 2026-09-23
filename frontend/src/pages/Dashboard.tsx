@@ -11,6 +11,9 @@ export default function Dashboard() {
   const [whileAwayData, setWhileAwayData] = useState<any>(null);
   const [ceoBriefingData, setCeoBriefingData] = useState<any>(null);
   const [agents, setAgents] = useState<any[]>([]);
+  const [missions, setMissions] = useState<any[]>([]);
+  const [showMissionWizard, setShowMissionWizard] = useState(false);
+  const [missionForm, setMissionForm] = useState({ type: 'GET_CUSTOMERS', title: '', description: '', success_criteria: '', objective: '' });
 
   const [selectedApproval, setSelectedApproval] = useState<any>(null);
   const [approvalSubmitting, setApprovalSubmitting] = useState(false);
@@ -46,6 +49,28 @@ export default function Dashboard() {
     setApprovalSubmitting(false);
   };
 
+  const handleCreateMission = async () => {
+    if (!workspace) return;
+    try {
+      await api.post(`/workspaces/${workspace.id}/missions`, missionForm);
+      setShowMissionWizard(false);
+      setMissionForm({ type: 'GET_CUSTOMERS', title: '', description: '', success_criteria: '', objective: '' });
+      loadData();
+    } catch (e: any) {
+      alert("Error creating mission: " + e.message);
+    }
+  };
+
+  const handleMissionAction = async (missionId: string, action: string) => {
+    if (!workspace) return;
+    try {
+      await api.post(`/workspaces/${workspace.id}/missions/${missionId}/${action}`);
+      loadData();
+    } catch (e: any) {
+      alert("Error updating mission: " + e.message);
+    }
+  };
+
   useEffect(() => {
     loadData();
     const interval = setInterval(loadData, 5000);
@@ -58,6 +83,9 @@ export default function Dashboard() {
       const ws = wsRes.data.find((w: any) => w.status === 'operating');
       if (!ws) return;
       setWorkspace(ws);
+
+      const mRes = await api.get(`/workspaces/${ws.id}/missions`);
+      setMissions(mRes.data || []);
 
       const [whileAwayRes, agentsRes, ceoBriefingRes] = await Promise.all([
         api.get(`/workspaces/${ws.id}/while-away`),
@@ -88,6 +116,76 @@ export default function Dashboard() {
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8 bg-slate-50 min-h-screen">
       
+      {showMissionWizard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-lg w-full">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">New Business Mission</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mission Type</label>
+                <select className="w-full border rounded-md p-2 text-sm" value={missionForm.type} onChange={e => setMissionForm({...missionForm, type: e.target.value})}>
+                  <option value="GET_CUSTOMERS">Get Customers (End-to-End)</option>
+                  <option value="UNDERSTAND_COMPETITORS">Understand Competitors</option>
+                  <option value="IMPROVE_PRODUCT">Improve Product</option>
+                  <option value="MONITOR_BUSINESS">Monitor Business Health</option>
+                  <option value="REDUCE_MANUAL_WORK">Reduce Manual Work</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <input type="text" className="w-full border rounded-md p-2 text-sm" placeholder="e.g. Q3 Lead Generation" value={missionForm.title} onChange={e => setMissionForm({...missionForm, title: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Objective / Target Criteria</label>
+                <textarea className="w-full border rounded-md p-2 text-sm" rows={3} placeholder="Describe target customers, competitors to watch, etc." value={missionForm.objective} onChange={e => setMissionForm({...missionForm, objective: e.target.value})} />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
+              <Button variant="outline" onClick={() => setShowMissionWizard(false)}>Cancel</Button>
+              <Button onClick={handleCreateMission} className="bg-indigo-600 hover:bg-indigo-700 text-white">Create Mission</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Missions Section */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900">Active Missions</h2>
+        <Button onClick={() => setShowMissionWizard(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 shadow">
+          + New Business Mission
+        </Button>
+      </div>
+
+      {missions.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {missions.map(m => (
+            <Card key={m.id} className="shadow-sm border border-gray-200 bg-white">
+              <CardContent className="p-6 flex flex-col justify-between h-full">
+                <div>
+                  <div className="flex justify-between items-start mb-3">
+                    <span className={`text-xs font-bold px-2 py-1 rounded uppercase tracking-wider
+                      ${m.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : ''}
+                      ${m.status === 'DRAFT' ? 'bg-gray-100 text-gray-800' : ''}
+                      ${m.status === 'PAUSED' ? 'bg-amber-100 text-amber-800' : ''}
+                    `}>{m.status}</span>
+                    <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">{m.type}</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{m.title}</h3>
+                  <p className="text-sm text-gray-600 line-clamp-3 mb-4">{m.objective}</p>
+                </div>
+                <div className="mt-4 flex gap-2 border-t pt-4">
+                  {m.status === 'DRAFT' || m.status === 'PAUSED' ? (
+                    <Button variant="outline" size="sm" onClick={() => handleMissionAction(m.id, 'activate')} className="w-full hover:bg-green-50 text-green-700 border-green-200">Activate</Button>
+                  ) : m.status === 'ACTIVE' ? (
+                    <Button variant="outline" size="sm" onClick={() => handleMissionAction(m.id, 'pause')} className="w-full text-amber-700 hover:bg-amber-50 border-amber-200">Pause</Button>
+                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
       {/* AI CEO BRIEFING Top Section */}
       <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
         <div className="flex justify-between items-start mb-6 border-b pb-4">

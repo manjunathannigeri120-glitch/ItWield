@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import agentRoutes from './agents';
 import workspaceRoutes from './workspaces';
+import missionsRoutes from './missions';
 import conversationRoutes from './conversations';
 import knowledgeRoutes from './knowledge';
 
@@ -13,6 +14,7 @@ import { schedulerRouter } from './scheduler';
 
 const router = Router();
 
+router.use('/workspaces/:workspaceId/missions', missionsRoutes);
 router.use('/workspaces', workspaceRoutes);
 router.use('/agents', agentRoutes);
 router.use('/conversations', conversationRoutes);

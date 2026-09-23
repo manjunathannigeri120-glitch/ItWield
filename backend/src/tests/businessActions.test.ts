@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CEOService } from '../services/CEOService';
 import { ActionRegistry } from '../workflows/actions/ActionRegistry';
 import { AuthorizationRegistry } from '../services/AuthorizationRegistry';
@@ -24,9 +24,19 @@ vi.mock('openai', () => {
 describe('Business Actions Execution Framework', () => {
   let mockUpdate: any;
 
+  let originalOpenRouterKey: string | undefined;
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockUpdate = vi.fn().mockReturnThis();
+    originalOpenRouterKey = process.env.OPENROUTER_API_KEY;
+    delete process.env.OPENROUTER_API_KEY;
+  });
+
+  afterEach(() => {
+    if (originalOpenRouterKey) {
+      process.env.OPENROUTER_API_KEY = originalOpenRouterKey;
+    }
   });
 
   const getMockSupabase = (agentCapabilities: string[], workspaceIntegrations: any = {}, connectionProvider: string | null = null, connectionCredentials: any = null) => {
@@ -34,6 +44,7 @@ describe('Business Actions Execution Framework', () => {
       from: vi.fn((table: string) => {
         const chain: any = {
           update: mockUpdate,
+          upsert: mockUpdate,
           eq: vi.fn(() => chain),
           select: vi.fn(() => chain),
           single: vi.fn(async () => {
