@@ -18,6 +18,10 @@ const createQueryChain = (data: any, error: any = null, count = 0) => {
     gte: vi.fn(() => chain),
     select: vi.fn(() => chain),
     update: vi.fn(() => chain),
+    upsert: vi.fn((insertObj: any) => {
+      insertedData = { ...data, ...insertObj };
+      return chain;
+    }),
     insert: vi.fn((insertObj: any) => {
       insertedData = { ...data, ...insertObj };
       return chain;

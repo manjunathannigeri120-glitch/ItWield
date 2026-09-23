@@ -15,6 +15,7 @@ describe('AI CEO Goal-to-Action Loop', () => {
           order: vi.fn(() => chain),
           limit: vi.fn(() => chain),
           update: vi.fn(() => chain),
+    upsert: vi.fn(() => chain),
           insert: vi.fn((data: any) => {
             if (table === 'tasks') insertedTasks.push(data);
             return { select: () => ({ single: () => Promise.resolve({ data: { id: 'task-1', title: data.title } }) }) };

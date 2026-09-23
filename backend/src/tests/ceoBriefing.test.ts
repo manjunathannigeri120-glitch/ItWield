@@ -6,6 +6,7 @@ describe('GET /api/v1/workspaces/:id/ceo-briefing', () => {
     let chain: any = {
       select: vi.fn(() => chain),
       eq: vi.fn(() => chain),
+      neq: vi.fn(() => chain),
       not: vi.fn(() => chain),
       in: vi.fn(() => chain),
       order: vi.fn(() => chain),
@@ -57,7 +58,7 @@ describe('GET /api/v1/workspaces/:id/ceo-briefing', () => {
     const supabase = {
       from: vi.fn((table: string) => {
         if (table === 'workspaces') return createQueryChain({ name: 'NovaDesk', status: 'operating' });
-        if (table === 'task_events') return createQueryChain([{ event_type: 'OWNER_APPROVAL_REQUIRED', created_at: '2026-09-01T10:00:00Z', details: { reason: 'Limits' } }]);
+        if (table === 'approvals') return createQueryChain([{ id: 'a1', status: 'PENDING_APPROVAL', created_at: '2026-09-01T10:00:00Z', action: 'PRODUCTION_DEPLOYMENT', reason: 'Limits', requested_by_executive: 'CTO' }]);
         return createQueryChain([]);
       })
     };

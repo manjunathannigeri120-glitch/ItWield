@@ -28,6 +28,7 @@ describe('Authorization Execution Blocks', () => {
           eq: vi.fn(() => chain),
           neq: vi.fn(() => chain),
           update: vi.fn(() => chain),
+    upsert: vi.fn(() => chain),
           in: vi.fn(() => chain),
           single: vi.fn(() => Promise.resolve({ data: table === 'workspaces' ? { name: 'Test', operational_context: '{}' } : null })),
           insert: vi.fn((data: any) => {
@@ -63,6 +64,7 @@ describe('Authorization Execution Blocks', () => {
           eq: vi.fn(() => chain),
           neq: vi.fn(() => chain),
           update: vi.fn(() => chain),
+    upsert: vi.fn(() => chain),
           in: vi.fn(() => chain),
           single: vi.fn(() => Promise.resolve({ data: table === 'workspaces' ? { name: 'Test', operational_context: '{}' } : null })),
           insert: vi.fn((data: any) => {

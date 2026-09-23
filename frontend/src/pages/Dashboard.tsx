@@ -12,6 +12,40 @@ export default function Dashboard() {
   const [ceoBriefingData, setCeoBriefingData] = useState<any>(null);
   const [agents, setAgents] = useState<any[]>([]);
 
+  const [selectedApproval, setSelectedApproval] = useState<any>(null);
+  const [approvalSubmitting, setApprovalSubmitting] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+
+  const handleApprove = async () => {
+    if (!selectedApproval || !workspace) return;
+    setApprovalSubmitting(true);
+    try {
+      const res = await api.post(`/workspaces/${workspace.id}/approvals/${selectedApproval.id}/approve`);
+      if (res.data.error || (res.data.executed === false && res.data.reason)) {
+        alert("Failed to execute: " + (res.data.reason || res.data.error));
+      }
+      setSelectedApproval(null);
+      loadData();
+    } catch (e: any) {
+      alert("Error approving action: " + e.message);
+    }
+    setApprovalSubmitting(false);
+  };
+
+  const handleReject = async () => {
+    if (!selectedApproval || !workspace) return;
+    setApprovalSubmitting(true);
+    try {
+      await api.post(`/workspaces/${workspace.id}/approvals/${selectedApproval.id}/reject`, { reason: rejectionReason });
+      setSelectedApproval(null);
+      setRejectionReason("");
+      loadData();
+    } catch (e: any) {
+      alert("Error rejecting action: " + e.message);
+    }
+    setApprovalSubmitting(false);
+  };
+
   useEffect(() => {
     loadData();
     const interval = setInterval(loadData, 5000);
@@ -159,7 +193,11 @@ export default function Dashboard() {
                     )}
                     <div className="flex justify-between items-center mt-3 pt-3 border-t border-amber-200 border-dashed">
                       <span className="text-xs font-medium text-amber-800">{item.actionRequired}</span>
-                      <Button variant="outline" size="sm" className="h-7 text-xs border-amber-300 hover:bg-amber-100" onClick={() => window.location.href="/workflows"}>Review</Button>
+                      {item.type === 'approval' ? (
+                        <Button variant="outline" size="sm" className="h-7 text-xs border-amber-300 hover:bg-amber-100" onClick={() => setSelectedApproval(item.detail)}>Review</Button>
+                      ) : (
+                        <Button variant="outline" size="sm" className="h-7 text-xs border-amber-300 hover:bg-amber-100" onClick={() => window.location.href="/workflows"}>Review</Button>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -187,6 +225,79 @@ export default function Dashboard() {
 
         </div>
       </div>
+
+      {ceoBriefingData?.companyMemory && (
+        <div className="mt-8 border-t border-gray-200 pt-8">
+          <h2 className="text-xl font-bold text-gray-600 mb-6">Company Memory</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-gray-400 uppercase">Strategic Context</h3>
+              {ceoBriefingData.companyMemory.strategic.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">No verified strategic goals recorded.</p>
+              ) : (
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {ceoBriefingData.companyMemory.strategic.map((m: any) => (
+                    <li key={m.id} className="bg-white p-3 rounded shadow-sm border border-gray-100">
+                      <span className="font-semibold block mb-1 text-gray-800">{m.title}</span>
+                      <span className="text-gray-600">{m.content}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-gray-400 uppercase">Recent Decisions</h3>
+              {ceoBriefingData.companyMemory.decisions.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">No recent decisions recorded.</p>
+              ) : (
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {ceoBriefingData.companyMemory.decisions.map((m: any) => (
+                    <li key={m.id} className="bg-white p-3 rounded shadow-sm border border-gray-100">
+                      <span className="font-semibold block mb-1 text-gray-800">{m.title}</span>
+                      <span className="text-gray-600">{m.content}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-gray-400 uppercase">Recent Lessons</h3>
+              {ceoBriefingData.companyMemory.lessons.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">No recent lessons recorded.</p>
+              ) : (
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {ceoBriefingData.companyMemory.lessons.map((m: any) => (
+                    <li key={m.id} className="bg-white p-3 rounded shadow-sm border border-gray-100">
+                      <span className="font-semibold block mb-1 text-gray-800">{m.title}</span>
+                      <span className="text-gray-600">{m.content}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-gray-400 uppercase">Important Incidents</h3>
+              {ceoBriefingData.companyMemory.incidents.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">No major incidents recorded.</p>
+              ) : (
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {ceoBriefingData.companyMemory.incidents.map((m: any) => (
+                    <li key={m.id} className="bg-white p-3 rounded shadow-sm border border-gray-100">
+                      <span className="font-semibold block mb-1 text-gray-800">{m.title}</span>
+                      <span className="text-gray-600">{m.content}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* AI Workforce Directory (Lower level context) */}
       <div className="space-y-4 opacity-80 mt-12 pt-8 border-t border-gray-200">
@@ -225,6 +336,78 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+
+      {ceoBriefingData?.approvalHistory && ceoBriefingData.approvalHistory.length > 0 && (
+        <div className="mt-8 border-t border-gray-200 pt-6">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Approval History</h2>
+          <div className="bg-white rounded border border-gray-200 overflow-hidden text-sm">
+            {ceoBriefingData.approvalHistory.map((ah: any) => (
+              <div key={ah.id} className="p-3 border-b border-gray-100 last:border-b-0 flex justify-between items-center">
+                <div>
+                  <div className="font-bold text-gray-700">{ah.title}</div>
+                  <div className="text-xs text-gray-500 mt-1">Status: {ah.status} | Action: {ah.action}</div>
+                </div>
+                <div className="text-right text-xs">
+                  <div className="text-gray-400">{new Date(ah.resolved_at).toLocaleString()}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {selectedApproval && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h3 className="text-lg font-bold text-gray-900">Action Requires Approval</h3>
+              <p className="text-sm text-gray-500 mt-1">Please review the requested action</p>
+            </div>
+            
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[60vh] text-sm">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">What</label>
+                <div className="font-medium text-gray-900">{selectedApproval.title}</div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Why</label>
+                <div className="text-gray-700 bg-gray-50 p-3 rounded">{selectedApproval.reason}</div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Who</label>
+                  <div className="text-gray-900">{selectedApproval.requestedBy}</div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Risk Level</label>
+                  <div className="text-amber-600 font-bold uppercase">{selectedApproval.riskLevel}</div>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Rejection Reason (Optional)</label>
+                <input 
+                  type="text"
+                  className="w-full border border-gray-300 rounded p-2 text-sm"
+                  placeholder="If rejecting, explain why..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+              <Button variant="outline" onClick={() => setSelectedApproval(null)} disabled={approvalSubmitting}>Cancel</Button>
+              <Button variant="destructive" onClick={handleReject} disabled={approvalSubmitting}>Reject</Button>
+              <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleApprove} disabled={approvalSubmitting}>
+                {approvalSubmitting ? 'Processing...' : 'Approve & Execute'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -2,6 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { WorkflowEngine } from '../workflows/engine';
 import { AuthorizationRegistry } from './AuthorizationRegistry';
+import { CompanyMemoryService } from './CompanyMemoryService';
 
 export class CEOService {
   static async run(supabase: any, workspaceId: string, objective: string, userId: string = 'service_role', sourceWorkflowId?: string, actualNextRunAt?: string) {
@@ -36,13 +37,17 @@ export class CEOService {
       .eq('workspace_id', workspaceId);
 
     // 2. Build Prompt
+    const relevantMemory = await CompanyMemoryService.getRelevantMemory(workspaceId, 'CEO', 20, supabase);
+    const memoryContext = CompanyMemoryService.formatMemoryForContext(relevantMemory);
+
     const systemPrompt = `You are the AI CEO of a company. Your job is to orchestrate the workforce to accomplish the owner's objective.
     
 Company Context:	
-,Name: ${company.name}
+Name: ${company.name}
 Industry: ${company.industry || 'Unknown'}
 Goals: ${company.company_goals || 'Unknown'}
 Policies: ${company.policies || 'None'}
+${memoryContext}
 
 Available Workforce (Agents):
 ${JSON.stringify(agents, null, 2)}
@@ -194,19 +199,46 @@ Do not output anything outside the JSON structure.`;
         if (!authResult.authorized) {
           console.warn(`[CEOService] Action BLOCKED by registry: ${actionId}. Reason: ${authResult.reason}`);
           
-          await supabase.from('task_events').insert({
-            task_id: null,
-            workspace_id: workspaceId,
-            event_type: authResult.requiresApproval ? 'OWNER_APPROVAL_REQUIRED' : 'ACTION_BLOCKED',
-            details: {
+          if (authResult.requiresApproval) {
+            await supabase.from('approvals').insert({
+              workspace_id: workspaceId,
               action: actionId,
-              decision: authResult.requiresApproval ? 'OWNER_APPROVAL_REQUIRED' : 'BLOCKED',
+              title: t.title || actionId,
               reason: authResult.reason,
-              executive: t.agent_id,
-              objective: t.title,
-              authorization_source: 'AuthorizationRegistry'
-            }
-          });
+              requested_by_executive: t.agent_id,
+              risk_level: authResult.definition?.riskLevel || 'high',
+              status: 'PENDING_APPROVAL',
+              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+            });
+
+            await supabase.from('task_events').insert({
+              task_id: null,
+              workspace_id: workspaceId,
+              event_type: 'OWNER_APPROVAL_REQUIRED',
+              details: {
+                action: actionId,
+                decision: 'OWNER_APPROVAL_REQUIRED',
+                reason: authResult.reason,
+                executive: t.agent_id,
+                objective: t.title,
+                authorization_source: 'AuthorizationRegistry'
+              }
+            });
+          } else {
+            await supabase.from('task_events').insert({
+              task_id: null,
+              workspace_id: workspaceId,
+              event_type: 'ACTION_BLOCKED',
+              details: {
+                action: actionId,
+                decision: 'BLOCKED',
+                reason: authResult.reason,
+                executive: t.agent_id,
+                objective: t.title,
+                authorization_source: 'AuthorizationRegistry'
+              }
+            });
+          }
           continue;
         }
 
@@ -679,6 +711,10 @@ Output strictly valid JSON exactly matching this schema:
       details: ceoEvaluation
     });
 
+    if (ceoEvaluation.conclusion === 'HEALTHY' || ceoEvaluation.conclusion === 'SUCCESS') {
+      await CompanyMemoryService.recordOutcome(workspaceId, `Successful outcome: ${task.title}`, ceoEvaluation.owner_update || ceoEvaluation.evaluation, taskId, 'SYSTEM', supabase);
+    }
+
     // Phase 6 - Create Incident for PROBLEM/FAILURE/CRITICAL
     if (ceoEvaluation.conclusion === 'PROBLEM' || ceoEvaluation.conclusion === 'FAILURE' || ceoEvaluation.conclusion === 'CRITICAL') {
       const severity = ceoEvaluation.conclusion === 'CRITICAL' ? 'critical' : 'high';
@@ -698,6 +734,8 @@ Output strictly valid JSON exactly matching this schema:
         event_type: 'INCIDENT_CREATED',
         details: { title: `Operational Issue Detected: ${task.title}`, severity }
       });
+
+      await CompanyMemoryService.recordLesson(workspaceId, `Incident Detected: ${task.title}`, ceoEvaluation.owner_update || ceoEvaluation.evaluation, taskId, 'SYSTEM', supabase);
     }
 
     const currentDepth = task.input?.chain_depth || 0;

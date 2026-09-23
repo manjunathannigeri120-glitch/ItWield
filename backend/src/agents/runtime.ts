@@ -4,6 +4,7 @@ import { OpenAIProvider } from '../ai/openaiProvider';
 import { supabase } from '../db/supabase';
 import { getTool } from '../tools';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { CompanyMemoryService } from '../services/CompanyMemoryService';
 
 const MAX_AGENT_STEPS = 10;
 
@@ -65,6 +66,13 @@ AI Permissions: ${opCtx.ai_permissions || 'Not specified'}`.trim();
 
       if (tasks && tasks.length > 0) {
         currentActivity = tasks.map((t: any) => `- [${t.status}] ${t.title}: ${t.description}`).join('\n');
+      }
+
+      // 3. Fetch Company Memory
+      let roleName = agent.role || agent.name?.replace('AI ', '') || 'CEO';
+      const relevantMemory = await CompanyMemoryService.getRelevantMemory(agent.workspace_id, roleName);
+      if (relevantMemory.length > 0) {
+        companyContext += '\n' + CompanyMemoryService.formatMemoryForContext(relevantMemory);
       }
     }
 
