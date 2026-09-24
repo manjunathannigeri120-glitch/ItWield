@@ -198,13 +198,21 @@ Do not output anything outside the JSON structure.`;
       }
         } catch (e: any) {
       await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
-      const isRateLimit = e.status === 429 || (e.message && e.message.includes('429'));
+      
+      const errMsg = e instanceof Error ? e.message : (e?.message || String(e));
+      const errLower = errMsg.toLowerCase();
+      const isRateLimit = e.status === 429 || e.response?.status === 429 || errLower.includes('429') || errLower.includes('rate limit') || errLower.includes('free-models-per-day');
+      
       if (isRateLimit) {
         console.warn(`[CEOService] Provider rate limit exceeded (429) for workspace ${workspaceId}.`);
-        await supabase.from('workspace_events').insert({
+        await supabase.from('incidents').insert({
           workspace_id: workspaceId,
-          event_type: 'PROVIDER_RATE_LIMIT',
-          details: { error: e.message, provider: 'openrouter' }
+          type: 'PROVIDER_RATE_LIMIT',
+          severity: 'high',
+          status: 'DETECTED',
+          title: 'Provider Rate Limit Exceeded',
+          description: errMsg,
+          source: 'scheduler'
         });
         return; // Exit gracefully
       }
@@ -404,10 +412,10 @@ Do not output anything outside the JSON structure.`;
     let shouldUnlock = true;
     try {
       // 429 Provider Cooldown Check
-      const { data: recentRateLimits } = await supabase.from('workspace_events')
+      const { data: recentRateLimits } = await supabase.from('incidents')
         .select('created_at')
         .eq('workspace_id', workspaceId)
-        .eq('event_type', 'PROVIDER_RATE_LIMIT')
+        .eq('type', 'PROVIDER_RATE_LIMIT')
         .order('created_at', { ascending: false })
         .limit(1);
       

@@ -35,17 +35,20 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
     let triggeredCount = 0;
 
     for (const workflow of candidates) {
+      const wid = (workflow.workspace_id || '').trim();
       const ZERO_WORKSPACE_ID = '00000000-0000-0000-0000-000000000000';
-      if (workflow.workspace_id === ZERO_WORKSPACE_ID) {
+      
+      if (wid === ZERO_WORKSPACE_ID) {
         console.warn(`[Scheduler] Skipping zero-UUID workspace workflow ${workflow.id}`);
         await supabase.from('workflows').update({ status: 'suspended', next_run_at: null }).eq('id', workflow.id);
         continue;
       }
 
       // Check if workspace exists
-      const { data: wsData, error: wsError } = await supabase.from('workspaces').select('id').eq('id', workflow.workspace_id).single();
-      if (wsError && wsError.code === 'PGRST116') { // PGRST116 is multiple/no rows returned
-        console.warn(`[Scheduler] Workspace ${workflow.workspace_id} does not exist for workflow ${workflow.id}. Suspending.`);
+      const { data: wsData, error: wsError } = await supabase.from('workspaces').select('id').eq('id', wid).single();
+      // PGRST116: 0 rows, 22P02: invalid uuid syntax
+      if (!wsData || (wsError && ((wsError as any).code === 'PGRST116' || (wsError as any).code === '22P02'))) { 
+        console.warn(`[Scheduler] Workspace ${wid} does not exist for workflow ${workflow.id}. Suspending.`);
         await supabase.from('workflows').update({ status: 'suspended', next_run_at: null }).eq('id', workflow.id);
         continue;
       }
