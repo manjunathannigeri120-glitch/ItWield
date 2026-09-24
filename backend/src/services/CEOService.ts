@@ -362,7 +362,7 @@ Do not output anything outside the JSON structure.`;
           this.executeTaskWorkflow(supabase, createdTask.id, t.workflow_id, t.input, userId, t.agent_id).catch(err => {
             console.error(`[CEOService] Workflow execution failed for task ${createdTask.id}:`, err);
           });
-        } else if (t.input && (t.input.task_type === 'APPLICATION_MONITORING' || t.input.task_type === 'COMPETITIVE_ANALYSIS')) {
+        } else if (t.input && (t.input.task_type === 'APPLICATION_MONITORING' || t.input.task_type === 'COMPETITIVE_ANALYSIS' || t.input.task_type === 'LEAD_RESEARCH')) {
           this.executeInlineTask(supabase, createdTask.id, t.input, userId, t.agent_id).catch(err => {
             console.error(`[CEOService] Inline execution failed for task ${createdTask.id}:`, err);
           });
