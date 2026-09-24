@@ -35,6 +35,13 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
     let triggeredCount = 0;
 
     for (const workflow of candidates) {
+      if (workflow.workspace_id === '00000000-0000-0000-0000-000000000000') {
+        console.warn(`[Scheduler] Skipping zero-UUID workspace workflow ${workflow.id}`);
+        // Mark it as suspended so it doesn't keep getting picked up
+        await supabase.from('workflows').update({ status: 'suspended', next_run_at: null }).eq('id', workflow.id);
+        continue;
+      }
+
       // 1. Calculate the actual next run time
       const actual_next_run_at = calculateNextRunAt(workflow.definition, workflow.status);
       if (!actual_next_run_at) continue;
@@ -67,7 +74,7 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       CEOService.run(
         supabase,
         workflow.workspace_id,
-        `A scheduled observation "${workflow.name}" (ID: ${workflow.id}) has triggered. Delegate a task to execute this workflow so we can observe the results.`,
+        `SCHEDULED_OBSERVATION:WORKFLOW_EXECUTION - Workflow "${workflow.name}" (ID: ${workflow.id}) has triggered. Delegate a task to execute this.`,
         'service_role',
         workflow.id,
         actual_next_run_at

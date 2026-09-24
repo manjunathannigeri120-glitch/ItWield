@@ -196,8 +196,18 @@ Do not output anything outside the JSON structure.`;
         const content = response.choices[0].message.content || '{}';
         ceoDecision = JSON.parse(content);
       }
-    } catch (e: any) {
+        } catch (e: any) {
       await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
+      const isRateLimit = e.status === 429 || (e.message && e.message.includes('429'));
+      if (isRateLimit) {
+        console.warn(`[CEOService] Provider rate limit exceeded (429) for workspace ${workspaceId}.`);
+        await supabase.from('workspace_events').insert({
+          workspace_id: workspaceId,
+          event_type: 'PROVIDER_RATE_LIMIT',
+          details: { error: e.message, provider: 'openrouter' }
+        });
+        return; // Exit gracefully
+      }
       throw new Error(`AI CEO orchestration failed: ${e.message}`);
     }
 
@@ -289,7 +299,7 @@ Do not output anything outside the JSON structure.`;
           mission_id: missionId || null,
           title: t.title,
           description: t.description,
-          workflow_id: t.workflow_id,
+          workflow_run_id: t.workflow_id,
           assigned_agent_id: t.agent_id,
           priority: t.priority || 'normal',
           status: 'PENDING',
