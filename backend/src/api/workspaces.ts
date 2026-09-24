@@ -491,6 +491,12 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
       });
     }
 
+    const { data: activeMissions } = await req.supabase
+      .from('business_missions')
+      .select('id, title, type')
+      .eq('workspace_id', workspaceId)
+      .eq('status', 'ACTIVE');
+
     const { data: goalEvents } = await req.supabase
       .from('task_events')
       .select('task_id, details')
@@ -533,11 +539,19 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
     const recommendations = [];
     const hasGoals = ws.company_goals && ws.company_goals.trim().length > 0;
     
-    if (hasGoals && (!activeTasks || activeTasks.length === 0)) {
+    const hasActiveMissions = activeMissions && activeMissions.length > 0;
+    
+    if (hasGoals && (!activeTasks || activeTasks.length === 0) && !hasActiveMissions) {
       recommendations.push({
         category: 'RECOMMENDATION',
         title: 'Align workforce with goals',
-        description: `Consider prioritizing tasks to address your stated goal: "${ws.company_goals}". There are currently no active tasks addressing this.`
+        description: `Consider prioritizing tasks or creating a Business Mission to address your stated COMPANY GOAL: "${ws.company_goals}". There are currently no active tasks or missions addressing this.`
+      });
+    } else if (hasActiveMissions && (!activeTasks || activeTasks.length === 0)) {
+      recommendations.push({
+        category: 'RECOMMENDATION',
+        title: 'Mission is active but no tasks are running',
+        description: `You have an active BUSINESS MISSION (e.g. "${activeMissions[0].title}"), but the workforce is currently idle. If this persists, check if the mission is blocked by an approval or missing connection.`
       });
     }
 
@@ -650,7 +664,7 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
       return res.status(409).json({ error: 'Conflict: Approval was resolved by another process.' });
     }
 
-    await CompanyMemoryService.recordDecision(workspaceId, `Owner approved ${updated.action}`, `Owner approved ${updated.action} for ${updated.title}.`, String(approvalId), 'OWNER');
+    await CompanyMemoryService.recordDecision(workspaceId, `Owner approved ${updated.action}`, `Owner approved ${updated.action} for ${updated.title}.`, String(approvalId), 'OWNER', req.supabase);
 
     // 3. Re-authorize via AuthorizationRegistry
     const { data: ws } = await req.supabase.from('workspaces').select('operational_context').eq('id', workspaceId).single();
@@ -777,7 +791,7 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
       return res.status(409).json({ error: 'Conflict: Approval was resolved by another process.' });
     }
 
-    await CompanyMemoryService.recordDecision(workspaceId, `Owner rejected ${updated.action}`, `Owner rejected ${updated.action} for ${updated.title}. Reason: ${reason || 'None provided'}`, String(approvalId), 'OWNER');
+    await CompanyMemoryService.recordDecision(workspaceId, `Owner rejected ${updated.action}`, `Owner rejected ${updated.action} for ${updated.title}. Reason: ${reason || 'None provided'}`, String(approvalId), 'OWNER', req.supabase);
 
     await req.supabase.from('task_events').insert({
       workspace_id: workspaceId,
@@ -923,3 +937,5 @@ router.post('/:id/improvements/:improvId/dismiss', async (req: AuthRequest, res)
     res.status(400).json({ error: error.message });
   }
 });
+
+

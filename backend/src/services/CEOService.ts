@@ -437,8 +437,7 @@ Do not output anything outside the JSON structure.`;
              // Stop creating work and invoke lifecycle completion
              await supabase.from('business_missions').update({ status: 'COMPLETED', updated_at: new Date().toISOString() }).eq('id', mission.id);
              await supabase.from('mission_events').insert({ mission_id: mission.id, workspace_id: workspaceId, event_type: 'STATUS_CHANGED', details: { old_status: 'ACTIVE', new_status: 'COMPLETED', reason: 'Success criteria reached' } });
-             console.log('[CEOService] Mission ' + mission.id + ' completed successfully.');
-             continue;
+             console.log('[CEOService] Mission ' + mission.id + ' completed successfully.'); try { const { MissionLearningService } = await import('./MissionLearningService'); const learnings = await MissionLearningService.extractMissionLearnings(supabase, workspaceId, mission.id); if (learnings.length > 0) { await MissionLearningService.persistLearnings(supabase, workspaceId, mission.id, learnings); console.log('[CEOService] Mission ' + mission.id + ' extracted ' + learnings.length + ' learnings.'); } } catch (err) { console.error('[CEOService] Failed to extract mission learnings:', err); } continue;
           }
 
           if (progress.blocker) {
@@ -1082,6 +1081,8 @@ Output strictly valid JSON exactly matching this schema:
   }
 
 }
+
+
 
 
 

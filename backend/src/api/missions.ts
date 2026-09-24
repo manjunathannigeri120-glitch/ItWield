@@ -136,7 +136,7 @@ router.get('/:missionId', async (req: any, res) => {
     const { MissionPlanningService } = await import('../services/MissionPlanningService');
     const planData = await MissionPlanningService.getOrCreateActivePlan(supabase, workspaceId, missionId, mission.type);
 
-    const { data: recentResults } = await supabase
+    const { data: learnings } = await supabase.from('company_memory').select('*').eq('source_mission_id', missionId).eq('workspace_id', workspaceId).order('created_at', { ascending: false }).limit(50); const { data: recentResults } = await supabase
       .from('mission_results')
       .select('*')
       .eq('mission_id', missionId)
@@ -221,7 +221,7 @@ router.get('/:missionId', async (req: any, res) => {
           completed_at: s.completed_at
         }))
       },
-      results: {
+      learnings: learnings || [], results: {
         recent: recentResults || [],
         verified: progress.results.verified,
         unverified: progress.results.unverified,
@@ -309,4 +309,5 @@ router.post('/:missionId/:action', async (req: any, res) => {
 });
 
 export default router;
+
 

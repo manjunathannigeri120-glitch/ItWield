@@ -60,7 +60,10 @@ export function MissionDetail() {
   if (error) return <div className="p-8 text-red-600">{error}</div>;
   if (!data) return <div className="p-8">Unable to load this mission.</div>;
 
-  const { mission, progress, results, tasks, activity, approvals, authority } = data;
+  const { mission, progress, results, tasks, activity, approvals, authority, learnings } = data;
+  const observations = learnings ? learnings.filter((l: any) => l.memory_type === 'OBSERVATION') : [];
+  const insights = learnings ? learnings.filter((l: any) => l.memory_type === 'INSIGHT') : [];
+  const hypotheses = learnings ? learnings.filter((l: any) => l.memory_type === 'HYPOTHESIS') : [];
 
   const progressPercent = progress.progress.percent ?? 0;
   const isMeasurable = progress.progress.measurable;
@@ -206,6 +209,64 @@ export function MissionDetail() {
           </Card>
           )}
 
+                    {/* Mission Learning */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Mission Learning</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(!learnings || learnings.length === 0) ? (
+                <p className="text-sm text-gray-500 italic">No verified learnings yet.</p>
+              ) : (
+                <div className="space-y-6">
+                  {observations.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Verified Observations</h4>
+                      <div className="space-y-3">
+                        {observations.map((o: any) => (
+                          <div key={o.id} className="bg-blue-50 border border-blue-100 p-3 rounded-lg">
+                            <p className="text-sm font-medium text-blue-900">{o.content}</p>
+                            <p className="text-xs text-blue-600 mt-1 italic">Source: {o.evidence_summary}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {insights.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Emerging Insights</h4>
+                      <div className="space-y-3">
+                        {insights.map((i: any) => (
+                          <div key={i.id} className="bg-purple-50 border border-purple-100 p-3 rounded-lg">
+                            <p className="text-sm font-medium text-purple-900">{i.content}</p>
+                            <p className="text-xs text-purple-600 mt-1 italic">Evidence: {i.evidence_summary}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {hypotheses.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Hypotheses</h4>
+                      <div className="space-y-3">
+                        {hypotheses.map((h: any) => (
+                          <div key={h.id} className="bg-amber-50 border border-amber-100 p-3 rounded-lg">
+                            <div className="flex justify-between items-start">
+                              <p className="text-sm font-medium text-amber-900">{h.content}</p>
+                              <span className="text-[10px] font-bold bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded ml-2">LOW CONFIDENCE</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Results Tab-like view */}
           <Card>
             <CardHeader>
@@ -314,3 +375,5 @@ export function MissionDetail() {
     </div>
   );
 }
+
+

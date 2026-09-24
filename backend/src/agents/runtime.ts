@@ -70,7 +70,7 @@ AI Permissions: ${opCtx.ai_permissions || 'Not specified'}`.trim();
 
       // 3. Fetch Company Memory
       let roleName = agent.role || agent.name?.replace('AI ', '') || 'CEO';
-      const relevantMemory = await CompanyMemoryService.getRelevantMemory(agent.workspace_id, roleName);
+      const relevantMemory = await CompanyMemoryService.getRelevantMemory(agent.workspace_id, roleName, 20, supabase);
       if (relevantMemory.length > 0) {
         companyContext += '\n' + CompanyMemoryService.formatMemoryForContext(relevantMemory);
       }
@@ -337,3 +337,4 @@ ${agent.system_prompt || ''}
     }
   }
 }
+
