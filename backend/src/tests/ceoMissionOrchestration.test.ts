@@ -59,13 +59,9 @@ describe('CEOService Mission Orchestration Hook-in', () => {
     mockSupabase.from = vi.fn((table: string) => {
       const createChain = (data: any) => {
         const chain: any = {
-           select: vi.fn(() => chain),
-           eq: vi.fn(() => chain),
-           neq: vi.fn(() => chain),
-           in: vi.fn(() => chain),
+           select: vi.fn(() => chain), eq: vi.fn(() => chain), neq: vi.fn(() => chain), in: vi.fn(() => chain),
            single: vi.fn(async () => ({ data: Array.isArray(data) ? data[0] : data, error: null })),
-           order: vi.fn(() => chain),
-           limit: vi.fn(() => chain),
+           order: vi.fn(() => chain), limit: vi.fn(() => chain),
            update: vi.fn((args: any) => { updateCalls.push({table, args}); return chain; }),
            insert: vi.fn((args: any) => { insertCalls.push({table, args}); return chain; }),
            then: (resolve: any) => resolve({ data, error: null })
@@ -77,12 +73,21 @@ describe('CEOService Mission Orchestration Hook-in', () => {
       if (table === 'business_missions') return createChain([mission]);
       if (table === 'tasks') return createChain(tasks);
       if (table === 'mission_results') return createChain(results);
-      if (table === 'approvals') return createChain(approvals); if (table === 'mission_plans') return createChain([{id: 'p1', status: 'ACTIVE'}]); if (table === 'mission_plan_steps') return createChain([{id: 's1', step_type: 'LEAD_RESEARCH', authorization_class: 'LEAD_RESEARCH', status: 'PENDING'}]);
+      if (table === 'approvals') return createChain(approvals);
+      if (table === 'mission_plans') return createChain([{id: 'p1', status: 'ACTIVE'}]);
+      
+      let stepStatus = 'PENDING';
+      if (tasks && tasks.length > 0) {
+          if (tasks.some(t => ['RUNNING', 'PENDING', 'ASSIGNED'].includes(t.status))) stepStatus = 'RUNNING';
+          else if (tasks.some(t => t.status === 'FAILED')) stepStatus = 'FAILED';
+          else if (tasks.some(t => t.status === 'BLOCKED')) stepStatus = 'BLOCKED';
+      }
+      
+      if (table === 'mission_plan_steps') return createChain([{id: 's1', step_type: 'LEAD_RESEARCH', authorization_class: 'LEAD_RESEARCH', status: stepStatus}]);
       return createChain([]);
     });
   };
-
-  test('ACTIVE mission with 0/25 verified -> creates ONE bounded LEAD_RESEARCH task', async () => {
+test('ACTIVE mission with 0/25 verified -> creates ONE bounded LEAD_RESEARCH task', async () => {
     setupState({ id: 'm1', workspace_id: 'ws1', status: 'ACTIVE', type: 'GET_CUSTOMERS', target_count: 25 }, [], []);
     await CEOService.observeWorkspace(mockSupabase, 'ws1');
     
@@ -147,5 +152,39 @@ describe('CEOService Mission Orchestration Hook-in', () => {
     await CEOService.observeWorkspace(mockSupabase, 'ws1');
     expect(runCalls.length).toBe(1); // STILL 1 (no new task created)
   });
-});
+  test('Prioritizes ready step execution even if an old task failure generated a blocker', async () => {
+    // 1. Mission is ACTIVE
+    // 2. An old task exists and is BLOCKED (generating progress.blocker)
+    // 3. The mission plan has a READY step
+    setupState(
+      { id: 'm1', status: 'ACTIVE', type: 'GET_CUSTOMERS', target_count: 25 },
+      [ { id: 't1', status: 'BLOCKED', error: 'No executable capability configured.', updated_at: new Date().toISOString() } ],
+      []
+    );
+    // Override the plan mock to return a READY step
+    mockSupabase.from = vi.fn((table: string) => {
+      const createChain = (data: any) => {
+        const chain: any = {
+          select: vi.fn(() => chain), eq: vi.fn(() => chain), in: vi.fn(() => chain), order: vi.fn(() => chain), limit: vi.fn(() => chain), update: vi.fn((args: any) => { updateCalls.push(args); return chain; }), insert: vi.fn((args: any) => { insertCalls.push(args); return chain; }), single: vi.fn(async () => ({ data: Array.isArray(data) ? data[0] : data, error: null })), then: (resolve: any) => resolve({ data, error: null })
+        };
+        return chain;
+      };
+      if (table === 'workspaces') return createChain({ id: 'ws1', status: 'operating' });
+      if (table === 'business_missions') return createChain([{id: 'm1', status: 'ACTIVE', type: 'GET_CUSTOMERS', target_count: 25}]);
+      if (table === 'tasks') return createChain([{ id: 't1', status: 'BLOCKED', error: 'No executable capability configured.', updated_at: new Date().toISOString() }]);
+      if (table === 'mission_results') return createChain([]);
+      if (table === 'approvals') return createChain([]);
+      if (table === 'mission_plans') return createChain([{id: 'p1', status: 'ACTIVE'}]);
+      if (table === 'mission_plan_steps') return createChain([{id: 's1', step_type: 'LEAD_RESEARCH', authorization_class: 'LEAD_RESEARCH', status: 'READY'}]);
+      if (table === 'incidents') return createChain([]);
+      return createChain([]);
+    });
 
+    await CEOService.observeWorkspace(mockSupabase as any, 'ws1');
+
+    // CEOService.run should be called to execute the READY step, despite the blocked task!
+    expect(runCalls.length).toBe(1);
+    expect(runCalls[0][2]).toBe('SCHEDULED_OBSERVATION:LEAD_RESEARCH');
+  });
+
+});

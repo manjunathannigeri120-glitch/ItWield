@@ -474,19 +474,6 @@ Do not output anything outside the JSON structure.`;
              console.log('[CEOService] Mission ' + mission.id + ' completed successfully.'); try { const { MissionLearningService } = await import('./MissionLearningService'); const learnings = await MissionLearningService.extractMissionLearnings(supabase, workspaceId, mission.id); if (learnings.length > 0) { await MissionLearningService.persistLearnings(supabase, workspaceId, mission.id, learnings); console.log('[CEOService] Mission ' + mission.id + ' extracted ' + learnings.length + ' learnings.'); } } catch (err) { console.error('[CEOService] Failed to extract mission learnings:', err); } continue;
           }
 
-          if (progress.blocker) {
-             // E.g., CONNECTION_REQUIRED or OWNER_APPROVAL_REQUIRED.
-             // Do not create duplicate work. Surface blocker.
-             console.log('[CEOService] Mission ' + mission.id + ' is blocked: ' + progress.blocker.type);
-             continue;
-          }
-
-          if (progress.work.running > 0 || progress.work.pending > 0) {
-             // Do not create duplicate work if useful authorized work is already running or assigned/pending
-             console.log('[CEOService] Mission ' + mission.id + ' has active work. Waiting.');
-             continue;
-          }
-
           // 3. Adaptive Mission Planning Orchestration
           const { MissionPlanningService } = await import('./MissionPlanningService');
           const planData = await MissionPlanningService.getOrCreateActivePlan(supabase, workspaceId, mission.id, mission.type);
@@ -497,6 +484,23 @@ Do not output anything outside the JSON structure.`;
               console.log(`[CEOService] Mission plan for ${mission.id} is fully completed.`);
               // For MVP, completing the plan just awaits further planning or mission completion check next tick.
               continue;
+          }
+
+          // Let the orchestrator take priority. If there is a ready step, execute it.
+          // We will fall back to surfacing general task blockers only if the plan yields no ready step.
+          if (!readyStep) {
+            if (progress.blocker) {
+               // E.g., CONNECTION_REQUIRED or OWNER_APPROVAL_REQUIRED.
+               // Do not create duplicate work. Surface blocker.
+               console.log('[CEOService] Mission ' + mission.id + ' is blocked: ' + progress.blocker.type);
+               continue;
+            }
+  
+            if (progress.work.running > 0 || progress.work.pending > 0) {
+               // Do not create duplicate work if useful authorized work is already running or assigned/pending
+               console.log('[CEOService] Mission ' + mission.id + ' has active work. Waiting.');
+               continue;
+            }
           }
 
           if (readyStep) {
