@@ -95,13 +95,14 @@ export class MissionProgressService {
       if (['PENDING', 'ASSIGNED'].includes(t.status)) work.pending++;
       else if (t.status === 'RUNNING') work.running++;
       else if (t.status === 'COMPLETED') work.completed++;
-      else if (t.status === 'FAILED') {
-        work.failed++;
+      else if (['FAILED', 'BLOCKED', 'ESCALATED'].includes(t.status)) {
+        if (t.status === 'FAILED') work.failed++;
+        if (['BLOCKED', 'ESCALATED'].includes(t.status)) work.blocked++;
+        
         if (!mostRecentErrorTask || new Date(t.updated_at) > new Date(mostRecentErrorTask.updated_at)) {
           mostRecentErrorTask = t;
         }
       }
-      else if (['BLOCKED', 'ESCALATED'].includes(t.status)) work.blocked++;
 
       if (!latestTaskActivity || new Date(t.updated_at) > new Date(latestTaskActivity)) {
         latestTaskActivity = t.updated_at;
