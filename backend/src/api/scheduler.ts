@@ -28,13 +28,14 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       .lte('next_run_at', new Date().toISOString())
       .limit(10);
 
-    if (findError || !candidates || candidates.length === 0) {
-      return res.status(200).json({ ok: true, triggered: 0 });
+    if (findError) {
+      console.error('[Scheduler] Error fetching workflows:', findError);
     }
 
     let triggeredCount = 0;
 
-    for (const workflow of candidates) {
+    if (candidates && candidates.length > 0) {
+      for (const workflow of candidates) {
       const wid = (workflow.workspace_id || '').trim();
       const ZERO_WORKSPACE_ID = '00000000-0000-0000-0000-000000000000';
       
@@ -90,6 +91,7 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
         workflow.id,
         actual_next_run_at
       ).catch(err => console.error(`[Scheduler] CEO invocation failed for ${workflow.id}:`, err));
+      }
     }
 
     // 2b. Recover crashed/stuck RUNNING tasks via execution_lease_until
