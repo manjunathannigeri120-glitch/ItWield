@@ -403,6 +403,22 @@ Do not output anything outside the JSON structure.`;
 
     let shouldUnlock = true;
     try {
+      // 429 Provider Cooldown Check
+      const { data: recentRateLimits } = await supabase.from('workspace_events')
+        .select('created_at')
+        .eq('workspace_id', workspaceId)
+        .eq('event_type', 'PROVIDER_RATE_LIMIT')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if (recentRateLimits && recentRateLimits.length > 0) {
+        const lastLimit = new Date(recentRateLimits[0].created_at);
+        if (Date.now() - lastLimit.getTime() < 15 * 60 * 1000) { // 15 min cooldown
+          console.log(`[CEOService] Workspace ${workspaceId} in provider cooldown. Skipping observation.`);
+          return;
+        }
+      }
+
       const { data: company } = await supabase.from('workspaces').select('*').eq('id', workspaceId).single();
       if (!company) return;
 
