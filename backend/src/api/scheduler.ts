@@ -133,6 +133,19 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       }
     }
 
+    // 3b. Recover stuck workspaces (crash recovery for CEO evaluations)
+    const fifteenMinsAgo = new Date(Date.now() - 15 * 60000).toISOString();
+    const { data: stuckWs } = await supabase
+      .from('workspaces')
+      .update({ status: 'operating' })
+      .in('status', ['evaluating', 'ceo_evaluating'])
+      .lt('updated_at', fifteenMinsAgo)
+      .select('id');
+      
+    if (stuckWs && stuckWs.length > 0) {
+      console.log(`[Scheduler] Recovered ${stuckWs.length} stuck workspaces.`);
+    }
+
     // 4. Intelligence Loop & 5. Autonomous Observation
     const { data: activeWorkspaces } = await supabase.from('workspaces').select('id, status').eq('status', 'operating');
     if (activeWorkspaces) {

@@ -157,7 +157,9 @@ Do not output anything outside the JSON structure.`;
 
           if (taskType === 'LEAD_RESEARCH') {
             const cmo = agents?.find((a: any) => a.name === 'AI CMO');
+            const leadResearcher = agents?.find((a: any) => (a.capabilities || []).includes('LEAD_RESEARCH'));
             const assignee = cmo || (agents && agents.length > 0 ? agents[0] : null);
+            const executor = leadResearcher || assignee;
 
             if (assignee) {
               generatedTasks.push({
@@ -168,7 +170,7 @@ Do not output anything outside the JSON structure.`;
                 workflow_id: null,
                 input: {
                   task_type: 'LEAD_RESEARCH',
-                  delegate_to: assignee.id
+                  delegate_to: executor ? executor.id : assignee.id
                 }
               });
             }
@@ -222,163 +224,165 @@ Do not output anything outside the JSON structure.`;
     const createdTasks = [];
 
     // 3. Process Delegation
-    if (ceoDecision.tasks && Array.isArray(ceoDecision.tasks)) {
-      for (const t of ceoDecision.tasks) {
-        // Verify agent exists
-        const agentExists = agents?.find((a: any) => a.id === t.agent_id);
-        if (!agentExists) {
-          console.warn(`[CEOService] Agent ${t.agent_id} does not exist. Skipping task creation.`);
-          continue;
-        }
-
-        const actionId = t.input?.task_type || (t.workflow_id ? 'WORKFLOW_EXECUTION' : 'UNKNOWN');
-        
-        let aiPermissions = {};
-        try {
-          const ctx = JSON.parse(company.operational_context || '{}');
-          aiPermissions = ctx.ai_permissions || {};
-        } catch (_) {}
-
-        const authResult = AuthorizationRegistry.authorize(actionId, aiPermissions);
-
-        if (!authResult.authorized) {
-          console.warn(`[CEOService] Action BLOCKED by registry: ${actionId}. Reason: ${authResult.reason}`);
-          
-          if (authResult.requiresApproval) {
-            await supabase.from('approvals').insert({
-              workspace_id: workspaceId,
-              action: actionId,
-              title: t.title || actionId,
-              reason: authResult.reason,
-              requested_by_executive: t.agent_id,
-              risk_level: authResult.definition?.riskLevel || 'high',
-              status: 'PENDING_APPROVAL',
-              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-            });
-
-            await supabase.from('task_events').insert({
-              task_id: null,
-              workspace_id: workspaceId,
-              event_type: 'OWNER_APPROVAL_REQUIRED',
-              details: {
-                action: actionId,
-                decision: 'OWNER_APPROVAL_REQUIRED',
-                reason: authResult.reason,
-                executive: t.agent_id,
-                objective: t.title,
-                authorization_source: 'AuthorizationRegistry'
-              }
-            });
-          } else {
-            await supabase.from('task_events').insert({
-              task_id: null,
-              workspace_id: workspaceId,
-              event_type: 'ACTION_BLOCKED',
-              details: {
-                action: actionId,
-                decision: 'BLOCKED',
-                reason: authResult.reason,
-                executive: t.agent_id,
-                objective: t.title,
-                authorization_source: 'AuthorizationRegistry'
-              }
-            });
-          }
-          continue;
-        }
-
-        // Action Authorized
-        await supabase.from('task_events').insert({
-          task_id: null,
-          workspace_id: workspaceId,
-          event_type: 'ACTION_AUTHORIZED',
-          details: {
-            action: actionId,
-            decision: 'AUTHORIZED',
-            reason: authResult.reason,
-            executive: t.agent_id,
-            objective: t.title,
-            authorization_source: 'AuthorizationRegistry'
-          }
-        });
-
-        const taskInsert = {
-          workspace_id: workspaceId,
-          mission_id: missionId || null,
-          title: t.title,
-          description: t.description,
-          workflow_run_id: t.workflow_id,
-          assigned_agent_id: t.agent_id,
-          priority: t.priority || 'normal',
-          status: 'PENDING',
-          input: t.input || {},
-          source_workflow_id: sourceWorkflowId || null,
-          execution_lease_until: new Date(Date.now() + 15 * 60000).toISOString()
-        };
-
-        const { data: createdTask, error: ctErr } = await supabase
-          .from('tasks')
-          .insert(taskInsert)
-          .select()
-          .single();
-
-        if (ctErr) {
-          if (ctErr.code === '23505') {
-            console.log(`[CEOService] Idempotency catch: Task for observation workflow ${sourceWorkflowId} or type ${t.input?.task_type} is already active. Skipping.`);
+    try {
+      if (ceoDecision.tasks && Array.isArray(ceoDecision.tasks)) {
+        for (const t of ceoDecision.tasks) {
+          // Verify agent exists
+          const agentExists = agents?.find((a: any) => a.id === t.agent_id);
+          if (!agentExists) {
+            console.warn(`[CEOService] Agent ${t.agent_id} does not exist. Skipping task creation.`);
             continue;
           }
-          console.error(`[CEOService] Failed to create task:`, ctErr);
-          continue;
-        }
 
-        createdTasks.push(createdTask);
+          const actionId = t.input?.task_type || (t.workflow_id ? 'WORKFLOW_EXECUTION' : 'UNKNOWN');
+          
+          let aiPermissions = {};
+          try {
+            const ctx = JSON.parse(company.operational_context || '{}');
+            aiPermissions = ctx.ai_permissions || {};
+          } catch (_) {}
 
-        await supabase.from('task_events').insert({
-          task_id: createdTask.id,
-          workspace_id: workspaceId,
-          event_type: 'TASK_CREATED',
-          details: { source: 'CEO', decision_source: decisionSource, title: createdTask.title }
-        });
+          const authResult = AuthorizationRegistry.authorize(actionId, aiPermissions);
 
-        if (t.input?.task_type === 'COMPETITIVE_ANALYSIS') {
+          if (!authResult.authorized) {
+            console.warn(`[CEOService] Action BLOCKED by registry: ${actionId}. Reason: ${authResult.reason}`);
+            
+            if (authResult.requiresApproval) {
+              await supabase.from('approvals').insert({
+                workspace_id: workspaceId,
+                action: actionId,
+                title: t.title || actionId,
+                reason: authResult.reason,
+                requested_by_executive: t.agent_id,
+                risk_level: authResult.definition?.riskLevel || 'high',
+                status: 'PENDING_APPROVAL',
+                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+              });
+
+              await supabase.from('task_events').insert({
+                task_id: null,
+                workspace_id: workspaceId,
+                event_type: 'OWNER_APPROVAL_REQUIRED',
+                details: {
+                  action: actionId,
+                  decision: 'OWNER_APPROVAL_REQUIRED',
+                  reason: authResult.reason,
+                  executive: t.agent_id,
+                  objective: t.title,
+                  authorization_source: 'AuthorizationRegistry'
+                }
+              });
+            } else {
+              await supabase.from('task_events').insert({
+                task_id: null,
+                workspace_id: workspaceId,
+                event_type: 'ACTION_BLOCKED',
+                details: {
+                  action: actionId,
+                  decision: 'BLOCKED',
+                  reason: authResult.reason,
+                  executive: t.agent_id,
+                  objective: t.title,
+                  authorization_source: 'AuthorizationRegistry'
+                }
+              });
+            }
+            continue;
+          }
+
+          // Action Authorized
+          await supabase.from('task_events').insert({
+            task_id: null,
+            workspace_id: workspaceId,
+            event_type: 'ACTION_AUTHORIZED',
+            details: {
+              action: actionId,
+              decision: 'AUTHORIZED',
+              reason: authResult.reason,
+              executive: t.agent_id,
+              objective: t.title,
+              authorization_source: 'AuthorizationRegistry'
+            }
+          });
+
+          const taskInsert = {
+            workspace_id: workspaceId,
+            mission_id: missionId || null,
+            title: t.title,
+            description: t.description,
+            workflow_run_id: t.workflow_id,
+            assigned_agent_id: t.agent_id,
+            priority: t.priority || 'normal',
+            status: 'PENDING',
+            input: t.input || {},
+            source_workflow_id: sourceWorkflowId || null,
+            execution_lease_until: new Date(Date.now() + 15 * 60000).toISOString()
+          };
+
+          const { data: createdTask, error: ctErr } = await supabase
+            .from('tasks')
+            .insert(taskInsert)
+            .select()
+            .single();
+
+          if (ctErr) {
+            if (ctErr.code === '23505') {
+              console.log(`[CEOService] Idempotency catch: Task for observation workflow ${sourceWorkflowId} or type ${t.input?.task_type} is already active. Skipping.`);
+              continue;
+            }
+            console.error(`[CEOService] Failed to create task:`, ctErr);
+            continue;
+          }
+
+          createdTasks.push(createdTask);
+
           await supabase.from('task_events').insert({
             task_id: createdTask.id,
             workspace_id: workspaceId,
-            event_type: 'CEO_GOAL_ACTION_CREATED',
-            details: {
-              goal: 'Acquire early customers',
-              objective: t.title,
-              reason: 'Initiated from stated customer-acquisition goal',
-              authority: 'Deterministic fallback / System default',
-              assignedExecutive: t.agent_id,
-              assignedWorker: t.input?.delegate_to
-            }
+            event_type: 'TASK_CREATED',
+            details: { source: 'CEO', decision_source: decisionSource, title: createdTask.title }
           });
-        }
 
-        // 4. Trigger Workflow or Inline Task if specified
-        if (t.workflow_id) {
-          // Fire and forget execution
-          this.executeTaskWorkflow(supabase, createdTask.id, t.workflow_id, t.input, userId, t.agent_id).catch(err => {
-            console.error(`[CEOService] Workflow execution failed for task ${createdTask.id}:`, err);
-          });
-        } else if (t.input && (t.input.task_type === 'APPLICATION_MONITORING' || t.input.task_type === 'COMPETITIVE_ANALYSIS' || t.input.task_type === 'LEAD_RESEARCH')) {
-          this.executeInlineTask(supabase, createdTask.id, t.input, userId, t.agent_id).catch(err => {
-            console.error(`[CEOService] Inline execution failed for task ${createdTask.id}:`, err);
-          });
-        } else {
-          // Block task and agent if no executable capability
-          await supabase.from('tasks').update({ status: 'BLOCKED', error: 'No executable capability configured.' }).eq('id', createdTask.id);
-          await supabase.from('task_events').insert({ task_id: createdTask.id, workspace_id: workspaceId, event_type: 'TASK_BLOCKED', details: { error: 'No executable capability configured.' } });
-          if (t.agent_id) {
-            await supabase.from('agents').update({ status: 'blocked' }).eq('id', t.agent_id);
+          if (t.input?.task_type === 'COMPETITIVE_ANALYSIS') {
+            await supabase.from('task_events').insert({
+              task_id: createdTask.id,
+              workspace_id: workspaceId,
+              event_type: 'CEO_GOAL_ACTION_CREATED',
+              details: {
+                goal: 'Acquire early customers',
+                objective: t.title,
+                reason: 'Initiated from stated customer-acquisition goal',
+                authority: 'Deterministic fallback / System default',
+                assignedExecutive: t.agent_id,
+                assignedWorker: t.input?.delegate_to
+              }
+            });
+          }
+
+          // 4. Trigger Workflow or Inline Task if specified
+          if (t.workflow_id) {
+            // Fire and forget execution
+            this.executeTaskWorkflow(supabase, createdTask.id, t.workflow_id, t.input, userId, t.agent_id).catch(err => {
+              console.error(`[CEOService] Workflow execution failed for task ${createdTask.id}:`, err);
+            });
+          } else if (t.input && (t.input.task_type === 'APPLICATION_MONITORING' || t.input.task_type === 'COMPETITIVE_ANALYSIS' || t.input.task_type === 'LEAD_RESEARCH')) {
+            this.executeInlineTask(supabase, createdTask.id, t.input, userId, t.agent_id).catch(err => {
+              console.error(`[CEOService] Inline execution failed for task ${createdTask.id}:`, err);
+            });
+          } else {
+            // Block task and agent if no executable capability
+            await supabase.from('tasks').update({ status: 'BLOCKED', error: 'No executable capability configured.' }).eq('id', createdTask.id);
+            await supabase.from('task_events').insert({ task_id: createdTask.id, workspace_id: workspaceId, event_type: 'TASK_BLOCKED', details: { error: 'No executable capability configured.' } });
+            if (t.agent_id) {
+              await supabase.from('agents').update({ status: 'blocked' }).eq('id', t.agent_id);
+            }
           }
         }
       }
+    } finally {
+      // Unlock workspace
+      await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
     }
-
-    // Unlock workspace
-    await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
 
     if (sourceWorkflowId && actualNextRunAt) {
       await supabase.from('workflows').update({ next_run_at: actualNextRunAt }).eq('id', sourceWorkflowId);
