@@ -138,7 +138,7 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
     const { data: stuckWs } = await supabase
       .from('workspaces')
       .update({ status: 'operating' })
-      .in('status', ['evaluating', 'ceo_evaluating'])
+      .in('status', ['evaluating'])
       .lt('updated_at', fifteenMinsAgo)
       .select('id');
       

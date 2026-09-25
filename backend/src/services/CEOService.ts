@@ -402,7 +402,7 @@ Do not output anything outside the JSON structure.`;
   static async observeWorkspace(supabase: SupabaseClient, workspaceId: string) {
     // Database Enforced Concurrency / Locking
     const { data: lockData } = await supabase.from('workspaces')
-      .update({ status: 'ceo_evaluating' })
+      .update({ status: 'evaluating' })
       .eq('id', workspaceId)
       .eq('status', 'operating')
       .select('id')
