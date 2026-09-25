@@ -23,6 +23,31 @@ export class CEOService {
       console.log(`[CEOService] Workspace ${workspaceId} locked or not found.`);
       return;
     }
+
+    // 429 Provider Cooldown Check at LLM Execution Boundary
+    const { data: recentRateLimits } = await supabase.from('incidents')
+      .select('created_at')
+      .eq('workspace_id', workspaceId)
+      .eq('type', 'PROVIDER_RATE_LIMIT')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    
+    if (recentRateLimits && recentRateLimits.length > 0) {
+      const lastLimit = new Date(recentRateLimits[0].created_at);
+      if (Date.now() - lastLimit.getTime() < 15 * 60 * 1000) { // 15 min cooldown
+        console.log(`[CEOService] Workspace ${workspaceId} in provider cooldown. Suppressing CEO execution.`);
+        
+        await supabase.from('task_events').insert({
+          workspace_id: workspaceId,
+          event_type: 'OBSERVATION_BLOCKED',
+          details: { reason: "Provider rate limit cooldown is active. Suppressing CEO execution." }
+        });
+        
+        await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
+        return;
+      }
+    }
+
     const { data: agents } = await supabase
       .from('agents')
       .select('id, name, description, status, capabilities')

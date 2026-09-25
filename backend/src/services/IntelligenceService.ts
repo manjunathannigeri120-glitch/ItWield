@@ -151,6 +151,9 @@ export class IntelligenceService {
 
     // Auto-resolve incidents that are no longer detected
     for (const inc of existingIncidents) {
+      // Do not auto-resolve system rate limit incidents based on intelligence snapshots
+      if (inc.type === 'PROVIDER_RATE_LIMIT') continue;
+
       if (!activeTypes.has(inc.type) && inc.status !== 'RESOLVED') {
         await supabase.from('incidents').update({ 
           status: 'RESOLVED',
