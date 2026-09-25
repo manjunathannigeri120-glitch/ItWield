@@ -31,10 +31,20 @@ describe('Mission Planning & Adaptive Execution (Phase 7)', () => {
         // Mock no existing plan
         mockSupabase.single.mockResolvedValueOnce({ data: { id: uuidv4() }, error: null }); // insert plan
         
-        // Let insert step return something for 6 steps
-        for (let i = 0; i < 6; i++) {
-            mockSupabase.single.mockResolvedValueOnce({ data: { id: uuidv4(), step_order: i+1 }, error: null });
-        }
+        let insertedSteps: any[] = [];
+        
+        // Mock insert logic properly to capture arguments
+        const insertChain = (dataToReturn: any) => { 
+            return {
+                select: vi.fn().mockReturnThis(),
+                single: vi.fn().mockImplementation(() => {
+                    insertedSteps.push(dataToReturn);
+                    return Promise.resolve({ data: dataToReturn, error: null });
+                })
+            };
+        };
+        
+        mockSupabase.insert = vi.fn().mockImplementation((args) => insertChain(args));
 
         const planData = await MissionPlanningService.getOrCreateActivePlan(mockSupabase, workspaceId, missionId, 'GET_CUSTOMERS');
         
@@ -42,6 +52,14 @@ describe('Mission Planning & Adaptive Execution (Phase 7)', () => {
         expect(planData.steps.length).toBe(6);
         expect(planData.steps[0].step_order).toBe(1);
         expect(planData.steps[5].step_order).toBe(6);
+        
+        // Assert explicitly that Step 1 is DATA_TRANSFORMATION (ICP mapping fix)
+        expect(planData.steps[0].step_type).toBe('DATA_TRANSFORMATION');
+        expect(planData.steps[0].authorization_class).toBe('DATA_TRANSFORMATION');
+        
+        // Assert explicitly that Step 2 remains LEAD_RESEARCH
+        expect(planData.steps[1].step_type).toBe('LEAD_RESEARCH');
+        expect(planData.steps[1].authorization_class).toBe('LEAD_RESEARCH');
         
         // Assert dependencies are valid (sequential)
         // By looking at how the service works, each step is created in order.

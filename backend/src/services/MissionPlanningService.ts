@@ -45,7 +45,7 @@ export class MissionPlanningService {
 
         if (missionType === 'GET_CUSTOMERS') {
             defaultSteps = [
-                { title: 'Identify ICP', description: 'Identify target ideal customer profile', step_type: 'LEAD_RESEARCH', worker_role: 'service_role', authorization_class: 'LEAD_RESEARCH' },
+                { title: 'Identify ICP', description: 'Identify target ideal customer profile', step_type: 'DATA_TRANSFORMATION', worker_role: 'service_role', authorization_class: 'DATA_TRANSFORMATION' },
                 { title: 'Research prospects', description: 'Find prospects matching the ICP', step_type: 'LEAD_RESEARCH', worker_role: 'service_role', authorization_class: 'LEAD_RESEARCH' },
                 { title: 'Qualify prospects', description: 'Qualify prospects against criteria', step_type: 'LEAD_RESEARCH', worker_role: 'service_role', authorization_class: 'LEAD_RESEARCH' },
                 { title: 'Verify evidence', description: 'Verify evidence and URLs', step_type: 'LEAD_RESEARCH', worker_role: 'service_role', authorization_class: 'LEAD_RESEARCH' },
