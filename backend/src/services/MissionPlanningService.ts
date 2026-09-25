@@ -64,6 +64,26 @@ export class MissionPlanningService {
     }
 
     /**
+     * Safely transitions the active plan for a mission to CANCELLED and returns it.
+     */
+    static async cancelActivePlan(supabase: SupabaseClient, workspaceId: string, missionId: string): Promise<any> {
+        const { data, error } = await supabase
+            .from('mission_plans')
+            .update({ status: 'CANCELLED', updated_at: new Date().toISOString() })
+            .eq('workspace_id', workspaceId)
+            .eq('mission_id', missionId)
+            .eq('status', 'ACTIVE')
+            .select()
+            .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+            throw error;
+        }
+
+        return data || null;
+    }
+
+    /**
      * Creates a new plan and validates steps against AuthorizationRegistry
      */
     static async createPlan(supabase: SupabaseClient, workspaceId: string, missionId: string, objective: string, stepsDef: PlanStepDef[]): Promise<any> {
@@ -79,12 +99,27 @@ export class MissionPlanningService {
             }
         }
 
+        // Determine the next version
+        const { data: maxVersionData, error: maxVersionErr } = await supabase
+            .from('mission_plans')
+            .select('version')
+            .eq('workspace_id', workspaceId)
+            .eq('mission_id', missionId)
+            .order('version', { ascending: false })
+            .limit(1);
+
+        let nextVersion = 1;
+        if (!maxVersionErr && maxVersionData && maxVersionData.length > 0) {
+            nextVersion = maxVersionData[0].version + 1;
+        }
+
         const { data: plan, error: planErr } = await supabase
             .from('mission_plans')
             .insert({
                 mission_id: missionId,
                 workspace_id: workspaceId,
                 status: 'ACTIVE',
+                version: nextVersion,
                 objective
             })
             .select()

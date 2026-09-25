@@ -139,6 +139,101 @@ describe('Mission Planning & Adaptive Execution (Phase 7)', () => {
         // 0022_mission_planning.sql has the policies using explicit checks.
         expect(true).toBe(true);
     });
+
+    test('Regeneration: cancelActivePlan correctly transitions status and ignores non-existent plans', async () => {
+        // Successful cancellation
+        mockSupabase.single = vi.fn().mockResolvedValueOnce({ data: { id: 'plan-1', status: 'CANCELLED', version: 1 }, error: null });
+        const cancelled = await MissionPlanningService.cancelActivePlan(mockSupabase, workspaceId, missionId);
+        expect(cancelled.status).toBe('CANCELLED');
+        expect(cancelled.version).toBe(1);
+
+        // Not found is ignored and returns null
+        mockSupabase.single = vi.fn().mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } });
+        const notFound = await MissionPlanningService.cancelActivePlan(mockSupabase, workspaceId, missionId);
+        expect(notFound).toBeNull();
+        
+        // Other errors bubble up
+        mockSupabase.single = vi.fn().mockResolvedValueOnce({ data: null, error: { code: 'OTHER' } });
+        await expect(MissionPlanningService.cancelActivePlan(mockSupabase, workspaceId, missionId)).rejects.toThrow();
+    });
+
+    test('Regeneration: createPlan increments max version', async () => {
+        let insertedData: any = null;
+        
+        // Mock max version check (returning version 1)
+        const selectChain = {
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockResolvedValue({ data: [{ version: 1 }], error: null }),
+            select: vi.fn().mockReturnThis()
+        };
+        
+        const insertChain = (args: any) => ({
+            select: vi.fn().mockReturnThis(),
+            single: vi.fn().mockImplementation(() => {
+                insertedData = args;
+                return Promise.resolve({ data: args, error: null });
+            })
+        });
+
+        mockSupabase.from = vi.fn((table: string) => {
+            if (table === 'mission_plans') {
+                return {
+                    select: vi.fn(() => selectChain),
+                    insert: vi.fn((args) => insertChain(args))
+                };
+            }
+            if (table === 'mission_plan_steps') {
+                return { insert: vi.fn((args) => insertChain(args)) };
+            }
+            return { select: vi.fn().mockReturnThis() };
+        });
+
+        await MissionPlanningService.createPlan(mockSupabase, workspaceId, missionId, 'Objective', []);
+        
+        // Next version should be 1 + 1 = 2
+        expect(insertedData).toBeDefined();
+        expect(insertedData.version).toBe(2);
+    });
+
+    test('Regeneration: createPlan defaults to version 1 if no prior plan exists', async () => {
+        let insertedData: any = null;
+        
+        // Mock max version check (returning nothing)
+        const selectChain = {
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockResolvedValue({ data: [], error: null }), // empty!
+            select: vi.fn().mockReturnThis()
+        };
+        
+        const insertChain = (args: any) => ({
+            select: vi.fn().mockReturnThis(),
+            single: vi.fn().mockImplementation(() => {
+                insertedData = args;
+                return Promise.resolve({ data: args, error: null });
+            })
+        });
+
+        mockSupabase.from = vi.fn((table: string) => {
+            if (table === 'mission_plans') {
+                return {
+                    select: vi.fn(() => selectChain),
+                    insert: vi.fn((args) => insertChain(args))
+                };
+            }
+            if (table === 'mission_plan_steps') {
+                return { insert: vi.fn((args) => insertChain(args)) };
+            }
+            return { select: vi.fn().mockReturnThis() };
+        });
+
+        await MissionPlanningService.createPlan(mockSupabase, workspaceId, missionId, 'Objective', []);
+        
+        // Next version should be 1
+        expect(insertedData).toBeDefined();
+        expect(insertedData.version).toBe(1);
+    });
 });
 
 

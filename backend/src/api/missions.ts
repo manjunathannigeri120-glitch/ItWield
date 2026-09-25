@@ -249,6 +249,88 @@ router.get('/:missionId', async (req: any, res) => {
   }
 });
 
+router.post('/:missionId/plan/regenerate', async (req: any, res) => {
+  const { workspaceId, missionId } = req.params;
+  const supabase = req.supabase;
+  const userId = req.user.id;
+
+  try {
+    // 1. Lock Workspace (Concurrency Control)
+    const { data: lockData } = await supabase.from('workspaces')
+      .update({ status: 'evaluating' })
+      .eq('id', workspaceId)
+      .eq('status', 'operating')
+      .select('id')
+      .single();
+
+    if (!lockData) {
+      return res.status(409).json({ error: 'Workspace is currently busy or unauthorized. Try again later.' });
+    }
+
+    let shouldUnlock = true;
+    try {
+      // 2. Verify mission exists and belongs to workspace
+      const { data: mission, error: missionError } = await supabase
+        .from('business_missions')
+        .select('*')
+        .eq('id', missionId)
+        .eq('workspace_id', workspaceId)
+        .single();
+
+      if (missionError || !mission) return res.status(404).json({ error: 'Mission not found' });
+      
+      // 3. Ensure mission is not completed or cancelled already
+      if (mission.status === 'COMPLETED' || mission.status === 'CANCELLED') {
+        return res.status(400).json({ error: 'Mission is already completed or cancelled.' });
+      }
+
+      const { MissionPlanningService } = await import('../services/MissionPlanningService');
+      
+      // 4. Cancel existing plan
+      const cancelledPlan = await MissionPlanningService.cancelActivePlan(supabase, workspaceId, missionId);
+      
+      // 5. Create new plan (this will use v2 logic because of the cancelActivePlan above)
+      const newPlanData = await MissionPlanningService.getOrCreateActivePlan(supabase, workspaceId, missionId, mission.type);
+
+      // 6. Audit Event
+      if (cancelledPlan) {
+        await supabase.from('mission_events').insert({
+          mission_id: missionId,
+          workspace_id: workspaceId,
+          event_type: 'MISSION_PLAN_REGENERATED',
+          details: {
+            old_plan_id: cancelledPlan.id,
+            old_version: cancelledPlan.version,
+            new_plan_id: newPlanData.plan.id,
+            new_version: newPlanData.plan.version
+          }
+        });
+      }
+
+      return res.json({
+        ok: true,
+        old_plan: cancelledPlan ? {
+          id: cancelledPlan.id,
+          version: cancelledPlan.version,
+          status: cancelledPlan.status
+        } : null,
+        new_plan: {
+          id: newPlanData.plan.id,
+          version: newPlanData.plan.version,
+          status: newPlanData.plan.status
+        }
+      });
+    } finally {
+      if (shouldUnlock) {
+        await supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
+      }
+    }
+  } catch (err: any) {
+    console.error('[MissionsAPI] Plan regeneration failed:', err);
+    return res.status(500).json({ error: err.message || 'Regeneration failed' });
+  }
+});
+
 router.post('/:missionId/:action', async (req: any, res) => {
   const { workspaceId, missionId, action } = req.params;
   const supabase = req.supabase;
