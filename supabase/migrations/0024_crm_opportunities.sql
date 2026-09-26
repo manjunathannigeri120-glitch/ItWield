@@ -28,25 +28,25 @@ ALTER TABLE public.opportunities ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view opportunities in their workspaces"
     ON public.opportunities FOR SELECT
     USING (workspace_id IN (
-        SELECT workspace_id FROM public.workspace_users WHERE user_id = auth.uid()
+        SELECT workspace_id FROM public.workspace_members WHERE user_id = auth.uid()
     ));
 
 CREATE POLICY "Users can insert opportunities in their workspaces"
     ON public.opportunities FOR INSERT
     WITH CHECK (workspace_id IN (
-        SELECT workspace_id FROM public.workspace_users WHERE user_id = auth.uid()
+        SELECT workspace_id FROM public.workspace_members WHERE user_id = auth.uid()
     ));
 
 CREATE POLICY "Users can update opportunities in their workspaces"
     ON public.opportunities FOR UPDATE
     USING (workspace_id IN (
-        SELECT workspace_id FROM public.workspace_users WHERE user_id = auth.uid()
+        SELECT workspace_id FROM public.workspace_members WHERE user_id = auth.uid()
     ));
 
 CREATE POLICY "Users can delete opportunities in their workspaces"
     ON public.opportunities FOR DELETE
     USING (workspace_id IN (
-        SELECT workspace_id FROM public.workspace_users WHERE user_id = auth.uid()
+        SELECT workspace_id FROM public.workspace_members WHERE user_id = auth.uid()
     ));
 
 -- Allow service_role to bypass RLS for system operations
