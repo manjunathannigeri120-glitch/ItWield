@@ -90,7 +90,7 @@ describe('Business Actions Execution Framework', () => {
     process.env.NODE_ENV = originalEnv;
 
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      status: 'FAILED',
+      status: 'BLOCKED',
       error: expect.stringContaining('CONNECTION_REQUIRED: web_search')
     }));
   });
@@ -124,7 +124,7 @@ describe('Business Actions Execution Framework', () => {
     await CEOService.executeInlineTask(supabase as any, 'task-1', { task_type: 'GITHUB_GET_REPOSITORY_ACTIVITY', repo: 'itwield' }, 'user-1', 'agent-1');
 
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      status: 'FAILED',
+      status: 'BLOCKED',
       error: expect.stringContaining('CONNECTION_REQUIRED: github')
     }));
   });

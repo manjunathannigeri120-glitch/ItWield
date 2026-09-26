@@ -56,11 +56,26 @@ export class MissionProgressService {
     }
 
     // 2. Fetch Tasks bound to this mission
-    const { data: tasks, error: tasksErr } = await supabase
+    let { data: tasks, error: tasksErr } = await supabase
       .from('tasks')
-      .select('id, status, error, updated_at')
+      .select('id, status, error, updated_at, created_at')
       .eq('mission_id', missionId)
       .eq('workspace_id', workspaceId);
+
+    // 2b. Fetch active plan to ignore tasks from cancelled plans
+    const { data: activePlan } = await supabase
+      .from('mission_plans')
+      .select('created_at')
+      .eq('mission_id', missionId)
+      .eq('workspace_id', workspaceId)
+      .eq('status', 'ACTIVE')
+      .order('version', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (activePlan && tasks) {
+      tasks = tasks.filter((t: any) => new Date(t.created_at) >= new Date(activePlan.created_at));
+    }
       
     // 3. Fetch Mission Results
     const { data: results, error: resultsErr } = await supabase
@@ -155,7 +170,7 @@ export class MissionProgressService {
       blocker = { type: 'PAUSED', description: 'Mission is paused by the owner.' };
     } else if (pendingApprovals.length > 0) {
       blocker = { type: 'OWNER_APPROVAL_REQUIRED', description: 'Owner approval is required.' };
-    } else if (mostRecentErrorTask && mostRecentErrorTask.error) {
+    } else if (work.running === 0 && work.pending === 0 && mostRecentErrorTask && mostRecentErrorTask.error) {
       const errStr = String(mostRecentErrorTask.error).toUpperCase();
       if (errStr.includes('CONNECTION_NOT_FOUND') || errStr.includes('CONNECTION_UNAUTHORIZED') || errStr.includes('CONNECTION')) {
         blocker = { type: 'CONNECTION_REQUIRED', description: 'A business connection is required.' };

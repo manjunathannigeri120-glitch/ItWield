@@ -672,6 +672,40 @@ Do not output anything outside the JSON structure.`;
           // We will fall back to surfacing general task blockers only if the plan yields no ready step.
           if (!readyStep) {
             if (progress.blocker) {
+               // === CONNECTION RECOVERY LOGIC ===
+               if (progress.blocker.type === 'CONNECTION_REQUIRED') {
+                   const { data: stalledSteps } = await supabase.from('mission_plan_steps')
+                      .select('*')
+                      .eq('plan_id', planData.plan.id)
+                      .in('status', ['BLOCKED', 'FAILED']);
+                      
+                   if (stalledSteps && stalledSteps.length > 0) {
+                      const { AuthorizationRegistry } = await import('./AuthorizationRegistry');
+                      for (const s of stalledSteps) {
+                         const authResult = AuthorizationRegistry.authorize(s.authorization_class, {});
+                         const reqConn = authResult.definition?.requiredConnection;
+                         if (reqConn) {
+                             let connValid = false;
+                             if (reqConn === 'web_search') {
+                                 connValid = !!process.env.TAVILY_API_KEY || process.env.NODE_ENV === 'test';
+                             } else {
+                                 const { data: conn } = await supabase.from('connections')
+                                    .select('status')
+                                    .eq('workspace_id', workspaceId)
+                                    .eq('provider', reqConn).single();
+                                 connValid = !!(conn && conn.status === 'connected');
+                             }
+                             if (connValid) {
+                                 console.log(`[CEOService] Connection ${reqConn} recovered. Unblocking step ${s.id}.`);
+                                 
+
+                                 await supabase.from('mission_plan_steps').update({ status: 'READY', updated_at: new Date().toISOString() }).eq('id', s.id);
+                                 s.status = 'READY';
+                             }
+                         }
+                      }
+                   }
+               }
                // E.g., CONNECTION_REQUIRED or OWNER_APPROVAL_REQUIRED.
                // Do not create duplicate work. Surface blocker.
                console.log('[CEOService] Mission ' + mission.id + ' is blocked: ' + progress.blocker.type);
@@ -894,8 +928,12 @@ Do not output anything outside the JSON structure.`;
       
       await CEOService.evaluateTaskResult(supabase, taskId, workspaceId, userId, executorId);
     } catch (e: any) {
-      await supabase.from('tasks').update({ status: 'FAILED', error: e.message, completed_at: new Date().toISOString() }).eq('id', taskId);
-      await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workspaceId, event_type: 'TASK_FAILED', details: { error: e.message } });
+      let finalStatus = 'FAILED';
+      if (e.message && e.message.startsWith('CONNECTION_REQUIRED')) {
+          finalStatus = 'BLOCKED';
+      }
+      await supabase.from('tasks').update({ status: finalStatus, error: e.message, completed_at: new Date().toISOString() }).eq('id', taskId);
+      await supabase.from('task_events').insert({ task_id: taskId, workspace_id: workspaceId, event_type: finalStatus === 'BLOCKED' ? 'TASK_BLOCKED' : 'TASK_FAILED', details: { error: e.message } });
       
       if (agentId) await supabase.from('agents').update({ status: 'idle' }).eq('id', agentId);
       if (executorId && executorId !== agentId) await supabase.from('agents').update({ status: 'idle' }).eq('id', executorId);
@@ -1104,7 +1142,7 @@ Do not output anything outside the JSON structure.`;
          console.error('[CEOService] Mission Result Pipeline / Planning Error:', pipelineErr);
       }
     }
-    if (task.status === 'FAILED' && task.mission_id) {
+    if ((task.status === 'FAILED' || task.status === 'BLOCKED') && task.mission_id) {
         try {
             const { data: activePlan } = await supabase.from('mission_plans')
                 .select('id')
@@ -1121,7 +1159,11 @@ Do not output anything outside the JSON structure.`;
                  
                 if (runningSteps && runningSteps.length > 0) {
                     for (const s of runningSteps) {
-                        await supabase.from('mission_plan_steps').update({ status: 'FAILED', updated_at: new Date().toISOString() }).eq('id', s.id);
+                        let stepStatus = task.status;
+                        if (task.status === 'FAILED' && task.error && String(task.error).includes('CONNECTION_REQUIRED')) {
+                            stepStatus = 'BLOCKED';
+                        }
+                        await supabase.from('mission_plan_steps').update({ status: stepStatus, updated_at: new Date().toISOString() }).eq('id', s.id);
                     }
                 }
             }
