@@ -12,19 +12,8 @@ ALTER TABLE public.company_memory
     ADD COLUMN IF NOT EXISTS superseded_by UUID REFERENCES public.company_memory(id) ON DELETE SET NULL;
 
 -- Ensure approvals have necessary fields
-CREATE TABLE IF NOT EXISTS public.approvals (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
-    action TEXT NOT NULL,
-    reason TEXT,
-    requested_by_executive TEXT,
-    context JSONB,
-    status TEXT NOT NULL DEFAULT 'PENDING_APPROVAL',
-    expires_at TIMESTAMPTZ,
-    task_id UUID REFERENCES public.tasks(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+ALTER TABLE public.approvals
+    ADD COLUMN IF NOT EXISTS context JSONB;
 
 -- Backwards compatibility: Populate category from memory_type if category is null
 UPDATE public.company_memory SET category = memory_type WHERE category IS NULL;
