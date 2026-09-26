@@ -1,6 +1,10 @@
 -- V3.6.1 Mission State Consistency & Reliability
 
 -- 1. Ensure orphaned RUNNING steps from non-active plans are cancelled so they don't block.
+
+ALTER TABLE public.mission_plan_steps DROP CONSTRAINT IF EXISTS mission_plan_steps_status_check;
+ALTER TABLE public.mission_plan_steps ADD CONSTRAINT mission_plan_steps_status_check CHECK (status IN ('PENDING', 'READY', 'RUNNING', 'COMPLETED', 'BLOCKED', 'FAILED', 'SKIPPED', 'CANCELLED'));
+
 UPDATE public.mission_plan_steps
 SET status = 'CANCELLED'
 FROM public.mission_plans
@@ -16,6 +20,6 @@ WHERE status = 'RUNNING' AND mission_id IS NOT NULL;
 
 -- 3. Fix COMPETITIVE_ANALYSIS capability mismatch for existing Competitor Analysts
 UPDATE public.agents
-SET capabilities = array_replace(capabilities, 'COMPETITOR_RESEARCH', 'COMPETITIVE_ANALYSIS')
-WHERE 'COMPETITOR_RESEARCH' = ANY(capabilities);
+SET capabilities = (capabilities - 'COMPETITOR_RESEARCH' - 'COMPETITIVE_ANALYSIS') || '["COMPETITIVE_ANALYSIS"]'::jsonb
+WHERE capabilities @> '"COMPETITOR_RESEARCH"'::jsonb;
 
