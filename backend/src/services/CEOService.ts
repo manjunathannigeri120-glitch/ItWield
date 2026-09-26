@@ -5,6 +5,7 @@ import { AuthorizationRegistry } from './AuthorizationRegistry';
 import { CompanyMemoryService } from './CompanyMemoryService';
 import { ContinuousImprovementService } from './ContinuousImprovementService';
 import { ActionRegistry } from '../workflows/actions/ActionRegistry';
+import { WorkforceIntegrityService } from './WorkforceIntegrityService';
 
 
 export class CEOService {
@@ -158,9 +159,7 @@ Do not output anything outside the JSON structure.`;
                 }
               });
             }
-          }
-
-          if (taskType === 'COMPETITIVE_ANALYSIS') {
+          } else if (taskType === 'COMPETITIVE_ANALYSIS') {
             const compAnalyst = agents?.find((a: any) => a.name === 'Competitor Analyst');
             const cmo = agents?.find((a: any) => a.name === 'AI CMO');
             const assignee = cmo || compAnalyst || (agents && agents.length > 0 ? agents[0] : null);
@@ -178,9 +177,7 @@ Do not output anything outside the JSON structure.`;
                 }
               });
             }
-          }
-
-          if (taskType === 'LEAD_RESEARCH') {
+          } else if (taskType === 'LEAD_RESEARCH') {
             const cmo = agents?.find((a: any) => a.name === 'AI CMO');
             const leadResearcher = agents?.find((a: any) => (a.capabilities || []).includes('LEAD_RESEARCH'));
             const assignee = cmo || (agents && agents.length > 0 ? agents[0] : null);
@@ -196,6 +193,23 @@ Do not output anything outside the JSON structure.`;
                 input: {
                   task_type: 'LEAD_RESEARCH',
                   delegate_to: executor ? executor.id : assignee.id
+                }
+              });
+            }
+          } else {
+              const { WorkforceIntegrityService } = await import('./WorkforceIntegrityService');
+              const capableWorker = await WorkforceIntegrityService.findCapableWorker(supabase, workspaceId, taskType);
+              const assignee = capableWorker || (agents && agents.length > 0 ? agents[0] : null);
+            if (assignee) {
+              generatedTasks.push({
+                title: taskType.replace(/_/g, ' '),
+                description: `Execute mission step: ${taskType} for ${company.name}.`,
+                agent_id: assignee.id,
+                priority: 'high',
+                workflow_id: null,
+                input: {
+                  task_type: taskType,
+                  delegate_to: assignee.id
                 }
               });
             }
@@ -267,9 +281,67 @@ Do not output anything outside the JSON structure.`;
             aiPermissions = ctx.ai_permissions || {};
           } catch (_) {}
 
-          const authResult = AuthorizationRegistry.authorize(actionId, aiPermissions);
+          const validation = await WorkforceIntegrityService.validateAssignment(supabase, workspaceId, t.agent_id, actionId, aiPermissions);
+            
+            if (!validation.valid) {
+                // Create a BLOCKED task so the mission progress does not stall infinitely
+                const { data: bTask } = await supabase.from('tasks').insert({
+                  workspace_id: workspaceId,
+                  mission_id: missionId || null,
+                  title: t.title,
+                  description: t.description,
+                  assigned_agent_id: t.agent_id,
+                  status: 'BLOCKED',
+                  error: validation.reason || 'Delegation blocked',
+                  input: t.input || {}
+                }).select().single();
+                const bTaskId = bTask ? bTask.id : null;
 
-          if (!authResult.authorized) {
+                if (validation.status === 'AUTHORIZATION_REQUIRED' || validation.status === 'PROHIBITED') {
+                   const authResult = AuthorizationRegistry.authorize(actionId, aiPermissions);
+                   console.warn(`[CEOService] Action BLOCKED by registry: ${actionId}. Reason: ${authResult.reason}`);
+                   if (authResult.requiresApproval) {
+                     await supabase.from('approvals').insert({
+                       workspace_id: workspaceId,
+                       action: actionId,
+                       title: t.title || actionId,
+                       reason: authResult.reason,
+                       requested_by_executive: t.agent_id,
+                       risk_level: authResult.definition?.riskLevel || 'high',
+                       status: 'PENDING_APPROVAL',
+                       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                       task_id: bTaskId
+                     });
+                     await supabase.from('task_events').insert({
+                       task_id: bTaskId,
+                       workspace_id: workspaceId,
+                       event_type: 'OWNER_APPROVAL_REQUIRED',
+                       details: { action: actionId, reason: authResult.reason, executive: t.agent_id, objective: t.title }
+                     });
+                   } else {
+                     await supabase.from('task_events').insert({
+                       task_id: bTaskId,
+                       workspace_id: workspaceId,
+                       event_type: 'ACTION_BLOCKED',
+                       details: { action: actionId, decision: 'BLOCKED', reason: authResult.reason, executive: t.agent_id, objective: t.title, authorization_source: 'AuthorizationRegistry' }
+                     });
+                   }
+                   continue;
+                } else {
+                   console.warn(`[CEOService] Delegation BLOCKED: ${validation.reason}`);
+                   await supabase.from('task_events').insert({
+                       task_id: bTaskId,
+                       workspace_id: workspaceId,
+                       event_type: 'DELEGATION_BLOCKED',
+                       details: { action: actionId, reason: validation.reason, executive: t.agent_id, status: validation.status }
+                   });
+                   continue;
+                }
+            }
+            
+            // If valid, just construct a fake authorized authResult to pass the existing below check
+            const authResult = AuthorizationRegistry.authorize(actionId, aiPermissions);
+            if (!authResult.authorized) {
             console.warn(`[CEOService] Action BLOCKED by registry: ${actionId}. Reason: ${authResult.reason}`);
             
             if (authResult.requiresApproval) {
@@ -390,10 +462,20 @@ Do not output anything outside the JSON structure.`;
             this.executeTaskWorkflow(supabase, createdTask.id, t.workflow_id, t.input, userId, t.agent_id).catch(err => {
               console.error(`[CEOService] Workflow execution failed for task ${createdTask.id}:`, err);
             });
-          } else if (t.input && (t.input.task_type === 'APPLICATION_MONITORING' || t.input.task_type === 'COMPETITIVE_ANALYSIS' || t.input.task_type === 'LEAD_RESEARCH')) {
-            this.executeInlineTask(supabase, createdTask.id, t.input, userId, t.agent_id).catch(err => {
-              console.error(`[CEOService] Inline execution failed for task ${createdTask.id}:`, err);
-            });
+          } else if (t.input && t.input.task_type) {
+            const { ActionRegistry } = await import('../workflows/actions/ActionRegistry');
+            if (ActionRegistry.get(t.input.task_type)) {
+              this.executeInlineTask(supabase, createdTask.id, t.input, userId, t.agent_id).catch(err => {
+                console.error(`[CEOService] Inline execution failed for task ${createdTask.id}:`, err);
+              });
+            } else {
+              // Block task and agent if no executable capability
+              await supabase.from('tasks').update({ status: 'BLOCKED', error: `No executable capability configured for ${t.input.task_type}.` }).eq('id', createdTask.id);
+              await supabase.from('task_events').insert({ task_id: createdTask.id, workspace_id: workspaceId, event_type: 'TASK_BLOCKED', details: { error: `No executable capability configured for ${t.input.task_type}.` } });
+              if (t.agent_id) {
+                await supabase.from('agents').update({ status: 'blocked' }).eq('id', t.agent_id);
+              }
+            }
           } else {
             // Block task and agent if no executable capability
             await supabase.from('tasks').update({ status: 'BLOCKED', error: 'No executable capability configured.' }).eq('id', createdTask.id);
@@ -440,6 +522,43 @@ Do not output anything outside the JSON structure.`;
 
     let shouldUnlock = true;
     try {
+      // V3.6.1 Phase 1B - Stale task recovery (execution lease expired)
+      const nowIso = new Date().toISOString();
+      const { data: staleTasks } = await supabase.from('tasks')
+          .select('id, mission_id')
+          .eq('workspace_id', workspaceId)
+          .eq('status', 'RUNNING')
+          .lt('execution_lease_until', nowIso);
+      
+      if (staleTasks && staleTasks.length > 0) {
+          console.log(`[CEOService] Found ${staleTasks.length} stale tasks. Recovering...`);
+          for (const st of staleTasks) {
+              await supabase.from('tasks').update({ 
+                  status: 'FAILED', 
+                  error: 'Task execution lease expired (Timeout)', 
+                  updated_at: nowIso, 
+                  completed_at: nowIso 
+              }).eq('id', st.id);
+              
+              await supabase.from('task_events').insert({ 
+                  task_id: st.id, workspace_id: workspaceId, event_type: 'TASK_FAILED', details: { error: 'Timeout' } 
+              });
+              
+              // To safely recover the mission step back to READY instead of FAILED, we do this manually
+              if (st.mission_id) {
+                 const { data: activePlan } = await supabase.from('mission_plans')
+                     .select('id').eq('mission_id', st.mission_id).eq('status', 'ACTIVE')
+                     .order('version', { ascending: false }).limit(1).single();
+                 if (activePlan) {
+                     await supabase.from('mission_plan_steps')
+                         .update({ status: 'READY', updated_at: nowIso })
+                         .eq('plan_id', activePlan.id)
+                         .eq('status', 'RUNNING');
+                 }
+              }
+          }
+      }
+
       // 429 Provider Cooldown Check
       const { data: recentRateLimits } = await supabase.from('incidents')
         .select('created_at')
@@ -470,8 +589,42 @@ Do not output anything outside the JSON structure.`;
         .eq('workspace_id', workspaceId)
         .in('status', ['PENDING', 'ASSIGNED', 'RUNNING']);
 
-        // Phase 1B - Mission Orchestration
-    const { data: missions } = await supabase.from('business_missions')
+      // ---------------------------------------------------------
+      // V3.5 - CEO MANAGEMENT LOOP
+      // ---------------------------------------------------------
+      try {
+        const { CompanyStateService } = await import('./CompanyStateService');
+        const { ManagementIntelligenceService } = await import('./ManagementIntelligenceService');
+        const { ExecutiveService } = await import('./ExecutiveService');
+
+        // STEP 1 Build company state
+        const state = await CompanyStateService.buildState(supabase, workspaceId);
+
+        // STEP 2 Detect meaningful items & STEP 3 Deduplicate & STEP 4 Prioritize
+        await ManagementIntelligenceService.detectAndPrioritize(supabase, workspaceId, state);
+
+        // STEP 5 CEO reviews highest relevant item
+        const topItem = await ManagementIntelligenceService.getHighestPriorityItem(supabase, workspaceId);
+
+        if (topItem && (topItem.status === 'QUEUED' || topItem.status === 'ANALYZING' || topItem.status === 'REVIEW_REQUIRED')) {
+           if (topItem.status === 'QUEUED') {
+               // STEP 6 & 7 Determine ownership and assign
+               await ExecutiveService.delegateItem(supabase, workspaceId, topItem, state);
+           } else if (topItem.status === 'ANALYZING') {
+               // STEP 8 & 9 Executive analyzes & proposes
+               await ExecutiveService.analyzeAndPropose(supabase, workspaceId, topItem, state);
+           }
+           // Note: If we handled a management item, we might still want to let mission orchestration run, 
+           // but we shouldn't spawn a task if the management loop just spawned one.
+           // To keep it simple, we'll let both run and rely on deterministic task checks.
+        }
+      } catch (managementErr) {
+        console.error('[CEOService] Management Loop Error:', managementErr);
+      }
+      // ---------------------------------------------------------
+
+      // Phase 1B - Mission Orchestration
+      const { data: missions } = await supabase.from('business_missions')
       .select('*')
       .eq('workspace_id', workspaceId)
       .in('status', ['ACTIVE']);
@@ -528,6 +681,18 @@ Do not output anything outside the JSON structure.`;
             if (progress.work.running > 0 || progress.work.pending > 0) {
                // Do not create duplicate work if useful authorized work is already running or assigned/pending
                console.log('[CEOService] Mission ' + mission.id + ' has active work. Waiting.');
+               continue;
+            }
+
+            // Orphan Recovery: No active tasks, no ready steps, but plan isn't complete.
+            // Reset any steps stuck in RUNNING back to READY.
+            if (progress.work.running === 0 && progress.work.pending === 0) {
+               console.log('[CEOService] Mission ' + mission.id + ' orchestrator stall detected. Attempting orphan recovery.');
+               await supabase.from('mission_plan_steps')
+                  .update({ status: 'READY', updated_at: new Date().toISOString() })
+                  .eq('plan_id', planData.plan.id)
+                  .eq('status', 'RUNNING');
+               // Will naturally retry on the next scheduler tick
                continue;
             }
           }
@@ -889,6 +1054,17 @@ Do not output anything outside the JSON structure.`;
     const { data: task } = await supabase.from('tasks').select('*, assigned_agent:agents(id, name, capabilities)').eq('id', taskId).single();
     if (!task) return;
 
+    // --- MANAGEMENT ITEM INTEGRATION (V3.5) ---
+    if (task.metadata?.management_item_id) {
+      try {
+        const { ExecutiveService } = await import('./ExecutiveService');
+        await ExecutiveService.reviewResult(supabase, workspaceId, task, task.metadata.management_item_id);
+      } catch (err) {
+        console.error('[CEOService] Management Result Pipeline Error:', err);
+      }
+    }
+    // ------------------------------------------
+
     // --- PHASE 4: GET_CUSTOMERS VERIFICATION INTEGRATION ---
     if (task.status === 'COMPLETED' && task.mission_id) {
       try {
@@ -904,15 +1080,24 @@ Do not output anything outside the JSON structure.`;
             }
          }
 
-         // Complete the running plan step for this mission
-         const { data: runningSteps } = await supabase.from('mission_plan_steps')
+         // Complete the running plan step for this mission (only for the ACTIVE plan)
+         const { data: activePlan } = await supabase.from('mission_plans')
             .select('id')
             .eq('mission_id', task.mission_id)
-            .eq('status', 'RUNNING');
-         
-         if (runningSteps && runningSteps.length > 0) {
-            for (const s of runningSteps) {
-                await MissionPlanningService.completeStep(supabase, s.id);
+            .eq('status', 'ACTIVE')
+            .order('version', { ascending: false })
+            .limit(1).single();
+
+         if (activePlan) {
+            const { data: runningSteps } = await supabase.from('mission_plan_steps')
+                .select('id')
+                .eq('plan_id', activePlan.id)
+                .eq('status', 'RUNNING');
+             
+            if (runningSteps && runningSteps.length > 0) {
+                for (const s of runningSteps) {
+                    await MissionPlanningService.completeStep(supabase, s.id);
+                }
             }
          }
       } catch (pipelineErr) {
@@ -921,15 +1106,25 @@ Do not output anything outside the JSON structure.`;
     }
     if (task.status === 'FAILED' && task.mission_id) {
         try {
-            const { data: runningSteps } = await supabase.from('mission_plan_steps')
+            const { data: activePlan } = await supabase.from('mission_plans')
                 .select('id')
                 .eq('mission_id', task.mission_id)
-                .eq('status', 'RUNNING');
-             if (runningSteps && runningSteps.length > 0) {
-                for (const s of runningSteps) {
-                    await supabase.from('mission_plan_steps').update({ status: 'FAILED', updated_at: new Date().toISOString() }).eq('id', s.id);
+                .eq('status', 'ACTIVE')
+                .order('version', { ascending: false })
+                .limit(1).single();
+
+            if (activePlan) {
+                const { data: runningSteps } = await supabase.from('mission_plan_steps')
+                    .select('id')
+                    .eq('plan_id', activePlan.id)
+                    .eq('status', 'RUNNING');
+                 
+                if (runningSteps && runningSteps.length > 0) {
+                    for (const s of runningSteps) {
+                        await supabase.from('mission_plan_steps').update({ status: 'FAILED', updated_at: new Date().toISOString() }).eq('id', s.id);
+                    }
                 }
-             }
+            }
         } catch (err) {}
     }
     // --- END PHASE 4 ---
@@ -1148,6 +1343,7 @@ Output strictly valid JSON exactly matching this schema:
   }
 
 }
+
 
 
 

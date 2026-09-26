@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { z } from 'zod';
+import { SubscriptionService } from '../services/SubscriptionService';
+import { UsageService } from '../services/UsageService';
+import { EntitlementService } from '../services/EntitlementService';
 
 const router = Router();
 router.use(requireAuth);
@@ -202,13 +205,13 @@ router.post('/:id/activate', async (req: AuthRequest, res) => {
     if (updateErr) throw updateErr;
 
     // 2. Inject V2 Executive Layer + Workers (idempotent via ignoring errors or checking first)
-    const { data: existingAgents } = await req.supabase.from('agents').select('name').eq('workspace_id', workspaceId);
+    const { data: existingAgents } = await req.supabase.from('agents').select('name').eq('workspace_id', workspaceId as string);
     const existingNames = new Set((existingAgents || []).map((a: any) => a.name));
 
     const insertAgent = async (name: string, system_prompt: string, capabilities: any[] = [], managerId: string | null = null) => {
       if (!req.supabase) return;
       if (existingNames.has(name)) {
-        const { data } = await req.supabase.from('agents').select('id').eq('workspace_id', workspaceId).eq('name', name).single();
+        const { data } = await req.supabase.from('agents').select('id').eq('workspace_id', workspaceId as string).eq('name', name).single();
         return data?.id;
       }
       const { data } = await req.supabase.from('agents').insert({ workspace_id: workspaceId, name, system_prompt, capabilities, status: 'idle', manager_id: managerId }).select('id').single();
@@ -227,13 +230,13 @@ router.post('/:id/activate', async (req: AuthRequest, res) => {
     };
 
     await insertWorker('Application Monitor', 'You monitor the health of the application.', ctoId, ['APPLICATION_MONITORING']);
-    await insertWorker('Builder Analyst', 'You research and build new features.', ctoId, ['GITHUB_LIST_REPOSITORIES', 'GITHUB_LIST_ISSUES', 'GITHUB_LIST_PULL_REQUESTS', 'GITHUB_GET_REPOSITORY_ACTIVITY', 'GITHUB_GET_ISSUE', 'GITHUB_GET_PULL_REQUEST']);
-    await insertWorker('Competitor Analyst', 'You analyze competitor movements.', cmoId, ['COMPETITOR_RESEARCH', 'WEB_RESEARCH', 'SLACK_LIST_CHANNELS', 'SLACK_READ_CHANNEL', 'SLACK_SEARCH_MESSAGES', 'SLACK_GET_RECENT_ACTIVITY', 'GOOGLE_SHEETS_LIST', 'GOOGLE_SHEETS_READ']);
+    await insertWorker('Builder Analyst', 'You research and build new features.', ctoId, ['GITHUB_LIST_REPOSITORIES', 'GITHUB_LIST_ISSUES', 'GITHUB_LIST_PULL_REQUESTS', 'GITHUB_GET_REPOSITORY_ACTIVITY', 'GITHUB_GET_ISSUE', 'GITHUB_GET_PULL_REQUEST', 'DATA_TRANSFORMATION']);
+    await insertWorker('Competitor Analyst', 'You analyze competitor movements.', cmoId, ['COMPETITIVE_ANALYSIS', 'WEB_RESEARCH', 'SLACK_LIST_CHANNELS', 'SLACK_READ_CHANNEL', 'SLACK_SEARCH_MESSAGES', 'SLACK_GET_RECENT_ACTIVITY', 'GOOGLE_SHEETS_LIST', 'GOOGLE_SHEETS_READ']);
     // Might also want a generic lead/sales one if it exists, or just give CMO's lead stuff to someone.
     await insertWorker('Lead Researcher', 'You research new leads.', cmoId, ['LEAD_RESEARCH', 'WEB_RESEARCH', 'GOOGLE_SHEETS_READ']);
 
     // 3. Inject default baseline workflows (check if exists first)
-    const { data: existingWf } = await req.supabase.from('workflows').select('id').eq('workspace_id', workspaceId).eq('name', 'Routine Health Check').single();
+    const { data: existingWf } = await req.supabase.from('workflows').select('id').eq('workspace_id', workspaceId as string).eq('name', 'Routine Health Check').single();
     if (!existingWf) {
       await req.supabase.from('workflows').insert([{
         workspace_id: workspaceId,
@@ -268,21 +271,21 @@ router.get('/:id/while-away', async (req: AuthRequest, res) => {
     const { data: tasks } = await req.supabase
       .from('tasks')
       .select('id, title, status, input, output, created_at, completed_at, error, assigned_agent:agents(name, manager_id)')
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .gte('created_at', timeWindow)
       .order('created_at', { ascending: false });
 
     const { data: incidents } = await req.supabase
       .from('incidents')
       .select('*')
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .gte('created_at', timeWindow)
       .order('created_at', { ascending: false });
 
     const { data: events } = await req.supabase
       .from('task_events')
       .select('event_type, details, created_at, task_id')
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .gte('created_at', timeWindow)
       .in('event_type', ['OWNER_APPROVAL_REQUIRED', 'OBSERVATION_BLOCKED', 'ACTION_AUTHORIZED'])
       .order('created_at', { ascending: false });
@@ -404,7 +407,7 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
     const { data: incidents } = await req.supabase
       .from('incidents')
       .select('*')
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .not('status', 'eq', 'RESOLVED')
       .order('created_at', { ascending: false });
 
@@ -412,25 +415,25 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
     const { data: agents } = await req.supabase
       .from('agents')
       .select('id, name, status, role')
-      .eq('workspace_id', workspaceId);
+      .eq('workspace_id', workspaceId as string);
 
     const { data: activeTasks } = await req.supabase
       .from('tasks')
       .select('id, title, status, assigned_agent:agents(name)')
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .in('status', ['PENDING', 'ASSIGNED', 'RUNNING']);
 
     const { data: pendingApprovals } = await req.supabase
       .from('approvals')
       .select('*')
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .eq('status', 'PENDING_APPROVAL')
       .order('created_at', { ascending: false });
 
     const { data: approvalHistory } = await req.supabase
       .from('approvals')
       .select('*')
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .neq('status', 'PENDING_APPROVAL')
       .order('resolved_at', { ascending: false })
       .limit(5);
@@ -438,7 +441,7 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
     const { data: competitors } = await req.supabase
       .from('competitors')
       .select('name, last_checked_at')
-      .eq('workspace_id', workspaceId);
+      .eq('workspace_id', workspaceId as string);
 
     // Compute Company Status
     let companyStatus = 'Healthy';
@@ -484,9 +487,7 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
           action: app.action,
           title: app.title,
           requestedBy: executiveName,
-          reason: app.reason,
-          riskLevel: app.risk_level,
-          status: app.status
+          reason: app.reason, riskLevel: app.risk_level, status: app.status, payload: app.payload
         }
       });
     }
@@ -494,13 +495,13 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
     const { data: activeMissions } = await req.supabase
       .from('business_missions')
       .select('id, title, type')
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .eq('status', 'ACTIVE');
 
     const { data: goalEvents } = await req.supabase
       .from('task_events')
       .select('task_id, details')
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .eq('event_type', 'CEO_GOAL_ACTION_CREATED')
       .in('task_id', (activeTasks || []).map((t: any) => t.id));
 
@@ -568,7 +569,7 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
     const { data: rawMemory } = await req.supabase
       .from('company_memory')
       .select('*')
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(20);
@@ -612,7 +613,66 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
   }
 });
 
+
+// V3.7: Plan and Entitlement Retrieval
+router.get('/:id/plan', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase || !req.user) return res.status(500).json({ error: 'System unavailable' });
+    const workspaceId = req.params.id as string;
+    
+    const subscription = await SubscriptionService.getWorkspaceSubscription(req.supabase, workspaceId);
+    const usageSnapshot = await UsageService.getUsageSnapshot(req.supabase, workspaceId);
+    const entitlements = await EntitlementService.getWorkspaceEntitlements(req.supabase, workspaceId);
+    
+    res.json({
+      subscription,
+      entitlements,
+      usage: usageSnapshot
+    });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.post('/:id/plan', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase || !req.user) return res.status(500).json({ error: 'System unavailable' });
+    const workspaceId = req.params.id as string;
+    const { planId } = req.body;
+    
+    if (!planId) return res.status(400).json({ error: 'planId is required' });
+
+    const subscription = await SubscriptionService.changePlan(req.supabase, workspaceId, planId, req.user.id);
+    res.json({ ok: true, subscription });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.post('/:id/subscription/cancel', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase || !req.user) return res.status(500).json({ error: 'System unavailable' });
+    const workspaceId = req.params.id as string;
+    const subscription = await SubscriptionService.cancelSubscription(req.supabase, workspaceId, req.user.id);
+    res.json({ ok: true, subscription });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.post('/:id/subscription/reactivate', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase || !req.user) return res.status(500).json({ error: 'System unavailable' });
+    const workspaceId = req.params.id as string;
+    const subscription = await SubscriptionService.reactivateSubscription(req.supabase, workspaceId, req.user.id);
+    res.json({ ok: true, subscription });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 export default router;
+
 
 import { AuthorizationRegistry } from '../services/AuthorizationRegistry';
 import { CompanyMemoryService } from '../services/CompanyMemoryService';
@@ -631,7 +691,7 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
       .from('approvals')
       .select('*')
       .eq('id', approvalId)
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .single();
 
     if (fetchErr || !approval) {
@@ -725,20 +785,58 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
     });
 
     const supabase = req.supabase!;
-    // Mock execution completion since there's no real backend execution queue for these tasks yet
-    setTimeout(async () => {
-      await supabase.from('approvals').update({
-        status: 'COMPLETED',
-        execution_completed_at: new Date().toISOString(),
-        execution_result: { message: 'Execution simulated successfully' }
-      }).eq('id', approvalId);
+    // Custom execution for EXTERNAL_COMMUNICATION (CRM Outreach)
+    if (updated.action === 'EXTERNAL_COMMUNICATION' && updated.payload && updated.payload.opportunity_id) {
+       const oppId = updated.payload.opportunity_id;
+       const { data: opp } = await supabase.from('opportunities').select('*').eq('id', oppId).single();
+       if (opp && opp.outreach_draft) {
+          const { SendEmailAction } = require('../workflows/actions/SendEmailAction');
+          const emailAction = new SendEmailAction();
+          
+          try {
+             const result = await emailAction.execute({
+                to: opp.outreach_draft.recipient,
+                subject: opp.outreach_draft.subject,
+                text: opp.outreach_draft.body
+             }, { supabase, runId: '', userId, workspaceId, attempt: 1 });
 
-      await supabase.from('task_events').insert({
-        workspace_id: workspaceId,
-        event_type: 'APPROVAL_EXECUTION_COMPLETED',
-        details: { action: updated.action, actor: userId }
-      });
-    }, 100);
+             if (result.success) {
+                await supabase.from('opportunities').update({ stage: 'CONTACTED', outreach_status: 'SENT' }).eq('id', oppId);
+                await supabase.from('approvals').update({
+                  status: 'COMPLETED',
+                  execution_completed_at: new Date().toISOString(),
+                  execution_result: result
+                }).eq('id', approvalId);
+                await require('../services/CompanyMemoryService').CompanyMemoryService.recordOutcome(workspaceId, 'Outreach Sent', `Successfully sent outreach to ${opp.company_name}`, oppId, 'SYSTEM', supabase);
+             } else {
+                throw new Error(result.error?.message || 'Send failed');
+             }
+          } catch (e: any) {
+             await supabase.from('opportunities').update({ outreach_status: 'FAILED' }).eq('id', oppId);
+             await supabase.from('approvals').update({
+                status: 'FAILED',
+                execution_completed_at: new Date().toISOString(),
+                execution_error: e.message
+             }).eq('id', approvalId);
+             await require('../services/CompanyMemoryService').CompanyMemoryService.recordOutcome(workspaceId, 'Outreach Failed', `Failed to send outreach to ${opp.company_name}`, oppId, 'SYSTEM', supabase);
+          }
+       }
+    } else {
+      // Mock execution completion since there's no real backend execution queue for these tasks yet
+      setTimeout(async () => {
+        await supabase.from('approvals').update({
+          status: 'COMPLETED',
+          execution_completed_at: new Date().toISOString(),
+          execution_result: { message: 'Execution simulated successfully' }
+        }).eq('id', approvalId);
+
+        await supabase.from('task_events').insert({
+          workspace_id: workspaceId,
+          event_type: 'APPROVAL_EXECUTION_COMPLETED',
+          details: { action: updated.action, actor: userId }
+        });
+      }, 100);
+    }
 
     res.json({ success: true, executed: true });
   } catch (error: any) {
@@ -758,7 +856,7 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
       .from('approvals')
       .select('*')
       .eq('id', approvalId)
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .single();
 
     if (fetchErr || !approval) {
@@ -873,7 +971,7 @@ router.get('/:id/improvements/:improvId', async (req: AuthRequest, res) => {
       .from('improvement_proposals')
       .select('*')
       .eq('id', improvId)
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .single();
 
     if (pErr || !proposal) return res.status(404).json({ error: 'Improvement not found' });
@@ -910,7 +1008,7 @@ router.post('/:id/improvements/:improvId/dismiss', async (req: AuthRequest, res)
       .from('improvement_proposals')
       .select('title, state')
       .eq('id', improvId)
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', workspaceId as string)
       .single();
 
     if (pErr || !proposal) return res.status(404).json({ error: 'Improvement not found' });
