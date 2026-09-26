@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
 
 export function Pricing() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-slate-50 py-20 px-6">
       <div className="max-w-3xl mx-auto text-center mb-16">
@@ -35,11 +36,13 @@ export function Pricing() {
             </li>
           </ul>
 
-          <Link to="/login" className="block w-full">
-            <Button size="lg" className="w-full bg-slate-900 text-white hover:bg-slate-800">
-              Get Started
-            </Button>
-          </Link>
+          <Button 
+            size="lg" 
+            className="w-full bg-slate-900 text-white hover:bg-slate-800"
+            onClick={() => navigate("/login")}
+          >
+            Get Started
+          </Button>
         </div>
       </div>
     </div>

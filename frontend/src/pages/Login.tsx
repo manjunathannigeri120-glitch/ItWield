@@ -15,7 +15,7 @@ export function Login() {
   const { user } = useAuth();
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleAuth = async (e: React.FormEvent) => {
