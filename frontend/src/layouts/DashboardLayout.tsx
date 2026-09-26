@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bot, Home, Settings, BookOpen, Rocket, GitMerge } from 'lucide-react';
+import { Bot, Home, Settings, Rocket, GitMerge, Users, Database, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
@@ -19,12 +19,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const navItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Agents', href: '/agents', icon: Bot },
-    { name: 'Knowledge', href: '/knowledge', icon: BookOpen },
-    { name: 'Workflows', href: '/workflows', icon: GitMerge },
-    { name: 'Deployments', href: '/deployments', icon: Rocket, disabled: true },
-
+    { name: 'Command Center', href: '/dashboard', icon: Home },
+    { name: 'Goals', href: '/dashboard', icon: Target },
+    { name: 'Missions', href: '/missions', icon: Rocket },
+    { name: 'CRM', href: '/crm', icon: Users },
+    { name: 'Workforce', href: '/agents', icon: Bot },
+    { name: 'Connections', href: '/connections', icon: GitMerge },
+    { name: 'Approvals', href: '/dashboard', icon: Target, disabled: false },
+    { name: 'Company Brain', href: '/memory', icon: Database },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 

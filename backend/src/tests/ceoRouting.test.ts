@@ -24,12 +24,12 @@ describe('CEOService Routing Logic', () => {
     mockSupabase = {
       from: vi.fn((table: string) => {
         const base: any = {
-          select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-          neq: vi.fn().mockReturnThis(),
-          in: vi.fn().mockReturnThis(),
-          order: vi.fn().mockReturnThis(),
-          limit: vi.fn().mockReturnThis(),
+          select: vi.fn(() => base),
+          eq: vi.fn(() => base),
+          neq: vi.fn(() => base),
+          in: vi.fn(() => base),
+          order: vi.fn(() => base),
+          limit: vi.fn(() => base),
           update: vi.fn((payload) => {
             if (table === 'tasks') updateCalls.push({ table, payload });
             return base;
@@ -38,13 +38,14 @@ describe('CEOService Routing Logic', () => {
           single: vi.fn().mockImplementation(() => {
             if (table === 'workspaces') return Promise.resolve({ data: { id: 'workspace-1', name: 'Test', operational_context: '{}' } });
             if (table === 'tasks') return Promise.resolve({ data: { id: 'task-123', title: 'Lead Research' } });
+              if (table === 'agents') return Promise.resolve({ data: { id: 'cmo', capabilities: ['LEAD_RESEARCH'] } });
             return Promise.resolve({ data: null });
           })
         };
         
         // If table is agents and it ends with an array (from select)
         if (table === 'agents') {
-           base.eq = vi.fn().mockResolvedValue({ data: [{ id: 'agent-1', name: 'AI CMO', capabilities: ['LEAD_RESEARCH'] }] });
+           base.then = (resolve: any) => resolve({ data: [{ id: 'agent-1', name: 'AI CMO', capabilities: ['LEAD_RESEARCH'] }] });
         }
   
         return base;

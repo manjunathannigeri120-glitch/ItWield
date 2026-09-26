@@ -1263,13 +1263,14 @@ Output strictly valid JSON exactly matching this schema:
           await CompanyMemoryService.createMemory({
             workspaceId,
             memoryType: 'FACT',
+            category: 'FACT',
             title: 'Competitive Observation',
             content: fact,
             sourceType: 'TASK',
             sourceId: taskId,
             importance: 'medium',
             createdBy: 'SYSTEM'
-          });
+          }, supabase);
         }
       }
 
@@ -1310,7 +1311,7 @@ Output strictly valid JSON exactly matching this schema:
     }
 
     if (ceoEvaluation.conclusion === 'HEALTHY' || ceoEvaluation.conclusion === 'SUCCESS') {
-      await CompanyMemoryService.recordOutcome(workspaceId, `Successful outcome: ${task.title}`, ceoEvaluation.owner_update || ceoEvaluation.evaluation, taskId, 'SYSTEM', supabase);
+      await CompanyMemoryService.recordOutcome(workspaceId, `Successful outcome: ${task.title}`, ceoEvaluation.owner_update || ceoEvaluation.evaluation, taskId, 'SYSTEM', undefined, undefined, supabase);
     }
 
     // Phase 6 - Create Incident for PROBLEM/FAILURE/CRITICAL

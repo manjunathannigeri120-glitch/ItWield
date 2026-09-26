@@ -72,6 +72,7 @@ describe('AI CEO Goal-to-Action Loop', () => {
         let chain: any = {
           select: vi.fn(() => chain),
           eq: vi.fn(() => chain),
+          lt: vi.fn(() => chain),
           in: vi.fn(() => chain),
           order: vi.fn(() => chain),
           limit: vi.fn(() => chain),

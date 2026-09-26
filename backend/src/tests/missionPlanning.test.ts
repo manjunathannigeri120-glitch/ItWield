@@ -49,9 +49,9 @@ describe('Mission Planning & Adaptive Execution (Phase 7)', () => {
         const planData = await MissionPlanningService.getOrCreateActivePlan(mockSupabase, workspaceId, missionId, 'GET_CUSTOMERS');
         
         expect(planData.plan).toBeDefined();
-        expect(planData.steps.length).toBe(6);
+        expect(planData.steps.length).toBe(8);
         expect(planData.steps[0].step_order).toBe(1);
-        expect(planData.steps[5].step_order).toBe(6);
+        expect(planData.steps[7].step_order).toBe(8);
         
         // Assert explicitly that Step 1 is DATA_TRANSFORMATION (ICP mapping fix)
         expect(planData.steps[0].step_type).toBe('DATA_TRANSFORMATION');
@@ -233,6 +233,111 @@ describe('Mission Planning & Adaptive Execution (Phase 7)', () => {
         // Next version should be 1
         expect(insertedData).toBeDefined();
         expect(insertedData.version).toBe(1);
+    });
+
+    test('V3.1: GET_CUSTOMERS default plan includes outreach steps', async () => {
+        // Mock no existing plan
+        mockSupabase.single.mockResolvedValueOnce({ data: { id: uuidv4() }, error: null });
+
+        const insertChain = (dataToReturn: any) => {
+            return {
+                select: vi.fn().mockReturnThis(),
+                single: vi.fn().mockImplementation(() => {
+                    return Promise.resolve({ data: dataToReturn, error: null });
+                })
+            };
+        };
+        mockSupabase.insert = vi.fn().mockImplementation((args) => insertChain(args));
+
+        const planData = await MissionPlanningService.getOrCreateActivePlan(mockSupabase, workspaceId, missionId, 'GET_CUSTOMERS');
+
+        const titles = planData.steps.map((s: any) => s.title);
+        expect(titles).toContain('Draft Outreach');
+        expect(titles).toContain('Await Approval / Execute Approved Outreach');
+
+        const draftStep = planData.steps.find((s: any) => s.title === 'Draft Outreach');
+        expect(draftStep.step_type).toBe('OUTREACH_DRAFTING');
+        expect(draftStep.authorization_class).toBe('OUTREACH_DRAFTING');
+
+        const awaitStep = planData.steps.find((s: any) => s.title === 'Await Approval / Execute Approved Outreach');
+        expect(awaitStep.step_type).toBe('AWAIT_OUTREACH_APPROVALS');
+    });
+
+    test('V3.1: Outreach requires approval — EXTERNAL_COMMUNICATION is not autonomous', () => {
+        const result = AuthorizationRegistry.authorize('EXTERNAL_COMMUNICATION', {});
+        expect(result.requiresApproval).toBe(true);
+        expect(result.authorized).toBe(false);
+    });
+
+    test('V3.1: GET_CUSTOMERS plan objective is about customer acquisition, not Company Memory', async () => {
+        mockSupabase.single.mockResolvedValueOnce({ data: { id: uuidv4() }, error: null });
+
+        let capturedPlanObjective = '';
+        const insertChain = (args: any) => {
+            if (args.objective) capturedPlanObjective = args.objective;
+            return {
+                select: vi.fn().mockReturnThis(),
+                single: vi.fn().mockImplementation(() => {
+                    return Promise.resolve({ data: args, error: null });
+                })
+            };
+        };
+        mockSupabase.insert = vi.fn().mockImplementation((args) => insertChain(args));
+
+        await MissionPlanningService.getOrCreateActivePlan(mockSupabase, workspaceId, missionId, 'GET_CUSTOMERS');
+
+        expect(capturedPlanObjective).toMatch(/customer/i);
+        expect(capturedPlanObjective).not.toMatch(/Company Memory/i);
+    });
+
+    test('V3.1: No duplicate active plans — existing active plan is reused', async () => {
+        const existingPlanId = uuidv4();
+        const createChain = (dataToReturn: any) => {
+            const chain = {
+                select: vi.fn(() => chain),
+                eq: vi.fn(() => chain),
+                in: vi.fn(() => chain),
+                order: vi.fn(() => chain),
+                limit: vi.fn(() => chain),
+                single: vi.fn(() => Promise.resolve({ data: dataToReturn, error: null })),
+                then: (cb: any) => cb({ data: dataToReturn, error: null })
+            };
+            return chain;
+        };
+
+        mockSupabase.from = vi.fn((table: string) => {
+            if (table === 'mission_plans') return createChain([{ id: existingPlanId, status: 'ACTIVE', version: 3 }]);
+            if (table === 'mission_plan_steps') return createChain([]);
+            return createChain(null);
+        });
+
+        const planData = await MissionPlanningService.getOrCreateActivePlan(mockSupabase, workspaceId, missionId, 'GET_CUSTOMERS');
+        expect(planData.plan.id).toBe(existingPlanId);
+        expect(mockSupabase.insert).not.toHaveBeenCalled();
+    });
+
+    test('V3.1: Non-GET_CUSTOMERS types do NOT receive outreach steps', async () => {
+        mockSupabase.single.mockResolvedValueOnce({ data: { id: uuidv4() }, error: null });
+
+        const insertChain = (dataToReturn: any) => ({
+            select: vi.fn().mockReturnThis(),
+            single: vi.fn().mockImplementation(() => Promise.resolve({ data: dataToReturn, error: null }))
+        });
+        mockSupabase.insert = vi.fn().mockImplementation((args) => insertChain(args));
+
+        const planData = await MissionPlanningService.getOrCreateActivePlan(mockSupabase, workspaceId, missionId, 'UNDERSTAND_COMPETITORS');
+
+        const titles = planData.steps.map((s: any) => s.title);
+        expect(titles).not.toContain('Draft Outreach');
+        expect(titles).not.toContain('Await Approval / Execute Approved Outreach');
+    });
+
+    test('SECURITY: All pricing protection actions remain permanently prohibited in plans', async () => {
+        const prohibited = ['CHANGE_PRICING', 'CHANGE_SUBSCRIPTION_PRICE', 'APPLY_DISCOUNT', 'CHANGE_BILLING_AMOUNT', 'ISSUE_CREDITS', 'CHANGE_PAYMENT_TERMS'];
+        for (const action of prohibited) {
+            const badSteps = [{ title: 'Bad', description: 'desc', step_type: 'BAD', worker_role: 'service', authorization_class: action }];
+            await expect(MissionPlanningService.createPlan(mockSupabase, workspaceId, missionId, 'Obj', badSteps)).rejects.toThrow(/prohibited authorization class/);
+        }
     });
 });
 

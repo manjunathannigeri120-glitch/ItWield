@@ -15,8 +15,11 @@ describe('MissionProgressService', () => {
           select: vi.fn(() => queryObj),
           eq: vi.fn(() => queryObj),
           in: vi.fn(() => queryObj),
+          order: vi.fn(() => queryObj),
+          limit: vi.fn(() => queryObj),
           single: vi.fn(async () => {
              if (table === 'business_missions') return { data: currentMission, error: null };
+             if (table === 'mission_plans') return { data: { created_at: new Date(0).toISOString() }, error: null };
              return { data: null };
           }),
           then: (resolve: any) => {
@@ -33,7 +36,7 @@ describe('MissionProgressService', () => {
 
   const setupMockData = (missionData: any, tasksData: any[], resultsData: any[], approvalsData: any[] = []) => {
      currentMission = missionData;
-     currentTasks = tasksData;
+     currentTasks = tasksData.map(t => ({ ...t, created_at: t.created_at || new Date().toISOString() }));
      currentResults = resultsData;
      currentApprovals = approvalsData;
   };

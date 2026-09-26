@@ -16,15 +16,14 @@ export interface AgentConfig {
   temperature: number;
 }
 
+import { ProviderFactory } from '../ai/providerFactory';
+
 export class AgentRuntime {
   
   static getProvider(): AIProvider {
     const key = process.env.OPENROUTER_API_KEY;
     if (key) {
-      return new OpenAIProvider(key, 'https://openrouter.ai/api/v1', {
-        'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
-        'X-Title': 'ItWield Agent Chat'
-      });
+      return ProviderFactory.getInstance();
     }
     return new MockProvider();
   }

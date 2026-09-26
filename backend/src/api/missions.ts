@@ -45,7 +45,7 @@ router.get('/', async (req: any, res) => {
 
 router.post('/', async (req: any, res) => {
   const { workspaceId } = req.params;
-  const { type, title, description, objective, success_criteria, priority } = req.body;
+  const { type, title, description, objective, success_criteria, priority, ignore_duplicate } = req.body;
   const supabase = req.supabase;
   const userId = req.user.id;
 
@@ -67,6 +67,29 @@ router.post('/', async (req: any, res) => {
   }
 
   try {
+    // Duplicate Protection (Part 8)
+    if (!ignore_duplicate) {
+      const normalizedObjective = objective.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const { data: activeMissions } = await supabase
+        .from('business_missions')
+        .select('id, title, objective')
+        .eq('workspace_id', workspaceId)
+        .in('status', ['ACTIVE', 'DRAFT', 'PAUSED', 'BLOCKED']);
+
+      if (activeMissions) {
+        for (const m of activeMissions) {
+          const mNorm = (m.objective || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (mNorm === normalizedObjective || m.title === title) {
+            return res.status(409).json({
+              error: 'DUPLICATE_MISSION',
+              message: 'An active mission with an equivalent objective already exists.',
+              duplicate: { id: m.id, title: m.title }
+            });
+          }
+        }
+      }
+    }
+
     const { data, error } = await supabase
       .from('business_missions')
       .insert({

@@ -74,7 +74,7 @@ const createQueryChain = (data: any, error: any = null, count = 0) => {
     }),
     order: vi.fn(() => chain),
     limit: vi.fn(() => chain),
-    single: vi.fn(() => Promise.resolve({ data: insertedData, error })),
+    single: vi.fn(() => Promise.resolve({ data: Array.isArray(insertedData) ? insertedData[0] : insertedData, error })),
     then: (resolve: any) => resolve({ data: insertedData, error, count })
   };
   return chain;
@@ -102,8 +102,8 @@ describe('MVP Autonomous Operations Loop', () => {
         }
         if (table === 'agents') {
           return createQueryChain([
-            { id: 'cto-1', name: 'AI CTO', workspace_id: 'ws-1' },
-            { id: 'mon-1', name: 'Application Monitor', workspace_id: 'ws-1' }
+            { id: 'cto-1', name: 'AI CTO', workspace_id: 'ws-1', capabilities: ['APPLICATION_MONITORING'] },
+            { id: 'mon-1', name: 'Application Monitor', workspace_id: 'ws-1', capabilities: ['APPLICATION_MONITORING'] }
           ]);
         }
         if (table === 'tasks') {

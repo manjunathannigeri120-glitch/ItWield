@@ -14,7 +14,7 @@
  * - Maximum 2 total generation attempts (generation + 1 correction)
  */
 
-import OpenAI from 'openai';
+import { ProviderFactory } from '../ai/providerFactory';
 import { NODE_CATALOG, NodeCatalogEntry } from './workflowCatalog';
 import { validateWorkflowDefinition } from './workflowValidator';
 
@@ -154,10 +154,7 @@ export async function generateWorkflow(options: GenerateOptions): Promise<Genera
     return mockGenerate(prompt, connections, agents);
   }
 
-  const openai = new OpenAI({ 
-    apiKey,
-    baseURL: 'https://openrouter.ai/api/v1' 
-  });
+  const provider = ProviderFactory.getInstance();
   
   const systemPrompt = buildSystemPrompt(connections, agents);
 
@@ -175,20 +172,18 @@ export async function generateWorkflow(options: GenerateOptions): Promise<Genera
     let rawContent: string;
     try {
       console.log(`[generateWorkflow] Starting AI request to openrouter/free (attempt ${attempt + 1})`);
-      const response = await openai.chat.completions.create({
-        model: 'openrouter/free',
-        messages: [
+      const response = await provider.generateText(
+        [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userContent }
         ],
-        // Note: OpenRouter supports response_format depending on the backing model, 
-        // but for broader free model compatibility, we keep it standard JSON.
-        response_format: { type: 'json_object' },
-        max_tokens: 4000,
-        temperature: 0.2
-      });
+        'openrouter/free',
+        0.2,
+        undefined,
+        { type: 'json_object' }
+      );
       console.log(`[generateWorkflow] AI request successful`);
-      rawContent = response.choices[0]?.message?.content || '';
+      rawContent = response.text || '';
     } catch (err: any) {
       const statusCode = err.status || err.response?.status || 'Unknown';
       console.error(`[generateWorkflow] Provider Error (${statusCode}):`, err.message);

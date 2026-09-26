@@ -39,6 +39,7 @@ describe('Autonomous Business Workflows v1', () => {
     await CompanyMemoryService.createMemory({
       workspaceId: 'ws-1',
       memoryType: 'GOAL',
+      category: 'GOAL',
       title: 'Primary Company Goal',
       content: 'Acquire early customers',
       sourceType: 'OWNER',

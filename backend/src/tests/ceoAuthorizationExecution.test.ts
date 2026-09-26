@@ -32,7 +32,7 @@ describe('Authorization Execution Blocks', () => {
           update: vi.fn(() => chain),
           upsert: vi.fn(() => chain),
           in: vi.fn(() => chain),
-          single: vi.fn(() => Promise.resolve({ data: table === 'workspaces' ? { name: 'Test', operational_context: '{}' } : null })),
+          single: vi.fn(() => Promise.resolve({ data: table === 'workspaces' ? { name: 'Test', operational_context: '{}' } : (table === 'agents' ? { id: 'agent1', capabilities: ['PRODUCTION_DEPLOYMENT', 'APPLICATION_MONITORING'] } : null) })),
           insert: vi.fn((data: any) => {
             if (table === 'tasks') insertedTasks.push(data);
             if (table === 'task_events') insertedEvents.push(data);
@@ -49,7 +49,8 @@ describe('Authorization Execution Blocks', () => {
     process.env.OPENROUTER_API_KEY = '';
     
     // Because PRODUCTION_DEPLOYMENT is approval required, it should block.
-    expect(insertedTasks.length).toBe(0); // Task should not be created
+    expect(insertedTasks.length).toBe(1); // Task SHOULD be created as BLOCKED
+    expect(insertedTasks[0].status).toBe('BLOCKED');
     
     const blockEvent = insertedEvents.find(e => e.event_type === 'OWNER_APPROVAL_REQUIRED');
     expect(blockEvent).toBeDefined();
@@ -70,7 +71,7 @@ describe('Authorization Execution Blocks', () => {
           update: vi.fn(() => chain),
           upsert: vi.fn(() => chain),
           in: vi.fn(() => chain),
-          single: vi.fn(() => Promise.resolve({ data: table === 'workspaces' ? { name: 'Test', operational_context: '{}' } : null })),
+          single: vi.fn(() => Promise.resolve({ data: table === 'workspaces' ? { name: 'Test', operational_context: '{}' } : (table === 'agents' ? { id: 'agent1', capabilities: ['PRODUCTION_DEPLOYMENT', 'APPLICATION_MONITORING'] } : null) })),
           insert: vi.fn((data: any) => {
             if (table === 'tasks') insertedTasks.push(data);
             if (table === 'task_events') insertedEvents.push(data);

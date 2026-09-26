@@ -28,6 +28,7 @@ vi.mock('../middleware/auth', () => ({
           }),
           select: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
+          in: vi.fn().mockReturnThis(),
           order: vi.fn().mockReturnThis(),
           single: vi.fn().mockReturnThis(),
           then: (cb: any) => cb({ data: [], error: null })

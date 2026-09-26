@@ -82,6 +82,12 @@ ActionRegistry.register(new ConditionAction());
 ActionRegistry.register(new SendEmailAction());
 ActionRegistry.register(new StoreDataAction());
 ActionRegistry.register(new TransformDataAction());
+import { OutreachDraftingAction } from './workflows/actions/OutreachDraftingAction';
+ActionRegistry.register(new OutreachDraftingAction());
+import { AwaitOutreachApprovalsAction } from './workflows/actions/AwaitOutreachApprovalsAction';
+ActionRegistry.register(new AwaitOutreachApprovalsAction());
+
+
 ActionRegistry.register(new SlackSendMessageAction());
 ActionRegistry.register(new DiscordSendMessageAction());
 ActionRegistry.register(new GoogleSheetsAddRowAction());

@@ -390,32 +390,54 @@ router.get('/:id/while-away', async (req: AuthRequest, res) => {
 });
 
 // Fetch AI CEO Briefing
+router.get('/:id/brain', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase) return res.status(400).json({ error: 'DB required' });
+    const workspaceId = String(req.params.id);
+    const { CompanyBrainService } = await import('../services/CompanyBrainService');
+    const brain = await CompanyBrainService.getCanonicalBrain(req.supabase, workspaceId);
+    res.json(brain);
+  } catch (error: any) {
+    console.error('Brain Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/:id/action-queue', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase) return res.status(400).json({ error: 'DB required' });
+    const workspaceId = String(req.params.id);
+    const { data: queue } = await req.supabase
+      .from('management_items')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .not('status', 'eq', 'RESOLVED')
+      .order('priority', { ascending: false })
+      .order('created_at', { ascending: true });
+    res.json(queue || []);
+  } catch (error: any) {
+    console.error('Action Queue Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Keep legacy ceo-briefing returning the same shape using the new brain so frontend doesn't break until we switch it
 router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
   try {
     if (!req.supabase) return res.status(400).json({ error: 'DB required' });
     const workspaceId = String(req.params.id);
-
-    // Fetch workspace and operational context
-    const { data: ws, error: wsErr } = await req.supabase
-      .from('workspaces')
-      .select('name, status, operational_context, company_goals')
-      .eq('id', workspaceId)
-      .single();
-    if (wsErr) throw wsErr;
-
-    // Fetch incidents
+    
+    // Use the old implementation or adapt it
+    const { data: ws } = await req.supabase.from('workspaces').select('*').eq('id', workspaceId).single();
+    const { data: agents } = await req.supabase.from('agents').select('*').eq('workspace_id', workspaceId);
+    const { data: competitors } = await req.supabase.from('competitors').select('*').eq('workspace_id', workspaceId);
+    const { data: approvalHistory } = await req.supabase.from('approvals').select('*').eq('workspace_id', workspaceId).eq('status', 'COMPLETED').order('resolved_at', { ascending: false }).limit(5);
     const { data: incidents } = await req.supabase
       .from('incidents')
       .select('*')
       .eq('workspace_id', workspaceId as string)
       .not('status', 'eq', 'RESOLVED')
       .order('created_at', { ascending: false });
-
-    // Fetch agents and active tasks
-    const { data: agents } = await req.supabase
-      .from('agents')
-      .select('id, name, status, role')
-      .eq('workspace_id', workspaceId as string);
 
     const { data: activeTasks } = await req.supabase
       .from('tasks')
@@ -429,19 +451,6 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
       .eq('workspace_id', workspaceId as string)
       .eq('status', 'PENDING_APPROVAL')
       .order('created_at', { ascending: false });
-
-    const { data: approvalHistory } = await req.supabase
-      .from('approvals')
-      .select('*')
-      .eq('workspace_id', workspaceId as string)
-      .neq('status', 'PENDING_APPROVAL')
-      .order('resolved_at', { ascending: false })
-      .limit(5);
-
-    const { data: competitors } = await req.supabase
-      .from('competitors')
-      .select('name, last_checked_at')
-      .eq('workspace_id', workspaceId as string);
 
     // Compute Company Status
     let companyStatus = 'Healthy';

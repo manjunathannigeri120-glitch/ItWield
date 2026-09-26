@@ -6,19 +6,26 @@ import { api } from '@/lib/api';
 
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { Login } from '@/pages/Login';
+import { Landing } from '@/pages/Landing';
+import { Pricing } from '@/pages/Pricing';
 import Dashboard from '@/pages/Dashboard';
 import { Onboarding } from '@/pages/Onboarding';
 import { Agents } from '@/pages/Agents';
 import { AgentNew } from '@/pages/AgentNew';
 import { AgentChat } from '@/pages/AgentChat';
 import { Settings } from '@/pages/Settings';
+import { Connections } from '@/pages/Connections';
 import { Knowledge } from '@/pages/Knowledge';
 import { Workflows } from '@/pages/Workflows';
 import { WorkflowRuns } from '@/pages/WorkflowRuns';
 import { WorkflowRunDetail } from '@/pages/WorkflowRunDetail';
 import { OAuthCallback } from '@/pages/OAuthCallback';
 
+import { Missions } from '@/pages/Missions';
 import { MissionDetail } from '@/pages/MissionDetail';
+import CRM from '@/pages/CRM';
+import { Memory } from '@/pages/Memory';
+
 
 const queryClient = new QueryClient();
 
@@ -70,13 +77,18 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/signup" element={<Login />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/pricing" element={<Pricing />} />
           
           {/* V2 Onboarding: Protected by Auth, but explicitly bypasses WorkspaceGuard */}
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
           {/* V2 Command Center: Fully guarded by WorkspaceGuard */}
           <Route path="/dashboard" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Dashboard /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
+          <Route path="/crm" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><CRM /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
+          <Route path="/memory" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Memory /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
+          <Route path="/missions" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Missions /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/missions/:missionId" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><MissionDetail /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/agents" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Agents /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/agents/new" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><AgentNew /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
@@ -85,6 +97,7 @@ function App() {
           <Route path="/workflows" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Workflows /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/workflows/:id/runs" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><WorkflowRuns /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/workflows/:id/runs/:runId" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><WorkflowRunDetail /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
+          <Route path="/connections" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Connections /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Settings /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           
           {/* OAuth integrations do not render full layouts, but still require an operating workspace context */}

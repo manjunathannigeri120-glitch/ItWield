@@ -1,8 +1,8 @@
 export interface Message {
   role: 'user' | 'assistant' | 'system' | 'tool';
   content: string;
-  tool_call_id?: string; // used if role is 'tool'
-  tool_calls?: ToolCall[]; // used if role is 'assistant'
+  tool_call_id?: string;
+  tool_calls?: ToolCall[];
 }
 
 export interface ToolCall {
@@ -10,7 +10,7 @@ export interface ToolCall {
   type: 'function';
   function: {
     name: string;
-    arguments: string; // JSON string
+    arguments: string;
   };
 }
 
@@ -19,7 +19,7 @@ export interface ToolDefinition {
   function: {
     name: string;
     description: string;
-    parameters: any; // JSON schema
+    parameters: any;
   };
 }
 
@@ -32,6 +32,8 @@ export interface GenerateResult {
     total_tokens: number;
   };
   model: string;
+  providerUsed?: 'OPENROUTER' | 'OLLAMA';
+  fallbackUsed?: boolean;
 }
 
 export interface AIProvider {
@@ -39,6 +41,7 @@ export interface AIProvider {
     messages: Message[], 
     model: string, 
     temperature?: number,
-    tools?: ToolDefinition[]
+    tools?: ToolDefinition[],
+    responseFormat?: { type: 'json_object' }
   ): Promise<GenerateResult>;
 }

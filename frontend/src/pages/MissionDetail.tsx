@@ -84,7 +84,12 @@ export function MissionDetail() {
       </div>
 
       <div className="bg-white p-6 rounded-lg border shadow-sm">
-        <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Objective</h2>
+        <h2 className="text-sm font-bold text-indigo-500 uppercase tracking-wider mb-2">Why is this mission running?</h2>
+          <div className="bg-indigo-50 text-indigo-900 p-4 rounded-lg border border-indigo-100 mb-6 text-sm">
+            <span className="font-bold block mb-1">Business Purpose:</span>
+            {mission.business_goal?.objective || 'This mission drives operational baseline requirements.'}
+          </div>
+          <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Execution Objective</h2>
         <p className="text-gray-800">{mission.objective}</p>
         
         {mission.success_criteria && (
@@ -100,40 +105,52 @@ export function MissionDetail() {
         <div className="md:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Mission Progress</CardTitle>
+              <CardTitle>Business Outcome Progress</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="mb-4">
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="font-medium text-gray-700">Verified Progress</span>
-                  <span className="font-bold text-indigo-600">
-                    {results.verified} / {mission.target_count || '?'}
+                  <span className="font-medium text-gray-700">Verified Business Outcomes</span>
+                  <span className="font-bold text-emerald-600">
+                    {results.verified} {mission.target_count ? `/ ${mission.target_count}` : 'Verified Results'}
                   </span>
                 </div>
                 {isMeasurable ? (
                   <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: `${Math.min(progressPercent, 100)}%` }}></div>
+                    <div className="bg-emerald-600 h-2.5 rounded-full" style={{ width: `${Math.min(progressPercent, 100)}%` }}></div>
                   </div>
                 ) : (
-                  <div className="text-sm text-gray-500 italic mt-2">Progress not yet measurable ({progress.progress.basis})</div>
+                  <div className="text-sm text-gray-500 italic mt-2">Quantitative target not defined for this outcome. Tracking verified results incrementally.</div>
+                )}
+                {results.unverified > 0 && (
+                  <div className="text-sm text-amber-600 mt-2 font-medium">
+                    + {results.unverified} outcomes awaiting verification
+                  </div>
                 )}
               </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Task Execution Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <div className="text-xs text-gray-500 uppercase font-bold">Planned</div>
+                  <div className="text-xs text-gray-500 uppercase font-bold">Planned Tasks</div>
                   <div className="text-xl font-bold">{tasks.planned}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500 uppercase font-bold">Pending</div>
+                  <div className="text-xs text-gray-500 uppercase font-bold">Pending Execution</div>
                   <div className="text-xl font-bold text-amber-600">{tasks.pending}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500 uppercase font-bold">Running</div>
+                  <div className="text-xs text-gray-500 uppercase font-bold">Currently Running</div>
                   <div className="text-xl font-bold text-blue-600">{tasks.running}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500 uppercase font-bold">Completed</div>
+                  <div className="text-xs text-gray-500 uppercase font-bold">Completed Tasks</div>
                   <div className="text-xl font-bold text-green-600">{tasks.completed}</div>
                 </div>
               </div>

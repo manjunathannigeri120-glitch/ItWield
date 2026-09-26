@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -9,249 +9,208 @@ export function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [pendingWsId, setPendingWsId] = useState<string | null>(null);
-
-  const [formData, setFormData] = useState({
+  const [error, setError] = useState<string | null>(null);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  
+  const [companyData, setCompanyData] = useState({
     name: '',
-    website: '',
     industry: '',
-    business_model: '',
-    short_description: '',
-    target_customer: '',
-    primary_market: '',
-    goals: '',
-    secondary_goals: '',
-    biggest_problems: '',
-    competitors: ''
+    description: ''
   });
 
-  const [aiPreferences, setAiPreferences] = useState({
-    monitor_health: true,
-    investigate_issues: true,
-    run_approved_workflows: true,
-    analyze_competitors: true,
-    create_proposals: true,
-    execute_low_risk: false,
-    require_approval_production: true,
-    require_approval_financial: true
-  });
+  const [goalInput, setGoalInput] = useState('');
+  const [goalResult, setGoalResult] = useState<any>(null);
 
-  const [analysis, setAnalysis] = useState<any>(null);
-
-  useEffect(() => {
-    // Fetch pending workspace
-    api.get('/workspaces').then(res => {
-      const pending = res.data.find((w: any) => w.status === 'pending_activation');
-      if (pending) setPendingWsId(pending.id);
-    });
-  }, []);
-
-  const handleNext = async () => {
-    if (step === 3) {
-      setLoading(true);
-      try {
-        let wsId = pendingWsId;
-        if (!wsId) {
-          const createRes = await api.post('/workspaces', { name: formData.name });
-          wsId = createRes.data.id;
-          setPendingWsId(wsId);
-        }
-
-        const res = await api.post(`/workspaces/${wsId}/analyze-company`, {
-          ...formData,
-          ai_preferences: aiPreferences
-        });
-        setAnalysis(res.data);
-        setStep(4);
-      } catch (err) {
-        console.error(err);
-        alert('Failed to analyze company');
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setStep(step + 1);
-    }
-  };
-
-  const handleActivate = async () => {
+  const handleCreateCompany = async () => {
+    if (!companyData.name) return setError('Company name is required');
     setLoading(true);
+    setError(null);
     try {
-      if (!pendingWsId) throw new Error("No pending workspace");
-      await api.post(`/workspaces/${pendingWsId}/activate`, {});
-      setStep(5); // Success state
-      setTimeout(() => navigate('/dashboard'), 2000);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to activate AI company');
+      const res = await api.post('/workspaces', { ...companyData, status: 'operating' });
+      setWorkspaceId(res.data.id);
+      setStep(2);
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Failed to create company');
+    } finally {
       setLoading(false);
     }
   };
 
+  const handleCreateGoal = async () => {
+    if (!goalInput) return setError('Please enter a goal');
+    if (!workspaceId) return setError('No active workspace');
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.post(`/workspaces/${workspaceId}/goals`, { input: goalInput });
+      setGoalResult(res.data);
+      setStep(3); // Interpretation & Plan preview
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Your goal could not be interpreted. Please rephrase it.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFinish = () => {
+    navigate('/dashboard');
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4">
-      <Card className="w-full max-w-2xl shadow-lg">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">ItWield</h1>
+          <p className="text-slate-500 mt-2">AI Business Operating System</p>
+        </div>
+
+        {error && (
+          <div className="mb-4 bg-red-50 text-red-700 p-4 rounded-lg border border-red-200">
+            {error}
+          </div>
+        )}
+
         {step === 1 && (
-          <>
-            <CardHeader>
-              <CardTitle>Welcome to ItWield</CardTitle>
-              <CardDescription>Tell us about your company so your AI CEO can understand the business.</CardDescription>
+          <Card className="shadow-lg border-slate-200">
+            <CardHeader className="bg-slate-50 border-b border-slate-100 pb-6 rounded-t-xl">
+              <CardTitle className="text-2xl">Welcome to ItWield.</CardTitle>
+              <CardDescription className="text-base mt-2">What does your company do?</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label>Company Name</label>
-                <Input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+            <CardContent className="pt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Company Name</label>
+                <Input value={companyData.name} onChange={e => setCompanyData({...companyData, name: e.target.value})} placeholder="Acme Corp" />
               </div>
-              <div className="space-y-2">
-                <label>Website</label>
-                <Input value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Industry</label>
+                <Input value={companyData.industry} onChange={e => setCompanyData({...companyData, industry: e.target.value})} placeholder="B2B SaaS" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label>Industry</label>
-                  <Input value={formData.industry} onChange={e => setFormData({ ...formData, industry: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label>Business Model</label>
-                  <Input value={formData.business_model} onChange={e => setFormData({ ...formData, business_model: e.target.value })} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label>Short Description</label>
-                <textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" value={formData.short_description} onChange={e => setFormData({ ...formData, short_description: e.target.value })} />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                <textarea 
+                  className="w-full border border-slate-300 rounded-md p-3 text-sm focus:border-indigo-500 outline-none h-24"
+                  value={companyData.description} 
+                  onChange={e => setCompanyData({...companyData, description: e.target.value})} 
+                  placeholder="We provide cloud infrastructure for small businesses..." 
+                />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button onClick={handleNext} disabled={!formData.name}>Next: Market & Goals</Button>
+            <CardFooter className="bg-slate-50 border-t border-slate-100 rounded-b-xl py-4 flex justify-end">
+              <Button onClick={handleCreateCompany} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700">
+                {loading ? 'Creating...' : 'Continue ->'}
+              </Button>
             </CardFooter>
-          </>
+          </Card>
         )}
 
         {step === 2 && (
-          <>
-            <CardHeader>
-              <CardTitle>Market & Goals</CardTitle>
-              <CardDescription>What are you trying to achieve?</CardDescription>
+          <Card className="shadow-lg border-slate-200">
+            <CardHeader className="bg-slate-50 border-b border-slate-100 pb-6 rounded-t-xl">
+              <CardTitle className="text-2xl">Set Your Business Outcome</CardTitle>
+              <CardDescription className="text-base mt-2">What do you want your business to achieve?</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label>Target Customer</label>
-                  <Input value={formData.target_customer} onChange={e => setFormData({ ...formData, target_customer: e.target.value })} />
+            <CardContent className="pt-6">
+              <div className="mb-6">
+                <textarea 
+                  className="w-full border-2 border-indigo-200 rounded-lg p-4 text-lg focus:border-indigo-500 outline-none h-32 bg-indigo-50/30"
+                  value={goalInput} 
+                  onChange={e => setGoalInput(e.target.value)} 
+                  placeholder="e.g. Get me 20 customers in 60 days." 
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Example Goals</div>
+                <div className="flex flex-wrap gap-2">
+                  {["Get me 20 customers", "Generate 100 qualified leads", "Double my revenue", "Find what's stopping my growth"].map((g, i) => (
+                    <button key={i} onClick={() => setGoalInput(g)} className="text-sm bg-white border border-slate-300 rounded-full px-4 py-2 hover:border-indigo-400 hover:bg-indigo-50 transition-colors text-slate-700 text-left">
+                      "{g}"
+                    </button>
+                  ))}
                 </div>
-                <div className="space-y-2">
-                  <label>Primary Market</label>
-                  <Input value={formData.primary_market} onChange={e => setFormData({ ...formData, primary_market: e.target.value })} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label>Primary Business Goal</label>
-                <Input value={formData.goals} onChange={e => setFormData({ ...formData, goals: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <label>Current Biggest Problems</label>
-                <textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" value={formData.biggest_problems} onChange={e => setFormData({ ...formData, biggest_problems: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <label>Competitors (comma separated)</label>
-                <Input value={formData.competitors} onChange={e => setFormData({ ...formData, competitors: e.target.value })} />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
-              <Button onClick={handleNext}>Next: AI Permissions</Button>
-            </CardFooter>
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <CardHeader>
-              <CardTitle>AI Permissions</CardTitle>
-              <CardDescription>Set boundaries for your AI workforce. Pricing actions are permanently disabled.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <h4 className="font-medium">AI can automatically:</h4>
-                <div className="flex items-center space-x-2"><input type="checkbox" checked={aiPreferences.monitor_health} onChange={(e: any) => setAiPreferences({ ...aiPreferences, monitor_health: e.target.checked })} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" /> <label>Monitor application health</label></div>
-                <div className="flex items-center space-x-2"><input type="checkbox" checked={aiPreferences.investigate_issues} onChange={(e: any) => setAiPreferences({ ...aiPreferences, investigate_issues: e.target.checked })} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" /> <label>Investigate non-critical issues</label></div>
-                <div className="flex items-center space-x-2"><input type="checkbox" checked={aiPreferences.create_proposals} onChange={(e: any) => setAiPreferences({ ...aiPreferences, create_proposals: e.target.checked })} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" /> <label>Create improvement proposals</label></div>
-                <div className="flex items-center space-x-2"><input type="checkbox" checked={aiPreferences.execute_low_risk} onChange={(e: any) => setAiPreferences({ ...aiPreferences, execute_low_risk: e.target.checked })} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" /> <label>Execute approved low-risk improvements</label></div>
-              </div>
-              <div className="space-y-4">
-                <h4 className="font-medium text-amber-700">Requires owner approval:</h4>
-                <div className="flex items-center space-x-2"><input type="checkbox" checked disabled className="w-4 h-4 text-gray-400 rounded border-gray-300" /> <label className="text-gray-500">Production deployment</label></div>
-                <div className="flex items-center space-x-2"><input type="checkbox" checked disabled className="w-4 h-4 text-gray-400 rounded border-gray-300" /> <label className="text-gray-500">Financial actions</label></div>
-                <div className="flex items-center space-x-2"><input type="checkbox" checked disabled className="w-4 h-4 text-gray-400 rounded border-gray-300" /> <label className="text-gray-500">Major product changes</label></div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(2)} disabled={loading}>Back</Button>
-              <Button onClick={handleNext} disabled={loading}>
-                {loading ? 'CEO is analyzing company...' : 'Analyze Company'}
+            <CardFooter className="bg-slate-50 border-t border-slate-100 rounded-b-xl py-4 flex justify-between">
+              <Button variant="ghost" onClick={() => setStep(1)} disabled={loading}>Back</Button>
+              <Button onClick={handleCreateGoal} disabled={loading || !goalInput} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                {loading ? 'Interpreting Goal & Planning...' : 'Interpret Goal ->'}
               </Button>
             </CardFooter>
-          </>
+          </Card>
         )}
 
-        {step === 4 && analysis && (
-          <>
-            <CardHeader>
-              <CardTitle>Your AI company is ready.</CardTitle>
-              <CardDescription>Review the CEO's initial operating plan and proposed workforce.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 max-h-[60vh] overflow-y-auto">
-              <div>
-                <h3 className="font-bold text-lg mb-2">CEO Operating Plan</h3>
-                <ul className="space-y-1 list-disc pl-5">
-                  {analysis.plan.map((item: string, i: number) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-bold text-lg mb-2">Proposed Executives</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {analysis.workforce.executives.map((ex: any, i: number) => (
-                    <div key={i} className="border p-3 rounded-md bg-white">
-                      <div className="font-semibold text-blue-600">{ex.role}</div>
-                      <div className="text-sm text-gray-600">{ex.objective}</div>
+        {step === 3 && goalResult && (
+          <div className="space-y-6">
+            <Card className="shadow-lg border-indigo-200">
+              <CardHeader className="bg-indigo-50 border-b border-indigo-100 pb-4 rounded-t-xl">
+                <CardTitle className="text-xl text-indigo-900">1. Interpretation & Data Requirements</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">How ItWield understands this:</h4>
+                    <div className="space-y-2 text-sm">
+                      <div><span className="font-semibold">Objective:</span> {goalResult.goal.objective}</div>
+                      <div><span className="font-semibold">Target:</span> {goalResult.goal.target || 'N/A'} {goalResult.goal.target_metric}</div>
+                      <div><span className="font-semibold">Timeframe:</span> {goalResult.goal.timeframe || 'None specified'}</div>
+                    </div>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Required Data</h4>
+                    <ul className="list-disc pl-4 text-sm text-slate-700 space-y-1 mb-4">
+                      {goalResult.goal.required_data?.map((d: string, i: number) => <li key={i}>{d}</li>)}
+                    </ul>
+                    
+                    {goalResult.goal.missing_data?.length > 0 ? (
+                      <div className="bg-amber-100 text-amber-800 p-3 rounded text-xs">
+                        <span className="font-bold block mb-1">DATA NOT CONNECTED</span>
+                        Missing: {goalResult.goal.missing_data.join(', ')}. 
+                        <br/>Execution can begin, but outcome measurement will be unavailable until connected.
+                      </div>
+                    ) : (
+                      <div className="bg-green-100 text-green-800 p-3 rounded text-xs font-medium">
+                        All required data sources are available.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-slate-200">
+              <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4 rounded-t-xl">
+                <CardTitle className="text-xl">2. Initial Outcome Plan</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="text-sm text-slate-700 bg-slate-50 p-4 rounded-lg mb-6 italic border border-slate-100">
+                  {goalResult.plan?.plan?.strategy || 'Analyzing current state and executing baseline discovery...'}
+                </div>
+                
+                <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Planned Missions</h4>
+                <div className="space-y-3">
+                  {goalResult.plan?.plan?.missions?.map((m: any, i: number) => (
+                    <div key={i} className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg bg-white">
+                      <div className="bg-indigo-100 text-indigo-700 w-6 h-6 flex items-center justify-center rounded text-xs font-bold shrink-0">{i+1}</div>
+                      <div>
+                        <div className="font-bold text-sm text-slate-900">{m.objective}</div>
+                        <div className="text-xs text-slate-500 mt-1">Expected contribution: {m.contribution_metric}</div>
+                        <div className="text-xs text-slate-400 mt-1">Requires approval for sensitive actions.</div>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-              <div>
-                <h3 className="font-bold text-lg mb-2">Proposed Workers</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {analysis.workforce.workers.map((w: any, i: number) => (
-                    <div key={i} className="border p-3 rounded-md bg-white">
-                      <div className="font-semibold text-indigo-600">{w.role}</div>
-                      <div className="text-sm text-gray-600">{w.objective}</div>
-                      <div className="text-xs text-gray-400 mt-1">Reports to: {w.manager}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t pt-4">
-              <Button variant="outline" onClick={() => setStep(3)} disabled={loading}>Back</Button>
-              <Button onClick={handleActivate} className="bg-green-600 hover:bg-green-700" disabled={loading}>
-                {loading ? 'Activating...' : 'Activate AI Company'}
-              </Button>
-            </CardFooter>
-          </>
+              </CardContent>
+              <CardFooter className="bg-slate-50 border-t border-slate-100 rounded-b-xl py-4 flex justify-between">
+                <Button variant="ghost" onClick={() => setStep(2)}>Back</Button>
+                <Button onClick={handleFinish} className="bg-indigo-600 hover:bg-indigo-700 px-8 text-white">
+                  Start Operating
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
         )}
 
-        {step === 5 && (
-          <CardContent className="py-20 text-center space-y-6">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-green-600 text-2xl font-bold">✓</span>
-            </div>
-            <h2 className="text-2xl font-bold">AI CEO: OPERATING</h2>
-            <p className="text-gray-600">Your AI company is now active. Routing to dashboard...</p>
-          </CardContent>
-        )}
-      </Card>
+      </div>
     </div>
   );
 }

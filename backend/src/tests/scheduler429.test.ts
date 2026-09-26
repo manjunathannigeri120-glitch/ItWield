@@ -18,6 +18,16 @@ const mockSupabase = {
   single: vi.fn().mockReturnThis()
 };
 
+vi.mock('../ai/providerFactory', () => {
+  return {
+    ProviderFactory: {
+      getInstance: vi.fn().mockReturnValue({
+        generateText: vi.fn().mockResolvedValue({ text: '{}' })
+      })
+    }
+  };
+});
+
 describe('OpenRouter 429 Feedback Loop Fixes', () => {
   beforeEach(() => {
     vi.clearAllMocks();

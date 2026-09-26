@@ -11,10 +11,18 @@ import connectionsRouter from './connections';
 import { tasksRouter } from './tasks';
 import { ceoRouter } from './ceo';
 import { schedulerRouter } from './scheduler';
+import memoryRoutes from './memory';
+import commandCenterRoutes from './commandCenter';
+import crmRoutes from './crm';
+import goalsRouter from './goals';
 
 const router = Router();
 
 router.use('/workspaces/:workspaceId/missions', missionsRoutes);
+router.use('/workspaces/:workspaceId/memory', memoryRoutes);
+router.use('/workspaces/:workspaceId/command-center', commandCenterRoutes);
+router.use('/workspaces/:workspaceId/crm', crmRoutes);
+router.use('/workspaces/:workspaceId/goals', goalsRouter);
 router.use('/workspaces', workspaceRoutes);
 router.use('/agents', agentRoutes);
 router.use('/conversations', conversationRoutes);

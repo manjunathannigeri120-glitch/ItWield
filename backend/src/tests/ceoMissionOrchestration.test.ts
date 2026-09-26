@@ -24,6 +24,7 @@ describe('CEOService Mission Orchestration Hook-in', () => {
         eq: vi.fn(() => chain),
         neq: vi.fn(() => chain),
         in: vi.fn(() => chain),
+        lt: vi.fn(() => chain),
         single: vi.fn(async () => ({ data: Array.isArray(dataToReturn) ? dataToReturn[0] : dataToReturn, error: null })),
         order: vi.fn(() => chain),
         limit: vi.fn(() => chain),
@@ -60,6 +61,7 @@ describe('CEOService Mission Orchestration Hook-in', () => {
       const createChain = (data: any) => {
         const chain: any = {
            select: vi.fn(() => chain), eq: vi.fn(() => chain), neq: vi.fn(() => chain), in: vi.fn(() => chain),
+        lt: vi.fn(() => chain),
            single: vi.fn(async () => ({ data: Array.isArray(data) ? data[0] : data, error: null })),
            order: vi.fn(() => chain), limit: vi.fn(() => chain),
            update: vi.fn((args: any) => { updateCalls.push({table, args}); return chain; }),
@@ -165,7 +167,8 @@ test('ACTIVE mission with 0/25 verified -> creates ONE bounded LEAD_RESEARCH tas
     mockSupabase.from = vi.fn((table: string) => {
       const createChain = (data: any) => {
         const chain: any = {
-          select: vi.fn(() => chain), eq: vi.fn(() => chain), in: vi.fn(() => chain), order: vi.fn(() => chain), limit: vi.fn(() => chain), update: vi.fn((args: any) => { updateCalls.push(args); return chain; }), insert: vi.fn((args: any) => { insertCalls.push(args); return chain; }), single: vi.fn(async () => ({ data: Array.isArray(data) ? data[0] : data, error: null })), then: (resolve: any) => resolve({ data, error: null })
+          select: vi.fn(() => chain), eq: vi.fn(() => chain), in: vi.fn(() => chain),
+        lt: vi.fn(() => chain), order: vi.fn(() => chain), limit: vi.fn(() => chain), update: vi.fn((args: any) => { updateCalls.push(args); return chain; }), insert: vi.fn((args: any) => { insertCalls.push(args); return chain; }), single: vi.fn(async () => ({ data: Array.isArray(data) ? data[0] : data, error: null })), then: (resolve: any) => resolve({ data, error: null })
         };
         return chain;
       };
