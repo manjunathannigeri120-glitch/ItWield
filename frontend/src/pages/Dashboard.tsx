@@ -90,9 +90,9 @@ export default function Dashboard() {
       await api.post(`/workspaces/${workspace.id}/goals`, { input: goalInput });
       setGoalInput('');
       loadData();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert('Failed to create goal');
+      alert(e.response?.data?.error || 'Failed to create goal');
     } finally {
       setGoalSubmitting(false);
     }

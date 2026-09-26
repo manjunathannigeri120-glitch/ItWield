@@ -6,8 +6,10 @@ import { COOService } from '../services/COOService';
 import { BusinessDataRegistry } from '../services/BusinessDataRegistry';
 import { OutcomeVerificationService } from '../services/OutcomeVerificationService';
 import { BusinessBottleneckService } from '../services/BusinessBottleneckService';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 
 const router = Router({ mergeParams: true });
+router.use(requireAuth);
 
 router.post('/', async (req: any, res) => {
   try {

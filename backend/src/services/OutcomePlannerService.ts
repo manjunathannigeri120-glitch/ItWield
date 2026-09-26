@@ -41,9 +41,20 @@ export class OutcomePlannerService {
       }
     `;
 
-    const response = await openai.chat.completions.create({ model: 'openrouter/free', messages: [{ role: 'user', content: prompt }], response_format: { type: 'json_object' } });
-    const text = response.choices[0].message.content!.trim().replace(/^```json/, '').replace(/```$/, '').trim();
-    const plan = JSON.parse(text);
+    let plan: any = { strategy: 'AI rate limited. Manual planning required.', missions: [] };
+    try {
+      const model = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
+      const response = await openai.chat.completions.create({ model, messages: [{ role: 'user', content: prompt }], response_format: { type: 'json_object' } });
+      const text = response.choices[0].message.content!.trim().replace(/^```json/, '').replace(/```$/, '').trim();
+      plan = JSON.parse(text);
+    } catch (e: any) {
+      console.error('[OutcomePlannerService] Failed to plan outcome:', e);
+      if (e.status === 429 || e.code === 429 || e.message?.includes('429')) {
+        console.warn('[OutcomePlannerService] Rate limit hit. Proceeding without AI planning.');
+      } else {
+        throw e;
+      }
+    }
 
     // Spawn missions
     for (const m of plan.missions) {

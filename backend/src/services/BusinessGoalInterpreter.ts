@@ -44,7 +44,8 @@ export class BusinessGoalInterpreter {
     `;
 
     try {
-      const response = await openai.chat.completions.create({ model: 'openrouter/free', messages: [{ role: 'user', content: prompt }], response_format: { type: 'json_object' } });
+      const model = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
+      const response = await openai.chat.completions.create({ model, messages: [{ role: 'user', content: prompt }], response_format: { type: 'json_object' } });
       // Parse JSON from response
       const text = response.choices[0].message.content!.trim().replace(/^```json/, '').replace(/```$/, '').trim();
       const interpretation = JSON.parse(text) as BusinessGoalInterpretation;
@@ -52,6 +53,15 @@ export class BusinessGoalInterpreter {
       return interpretation;
     } catch (e: any) {
       console.error('[BusinessGoalInterpreter] Failed to interpret goal:', e);
+      if (e.status === 429 || e.code === 429 || e.message?.includes('429')) {
+        console.warn('[BusinessGoalInterpreter] Rate limit hit. Falling back to basic interpretation.');
+        return {
+          objective: rawInput,
+          success_definition: 'Manual verification required (AI rate limited)',
+          required_data: [],
+          missing_data: []
+        };
+      }
       throw new Error('Failed to interpret business goal. Please rephrase or provide more detail.');
     }
   }

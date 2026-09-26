@@ -91,6 +91,8 @@ describe('Customer Growth Engine', () => {
       expect.stringContaining('Evidence: Signed contract. Value: $10k ARR'),
       'opp-2',
       'OWNER',
+      undefined,
+      undefined,
       mockSupabase
     );
 
