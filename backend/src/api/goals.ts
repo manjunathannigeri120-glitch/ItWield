@@ -14,15 +14,49 @@ router.use(requireAuth);
 router.post('/', async (req: any, res) => {
   try {
     if (!req.supabase) return res.status(500).json({ error: 'DB required' });
-    const { input } = req.body;
+    const { input, website } = req.body;
     const workspaceId = req.params.workspaceId as string;
+
+    // Check if company website is already known
+    const { data: mems } = await req.supabase
+      .from('company_memory')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .eq('category', 'STRATEGIC_CONTEXT')
+      .eq('title', 'Company Website')
+      .limit(1);
+
+    const hasWebsite = mems && mems.length > 0;
+
+    if (!hasWebsite && !website) {
+      // Need context before proceeding
+      return res.status(200).json({
+        requires_context: true,
+        missing_fields: ['website'],
+        message: 'Before I can operate this goal, I need to understand your business.'
+      });
+    }
+
+    if (website && !hasWebsite) {
+      // Store the website as strategic context
+      await req.supabase.from('company_memory').insert({
+        workspace_id: workspaceId,
+        category: 'STRATEGIC_CONTEXT',
+        memory_type: 'FACT',
+        title: 'Company Website',
+        content: website,
+        source_type: 'OWNER',
+        importance: 'high',
+        confidence: 'verified'
+      });
+    }
 
     const goal = await BusinessGoalInterpreter.createGoal(req.supabase, workspaceId, input);
     
     // Auto-plan if not missing data
     const planResult = await OutcomePlannerService.planOutcome(req.supabase, workspaceId, goal.id);
 
-    res.json({ goal, plan: planResult });
+    res.json({ goal, plan: planResult, requires_context: false });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }

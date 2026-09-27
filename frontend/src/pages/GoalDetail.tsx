@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../lib/api';
@@ -7,22 +7,23 @@ import { Button } from '../components/ui/button';
 
 export function GoalDetail() {
   const { goalId } = useParams<{ goalId: string }>();
-  const { workspace } = useAuth();
+  const [workspace, setWorkspace] = useState<any>(null);
   const [goal, setGoal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchGoal = async () => {
-    if (!workspace || !goalId) return;
+    if (!goalId) return;
     setLoading(true);
     try {
-      // The API returns all goals, we filter on the frontend to avoid creating a new API endpoint.
-      // This endpoint automatically triggers verifyGoalProgress under the hood.
-      const res = await api.get(`/workspaces/${workspace.id}/goals`);
+      const wsRes = await api.get('/workspaces');
+      const ws = wsRes.data.find((w: any) => w.status === 'operating');
+      if (!ws) throw new Error('No operating workspace found');
+      setWorkspace(ws);
+
+      const res = await api.get(`/workspaces/${ws.id}/goals`);
       const matchedGoal = res.data.find((g: any) => g.id === goalId);
-      if (!matchedGoal) {
-        throw new Error('Goal not found');
-      }
+      if (!matchedGoal) throw new Error('Goal not found');
       setGoal(matchedGoal);
     } catch (err: any) {
       setError(err.message || 'Failed to load goal');
@@ -33,7 +34,7 @@ export function GoalDetail() {
 
   useEffect(() => {
     fetchGoal();
-  }, [workspace, goalId]);
+  }, [goalId]);
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading goal details...</div>;
   if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
@@ -119,7 +120,7 @@ export function GoalDetail() {
                 <>
                   <span className="font-medium text-gray-900">Internal CRM &rarr; Opportunities</span>
                   <span className={`ml-3 px-2 py-1 text-xs font-bold rounded ${isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {isAvailable ? '✓ Available' : 'Unavailable'}
+                    {isAvailable ? '? Available' : 'Unavailable'}
                   </span>
                 </>
               ) : (
@@ -195,4 +196,6 @@ export function GoalDetail() {
     </div>
   );
 }
+
+
 
