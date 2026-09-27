@@ -34,7 +34,7 @@ export class BusinessGoalInterpreter {
       {
         "objective": "High level business objective (e.g. 'Acquire customers', 'Increase revenue')",
         "target": numeric target (e.g. 20),
-        "target_metric": "What is being measured (e.g. 'Verified WON customers', 'MRR in USD')",
+        "target_metric": "What is being measured (e.g. 'Verified CONVERTED customers', 'MRR in USD')",
         "timeframe": "Any explicit timeframe mentioned (e.g. '60 days')",
         "success_definition": "Precise definition of how success is verified. Note if it REQUIRES CONFIRMATION.",
         "required_data": ["List of data domains needed to track this"],
@@ -118,3 +118,4 @@ export class BusinessGoalInterpreter {
     return goal;
   }
 }
+

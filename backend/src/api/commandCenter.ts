@@ -88,7 +88,7 @@ router.get('/', async (req: any, res) => {
           contacted: opportunities.filter((o: any) => o.stage === 'CONTACTED').length,
           responses: opportunities.filter((o: any) => o.stage === 'RESPONDED').length,
           salesQualified: opportunities.filter((o: any) => o.stage === 'SALES_QUALIFIED' || o.stage === 'PROPOSAL').length,
-          won: opportunities.filter((o: any) => o.stage === 'WON' || o.stage === 'CONVERTED').length
+          won: opportunities.filter((o: any) => o.stage === 'CONVERTED').length
         }
       });
     }
@@ -174,11 +174,11 @@ router.get('/', async (req: any, res) => {
 
     // --- 5. BUSINESS OUTCOMES ---
     const businessOutcomes: any[] = [];
-    opportunities.filter((o: any) => o.stage === 'RESPONDED' || o.stage === 'WON').forEach((o: any) => {
+    opportunities.filter((o: any) => o.stage === 'RESPONDED' || o.stage === 'CONVERTED').forEach((o: any) => {
       businessOutcomes.push({
         id: o.id,
         type: 'CUSTOMER_GROWTH',
-        title: `Customer ${o.stage === 'WON' ? 'Acquired' : 'Responded'}: ${o.company_name}`,
+        title: `Customer ${o.stage === 'CONVERTED' ? 'Acquired' : 'Responded'}: ${o.company_name}`,
         description: `Lead converted to ${o.stage} status.`,
         timestamp: o.updated_at
       });
@@ -295,3 +295,4 @@ router.get('/', async (req: any, res) => {
 });
 
 export default router;
+

@@ -183,7 +183,7 @@ router.get('/', async (req: any, res) => {
       contacted: opportunities.filter((o: any) => o.stage === 'CONTACTED').length,
       responses: opportunities.filter((o: any) => o.stage === 'RESPONDED').length,
       salesQualified: opportunities.filter((o: any) => o.stage === 'SALES_QUALIFIED' || o.stage === 'PROPOSAL').length,
-      won: opportunities.filter((o: any) => o.stage === 'WON' || o.stage === 'CONVERTED').length,
+      won: opportunities.filter((o: any) => o.stage === 'CONVERTED').length,
       pendingApprovals: pendingApprovals.filter((a: any) => a.action_type === 'EXTERNAL_COMMUNICATION').length
     };
 
@@ -219,3 +219,4 @@ router.get('/', async (req: any, res) => {
 });
 
 export default router;
+

@@ -3,21 +3,21 @@ import { SupabaseClient } from '@supabase/supabase-js';
 export class BusinessBottleneckService {
   static async evaluateBottlenecks(supabase: SupabaseClient, workspaceId: string): Promise<void> {
     // 1. Fetch Funnel Metrics
-    const { count: prospectsCount } = await supabase.from('crm_opportunities').select('*', { count: 'exact', head: true })
+    const { count: prospectsCount } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
       .eq('workspace_id', workspaceId)
-      .eq('status', 'RESEARCHED');
+      .eq('stage', 'RESEARCHED');
       
-    const { count: qualifiedCount } = await supabase.from('crm_opportunities').select('*', { count: 'exact', head: true })
+    const { count: qualifiedCount } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
       .eq('workspace_id', workspaceId)
-      .eq('status', 'QUALIFIED');
+      .eq('stage', 'QUALIFIED');
 
-    const { count: contactedCount } = await supabase.from('crm_opportunities').select('*', { count: 'exact', head: true })
+    const { count: contactedCount } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
       .eq('workspace_id', workspaceId)
-      .in('status', ['CONTACTED', 'NEGOTIATING']);
+      .in('stage', ['CONTACTED', 'NEGOTIATING']);
 
-    const { count: wonCount } = await supabase.from('crm_opportunities').select('*', { count: 'exact', head: true })
+    const { count: convertedCount } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
       .eq('workspace_id', workspaceId)
-      .eq('status', 'WON');
+      .eq('stage', 'CONVERTED');
 
     // 2. Diagnostics
     let detectedCategory = null;
@@ -29,7 +29,7 @@ export class BusinessBottleneckService {
     const p = prospectsCount || 0;
     const q = qualifiedCount || 0;
     const c = contactedCount || 0;
-    const w = wonCount || 0;
+    const w = convertedCount || 0;
     const total = p + q + c + w;
 
     if (total === 0) {
@@ -53,7 +53,7 @@ export class BusinessBottleneckService {
     } else if (c > 20 && w === 0) {
       detectedCategory = 'CONVERSION';
       severity = 'HIGH';
-      evidence = `${c} leads contacted, 0 won.`;
+      evidence = `${c} leads contacted, 0 converted.`;
       explanation = 'Contact strategy is not converting to wins. Sales or pricing might be the issue.';
       recommendedActions = [{ type: 'CREATE_MISSION', mission_type: 'IMPROVE_PRODUCT', description: 'Analyze why contacted leads are not converting.' }];
     }
@@ -67,7 +67,7 @@ export class BusinessBottleneckService {
     supabase: SupabaseClient, workspaceId: string, category: string, severity: string, evidence: string, explanation: string, recommendedActions: any[]
   ) {
     const { data: existing } = await supabase.from('business_bottlenecks').select('id')
-      .eq('workspace_id', workspaceId).eq('category', category).eq('status', 'DETECTED').maybeSingle();
+      .eq('workspace_id', workspaceId).eq('category', category).eq('stage', 'DETECTED').maybeSingle();
       
     if (existing) {
       await supabase.from('business_bottlenecks').update({
@@ -97,3 +97,4 @@ export class BusinessBottleneckService {
     }
   }
 }
+

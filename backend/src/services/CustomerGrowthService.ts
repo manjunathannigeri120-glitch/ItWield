@@ -35,7 +35,7 @@ export class CustomerGrowthService {
   }
 
   /**
-   * Records a verified conversion (WON or LOST).
+   * Records a verified conversion (CONVERTED or LOST).
    * Automatically generates Company Memory OUTCOME and proposes Mission Learning.
    */
   static async recordConversion(supabase: SupabaseClient, workspaceId: string, oppId: string, outcome: 'CONVERTED' | 'LOST', evidence: string, valueStr?: string) {
@@ -118,3 +118,4 @@ export class CustomerGrowthService {
     return updated;
   }
 }
+

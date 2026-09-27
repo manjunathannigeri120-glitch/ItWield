@@ -60,7 +60,7 @@ describe('Customer Growth Engine', () => {
     }));
   });
 
-  it('2. Records VERIFIED WON conversion and triggers Memory/Learning loops', async () => {
+  it('2. Records VERIFIED CONVERTED conversion and triggers Memory/Learning loops', async () => {
     const mockOpp = {
       id: 'opp-2',
       workspace_id: 'ws-1',
@@ -71,7 +71,7 @@ describe('Customer Growth Engine', () => {
     };
 
     const mockUpdateSingle = vi.fn().mockResolvedValue({
-      data: { ...mockOpp, stage: 'WON' },
+      data: { ...mockOpp, stage: 'CONVERTED' },
       error: null
     });
 
@@ -82,12 +82,12 @@ describe('Customer Growth Engine', () => {
       };
     });
 
-    await CustomerGrowthService.recordConversion(mockSupabase, 'ws-1', 'opp-2', 'WON', 'Signed contract', '$10k ARR');
+    await CustomerGrowthService.recordConversion(mockSupabase, 'ws-1', 'opp-2', 'CONVERTED', 'Signed contract', '$10k ARR');
 
     // Verify Company Memory was called
     expect(CompanyMemoryService.recordOutcome).toHaveBeenCalledWith(
       'ws-1',
-      'Opportunity WON: Acme Corp',
+      'Opportunity CONVERTED: Acme Corp',
       expect.stringContaining('Evidence: Signed contract. Value: $10k ARR'),
       'opp-2',
       'OWNER',
@@ -110,3 +110,4 @@ describe('Customer Growth Engine', () => {
     );
   });
 });
+

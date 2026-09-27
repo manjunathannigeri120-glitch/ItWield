@@ -45,12 +45,12 @@ export class MissionPlanningService {
 
         if (missionType === 'GET_CUSTOMERS') {
             defaultSteps = [
-                { title: 'Identify ICP', description: 'Identify target ideal customer profile', step_type: 'DATA_TRANSFORMATION', worker_role: 'service_role', authorization_class: 'DATA_TRANSFORMATION' },
+                { title: 'Identify ICP', description: 'Identify target ideal customer profile', step_type: 'WEB_RESEARCH', worker_role: 'service_role', authorization_class: 'WEB_RESEARCH' },
                 { title: 'Research prospects', description: 'Find prospects matching the ICP', step_type: 'LEAD_RESEARCH', worker_role: 'service_role', authorization_class: 'LEAD_RESEARCH' },
                 { title: 'Qualify prospects', description: 'Qualify prospects against criteria', step_type: 'LEAD_RESEARCH', worker_role: 'service_role', authorization_class: 'LEAD_RESEARCH' },
                 { title: 'Verify evidence', description: 'Verify evidence and URLs', step_type: 'LEAD_RESEARCH', worker_role: 'service_role', authorization_class: 'LEAD_RESEARCH' },
-                { title: 'Deduplicate prospects', description: 'Remove duplicate prospects', step_type: 'DATA_TRANSFORMATION', worker_role: 'service_role', authorization_class: 'DATA_TRANSFORMATION' },
-                { title: 'Prioritize qualified prospects', description: 'Rank prospects', step_type: 'DATA_TRANSFORMATION', worker_role: 'service_role', authorization_class: 'DATA_TRANSFORMATION' },
+                { title: 'Deduplicate prospects', description: 'Remove duplicate prospects', step_type: 'DATA_TRANSFORMATION', worker_role: 'service_role', authorization_class: 'DATA_TRANSFORMATION', success_criteria: JSON.stringify({ source: 'opportunities', query: { status: 'RESEARCHED' }, operations: [{ type: 'pick', fields: ['id', 'company', 'status'] }] }) },
+                { title: 'Prioritize qualified prospects', description: 'Rank prospects', step_type: 'DATA_TRANSFORMATION', worker_role: 'service_role', authorization_class: 'DATA_TRANSFORMATION', success_criteria: JSON.stringify({ source: 'opportunities', query: { status: 'QUALIFIED' }, operations: [{ type: 'pick', fields: ['id', 'company', 'status'] }] }) },
                 { title: 'Draft Outreach', description: 'Draft personalized outreach email', step_type: 'OUTREACH_DRAFTING', worker_role: 'service_role', authorization_class: 'OUTREACH_DRAFTING' },
                 { title: 'Await Approval / Execute Approved Outreach', description: 'Wait for owner to approve drafted emails and execute them', step_type: 'AWAIT_OUTREACH_APPROVALS', worker_role: 'service_role', authorization_class: 'DATA_TRANSFORMATION' }
             ];
@@ -208,4 +208,5 @@ export class MissionPlanningService {
         await supabase.from('mission_plans').update({ status: 'COMPLETED', completed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', planId);
     }
 }
+
 

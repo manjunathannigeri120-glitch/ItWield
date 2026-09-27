@@ -201,16 +201,56 @@ Do not output anything outside the JSON structure.`;
               const capableWorker = await WorkforceIntegrityService.findCapableWorker(supabase, workspaceId, taskType);
               const assignee = capableWorker || (agents && agents.length > 0 ? agents[0] : null);
             if (assignee) {
+              let taskInput: any = {
+                task_type: taskType,
+                delegate_to: assignee.id
+              };
+
+              let stepTitle = taskType.replace(/_/g, ' ');
+              let stepDesc = `Execute mission step: ${taskType} for ${company.name}.`;
+
+              if (missionId) {
+                 const { data: stepInfo } = await supabase.from('mission_plan_steps')
+                    .select('title, description, success_criteria')
+                    .eq('mission_id', missionId)
+                    .eq('status', 'RUNNING')
+                    .limit(1).single();
+                 if (stepInfo) {
+                     stepTitle = stepInfo.title;
+                     stepDesc = stepInfo.description;
+
+                     if (taskType === 'DATA_TRANSFORMATION' && stepInfo.success_criteria) {
+                         try {
+                             const config = JSON.parse(stepInfo.success_criteria);
+                             if (config.source === 'opportunities') {
+                                 let q = supabase.from('opportunities').select('*').eq('workspace_id', workspaceId);
+                                 if (config.query && config.query.status) {
+                                     q = q.eq('stage', config.query.status);
+                                 }
+                                 const { data: prospects } = await q;
+                                 if (prospects && prospects.length > 0) {
+                                     taskInput.input = prospects;
+                                     taskInput.operations = config.operations;
+                                 }
+                             }
+                         } catch (e) {
+                             // Ignore parse errors, let incomplete payload block naturally
+                         }
+                     } else if (taskType === 'WEB_RESEARCH' || taskType === 'LEAD_RESEARCH') {
+                         taskInput.query = stepDesc;
+                         taskInput.objective = stepTitle;
+                         taskInput.targetCustomerProfile = stepDesc; // For LEAD_RESEARCH compatibility
+                     }
+                 }
+              }
+
               generatedTasks.push({
-                title: taskType.replace(/_/g, ' '),
-                description: `Execute mission step: ${taskType} for ${company.name}.`,
+                title: stepTitle,
+                description: stepDesc,
                 agent_id: assignee.id,
                 priority: 'high',
                 workflow_id: null,
-                input: {
-                  task_type: taskType,
-                  delegate_to: assignee.id
-                }
+                input: taskInput
               });
             }
           }
@@ -465,6 +505,11 @@ Do not output anything outside the JSON structure.`;
           } else if (t.input && t.input.task_type) {
             const { ActionRegistry } = await import('../workflows/actions/ActionRegistry');
             if (ActionRegistry.get(t.input.task_type)) {
+              if (t.input.task_type === 'DATA_TRANSFORMATION' && (!t.input.input || !t.input.operations)) {
+                await supabase.from('tasks').update({ status: 'BLOCKED', error: 'Transformation requires source data and operations configuration.' }).eq('id', createdTask.id);
+                await supabase.from('task_events').insert({ task_id: createdTask.id, workspace_id: workspaceId, event_type: 'TASK_BLOCKED', details: { error: 'Transformation requires source data and operations configuration.' } });
+                continue;
+              }
               this.executeInlineTask(supabase, createdTask.id, t.input, userId, t.agent_id).catch(err => {
                 console.error(`[CEOService] Inline execution failed for task ${createdTask.id}:`, err);
               });
@@ -906,7 +951,10 @@ Do not output anything outside the JSON structure.`;
 
       
       const finalState = { error: result.success ? null : result.error || 'Task failed', output: result };
-      const finalStatus = result.success ? 'COMPLETED' : 'FAILED';
+      let finalStatus = result.success ? 'COMPLETED' : 'FAILED';
+      if (result.missing_dependency || (result.error && String(result.error).includes('CONNECTION_REQUIRED'))) {
+        finalStatus = 'BLOCKED';
+      }
       
       await supabase.from('tasks').update({ 
         status: finalStatus, 
@@ -1386,6 +1434,7 @@ Output strictly valid JSON exactly matching this schema:
   }
 
 }
+
 
 
 
