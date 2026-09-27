@@ -3,6 +3,7 @@ import { CEOService } from '../services/CEOService';
 import { WorkforceIntegrityService } from '../services/WorkforceIntegrityService';
 import { AuthorizationRegistry } from '../services/AuthorizationRegistry';
 import { ActionRegistry } from '../workflows/actions/ActionRegistry';
+import { LeadResearchAction } from '../workflows/actions/LeadResearchAction';
 import { TransformDataAction } from '../workflows/actions/TransformDataAction';
 import { CapabilityRegistry } from '../services/CapabilityRegistry';
 
@@ -41,7 +42,8 @@ describe('Mission Orchestrator Stall Regression', () => {
   };
 
   beforeEach(() => {
-    ActionRegistry.register(new TransformDataAction());
+    process.env.TAVILY_API_KEY = 'mock';
+    ActionRegistry.register(new LeadResearchAction());
   });
 
   it('TEST 1 — NO CAPABLE WORKER', async () => {
@@ -52,22 +54,22 @@ describe('Mission Orchestrator Stall Regression', () => {
     vi.spyOn(WorkforceIntegrityService, 'validateAssignment').mockResolvedValue({
       valid: false,
       status: 'MISSING_CAPABILITY',
-      reason: 'No agent has DATA_TRANSFORMATION'
+      reason: 'No agent has LEAD_RESEARCH'
     });
 
     try {
-      await CEOService.run(mockSupabase, 'ws-1', 'SCHEDULED_OBSERVATION:DATA_TRANSFORMATION', 'service_role', undefined, undefined, 'mission-1');
+      await CEOService.run(mockSupabase, 'ws-1', 'SCHEDULED_OBSERVATION:LEAD_RESEARCH', 'service_role', undefined, undefined, 'mission-1');
     } catch (e) {}
     
     expect(insertedTask).toBeDefined();
     expect(insertedTask.status).toBe('BLOCKED');
-    expect(insertedTask.error).toContain('No agent has DATA_TRANSFORMATION');
+    expect(insertedTask.error).toContain('No agent has LEAD_RESEARCH');
   });
 
   it('TEST 2 — CAPABLE WORKER EXISTS', async () => {
     let insertedTask: any = null;
     
-    const mockWorker = { id: 'worker-1', name: 'Builder Analyst', capabilities: ['DATA_TRANSFORMATION'] };
+    const mockWorker = { id: 'worker-1', name: 'Builder Analyst', capabilities: ['LEAD_RESEARCH'] };
     const mockSupabase = createMockSupabase({ onTaskInsert: (t: any) => insertedTask = t }, [mockWorker]);
 
     vi.spyOn(WorkforceIntegrityService, 'findCapableWorker').mockResolvedValue(mockWorker);
@@ -76,22 +78,21 @@ describe('Mission Orchestrator Stall Regression', () => {
     
     const executeSpy = vi.spyOn(CEOService, 'executeInlineTask').mockResolvedValue(undefined);
 
-    await CEOService.run(mockSupabase, 'ws-1', 'SCHEDULED_OBSERVATION:DATA_TRANSFORMATION', 'service_role', undefined, undefined, 'mission-1');
+    await CEOService.run(mockSupabase, 'ws-1', 'SCHEDULED_OBSERVATION:LEAD_RESEARCH', 'service_role', undefined, undefined, 'mission-1');
 
     expect(executeSpy).toHaveBeenCalled();
     expect(insertedTask).toBeDefined();
     expect(insertedTask.status).toBe('PENDING'); // Initially pending
-    expect(insertedTask.title).toContain('DATA TRANSFORMATION');
+    expect(insertedTask.title).toContain('Lead Research');
   });
 
   it('TEST 3 — REAL ACTION EXECUTION', async () => {
-    const action = ActionRegistry.get('DATA_TRANSFORMATION');
+    const action = new TransformDataAction();
     expect(action).toBeDefined();
-    expect(action).toBeInstanceOf(TransformDataAction);
 
-    const result = await action!.execute({
-      input: 'hello world',
-      operations: [{ type: 'uppercase' }]
+    const result = await action.execute({
+      input: { data: 'hello world' },
+      operations: [{ type: 'uppercase', field: 'data' }]
     }, {} as any);
 
     if (!result.success) {
@@ -99,14 +100,14 @@ describe('Mission Orchestrator Stall Regression', () => {
     }
 
     expect(result.success).toBe(true);
-    expect(result.transformed).toBe('HELLO WORLD');
+    expect(result.transformed.data).toBe('HELLO WORLD');
   });
 
   it('TEST 4 — CAPABILITY PRESERVATION', () => {
     // Assert that COMPETITIVE_ANALYSIS is still a canonical capability
     expect(CapabilityRegistry.get('COMPETITIVE_ANALYSIS')).toBeDefined();
-    // And DATA_TRANSFORMATION is canonical
-    expect(CapabilityRegistry.get('DATA_TRANSFORMATION')).toBeDefined();
+    // And LEAD_RESEARCH is canonical
+    expect(CapabilityRegistry.get('LEAD_RESEARCH')).toBeDefined();
   });
 
   it('TEST 5 — DUPLICATE PROTECTION', async () => {
@@ -147,8 +148,8 @@ describe('Mission Orchestrator Stall Regression', () => {
     vi.spyOn(AuthorizationRegistry, 'authorize').mockReturnValue({ authorized: true, reason: 'ok' } as any);
     vi.spyOn(CEOService, 'executeInlineTask').mockResolvedValue(undefined);
 
-    await CEOService.run(mockSupabase, 'ws-1', 'SCHEDULED_OBSERVATION:DATA_TRANSFORMATION', 'service_role', undefined, undefined, 'mission-1');
-    await CEOService.run(mockSupabase, 'ws-1', 'SCHEDULED_OBSERVATION:DATA_TRANSFORMATION', 'service_role', undefined, undefined, 'mission-1');
+    await CEOService.run(mockSupabase, 'ws-1', 'SCHEDULED_OBSERVATION:LEAD_RESEARCH', 'service_role', undefined, undefined, 'mission-1');
+    await CEOService.run(mockSupabase, 'ws-1', 'SCHEDULED_OBSERVATION:LEAD_RESEARCH', 'service_role', undefined, undefined, 'mission-1');
 
     expect(insertMock).toHaveBeenCalledTimes(2);
   });

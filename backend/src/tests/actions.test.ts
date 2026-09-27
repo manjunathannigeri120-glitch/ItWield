@@ -80,7 +80,12 @@ describe('TransformDataAction', () => {
 
   it('should handle malformed input', async () => {
     const action = new TransformDataAction();
-    await expect(action.execute({}, {} as any)).rejects.toThrow('Missing required field');
+    const result = await action.execute({}, {} as any);
+    expect(result).toEqual({
+      success: false,
+      missing_dependency: true,
+      error: 'Transformation requires source data. Missing explicit input payload.'
+    });
   });
 
   it('should reject eval/unknown operation securely', async () => {

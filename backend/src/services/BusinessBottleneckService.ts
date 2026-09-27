@@ -1,86 +1,97 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import OpenAI from 'openai';
+import { CompanyMemoryService } from './CompanyMemoryService';
 
 export class BusinessBottleneckService {
-  static async evaluateBottlenecks(supabase: SupabaseClient, workspaceId: string): Promise<void> {
-    // 1. Fetch Funnel Metrics
+  static async evaluateBottlenecks(supabase: SupabaseClient, workspaceId: string, activeGoals: any[]): Promise<void> {
+    if (!activeGoals || activeGoals.length === 0) return;
+
+    // Load available data
     const { count: prospectsCount } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
-      .eq('workspace_id', workspaceId)
-      .eq('stage', 'RESEARCHED');
-      
+      .eq('workspace_id', workspaceId).eq('stage', 'RESEARCHED');
     const { count: qualifiedCount } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
-      .eq('workspace_id', workspaceId)
-      .eq('stage', 'QUALIFIED');
-
+      .eq('workspace_id', workspaceId).eq('stage', 'QUALIFIED');
     const { count: contactedCount } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
-      .eq('workspace_id', workspaceId)
-      .in('stage', ['CONTACTED', 'NEGOTIATING']);
-
+      .eq('workspace_id', workspaceId).in('stage', ['CONTACTED', 'NEGOTIATING']);
     const { count: convertedCount } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
-      .eq('workspace_id', workspaceId)
-      .eq('stage', 'CONVERTED');
+      .eq('workspace_id', workspaceId).eq('stage', 'CONVERTED');
 
-    // 2. Diagnostics
-    let detectedCategory = null;
-    let severity = 'LOW';
-    let evidence = '';
-    let explanation = '';
-    let recommendedActions: any[] = [];
+    const businessData = { prospects: prospectsCount, qualified: qualifiedCount, contacted: contactedCount, converted: convertedCount };
+    
+    // Check Company Brain for context
+    const { data: memoryRecords } = await supabase.from('company_memory')
+      .select('title, content')
+      .eq('workspace_id', workspaceId);
 
-    const p = prospectsCount || 0;
-    const q = qualifiedCount || 0;
-    const c = contactedCount || 0;
-    const w = convertedCount || 0;
-    const total = p + q + c + w;
+    const openai = new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY || 'mock', baseURL: 'https://openrouter.ai/api/v1', defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173', 'X-Title': 'ItWield Bottleneck Engine' } });
+    
+    for (const goal of activeGoals) {
+      const prompt = `
+      You are the ItWield Business Bottleneck Engine.
+      Active Goal: ${goal.objective} (Target: ${goal.target || 'N/A'} ${goal.target_metric || ''})
+      Current Metric: ${goal.current_metric || 0}
+      
+      Available Data:
+      ${JSON.stringify(businessData)}
+      
+      Company Context:
+      ${memoryRecords ? memoryRecords.map((r: any) => `${r.title}: ${r.content}`).join('\n') : 'None'}
+      
+      Identify the current bottleneck.
+      Distinguish KNOWN FACT from INFERENCE from INSUFFICIENT_DATA.
+      Never fabricate a bottleneck. If data is lacking, report INSUFFICIENT_DATA.
+      
+      Respond in JSON:
+      {
+        "has_bottleneck": true|false,
+        "category": "e.g., CUSTOMER_ACQUISITION, CUSTOMER_CONVERSION, DATA_GAP, RESOURCE_CONSTRAINT",
+        "severity": "LOW"|"MEDIUM"|"HIGH"|"CRITICAL",
+        "evidence": "What factual evidence supports this?",
+        "confidence": 0.0 to 1.0,
+        "explanation": "Brief explanation",
+        "missing_data": ["any data needed"],
+        "recommended_actions": [{"type": "ACTION_TYPE", "description": "What to do next"}]
+      }
+      `;
 
-    if (total === 0) {
-      detectedCategory = 'ACQUISITION';
-      severity = 'HIGH';
-      evidence = 'Total pipeline is 0.';
-      explanation = 'No prospects are currently in the system.';
-      recommendedActions = [{ type: 'CREATE_MISSION', mission_type: 'GET_CUSTOMERS', description: 'Start an acquisition mission to research prospects.' }];
-    } else if (p > 50 && q === 0) {
-      detectedCategory = 'QUALIFICATION';
-      severity = 'HIGH';
-      evidence = `${p} prospects researched, 0 qualified.`;
-      explanation = 'Prospects are entering the pipeline but failing qualification criteria.';
-      recommendedActions = [{ type: 'REVIEW_QUALIFICATION', description: 'Review qualification rules in Company Memory.' }];
-    } else if (q > 20 && c === 0) {
-      detectedCategory = 'OPERATIONS';
-      severity = 'CRITICAL';
-      evidence = `${q} qualified leads, 0 contacted.`;
-      explanation = 'Leads are qualified but no outreach is happening. Check pending approvals.';
-      recommendedActions = [{ type: 'CHECK_APPROVALS', description: 'Check Command Center for pending outreach approvals.' }];
-    } else if (c > 20 && w === 0) {
-      detectedCategory = 'CONVERSION';
-      severity = 'HIGH';
-      evidence = `${c} leads contacted, 0 converted.`;
-      explanation = 'Contact strategy is not converting to wins. Sales or pricing might be the issue.';
-      recommendedActions = [{ type: 'CREATE_MISSION', mission_type: 'IMPROVE_PRODUCT', description: 'Analyze why contacted leads are not converting.' }];
-    }
+      try {
+        const model = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
+        const response = await openai.chat.completions.create({ model, messages: [{ role: 'user', content: prompt }], response_format: { type: 'json_object' } });
+        const text = response.choices[0].message.content!.trim().replace(/^```json/, '').replace(/```$/, '').trim();
+        const analysis = JSON.parse(text);
 
-    if (detectedCategory) {
-      await this.upsertBottleneck(supabase, workspaceId, detectedCategory, severity, evidence, explanation, recommendedActions);
+        if (analysis.has_bottleneck && analysis.confidence > 0.5) {
+          await this.upsertBottleneck(supabase, workspaceId, goal.id, analysis);
+        }
+      } catch (e) {
+        console.error('[BottleneckEngine] Failed to evaluate bottleneck for goal', goal.id, e);
+      }
     }
   }
 
-  private static async upsertBottleneck(
-    supabase: SupabaseClient, workspaceId: string, category: string, severity: string, evidence: string, explanation: string, recommendedActions: any[]
-  ) {
+  private static async upsertBottleneck(supabase: SupabaseClient, workspaceId: string, goalId: string, analysis: any) {
     const { data: existing } = await supabase.from('business_bottlenecks').select('id')
-      .eq('workspace_id', workspaceId).eq('category', category).eq('stage', 'DETECTED').maybeSingle();
+      .eq('workspace_id', workspaceId).eq('related_goal_id', goalId).eq('status', 'DETECTED').maybeSingle();
       
     if (existing) {
       await supabase.from('business_bottlenecks').update({
-        severity, evidence, explanation, recommended_actions: recommendedActions, updated_at: new Date().toISOString()
+        severity: analysis.severity, 
+        evidence: analysis.evidence, 
+        explanation: analysis.explanation, 
+        confidence: analysis.confidence,
+        recommended_actions: analysis.recommended_actions, 
+        updated_at: new Date().toISOString()
       }).eq('id', existing.id);
     } else {
       await supabase.from('business_bottlenecks').insert({
         workspace_id: workspaceId,
-        category,
-        severity,
-        evidence,
-        explanation,
-        recommended_actions: recommendedActions,
+        related_goal_id: goalId,
+        category: analysis.category,
+        severity: analysis.severity,
+        evidence: analysis.evidence,
+        confidence: analysis.confidence,
+        explanation: analysis.explanation,
+        recommended_actions: analysis.recommended_actions,
         status: 'DETECTED'
       });
       
@@ -88,13 +99,23 @@ export class BusinessBottleneckService {
       await supabase.from('decision_traces').insert({
         workspace_id: workspaceId,
         event_name: 'BOTTLENECK_DETECTED',
-        context_data: { category, severity, evidence },
-        conclusion: explanation,
-        proposed_action: recommendedActions[0]?.description || 'None',
+        context_data: { category: analysis.category, severity: analysis.severity, evidence: analysis.evidence },
+        conclusion: analysis.explanation,
+        proposed_action: analysis.recommended_actions[0]?.description || 'None',
         authorization_state: 'SYSTEM_DETECTED',
         result: 'Logged bottleneck for COO review'
       });
+      
+      await CompanyMemoryService.recordLesson(
+        workspaceId,
+        `Discovered Bottleneck: ${analysis.category}`,
+        analysis.explanation,
+        goalId,
+        'COO',
+        'STRATEGIC_CONTEXT',
+        { evidence: analysis.evidence },
+        supabase
+      );
     }
   }
 }
-

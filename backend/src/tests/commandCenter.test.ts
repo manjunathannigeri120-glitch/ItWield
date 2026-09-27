@@ -55,7 +55,8 @@ describe('Command Center API', () => {
           order: vi.fn(() => chain),
           limit: vi.fn(() => chain),
           single: vi.fn(async () => ({ data: Array.isArray(data) ? data[0] : data, error: null })),
-          then: (resolve: any) => resolve({ data, error: null })
+          then: (resolve: any) => resolve({ data, error: null }),
+          upsert: vi.fn(() => chain)
         };
         return chain;
       };
@@ -65,13 +66,13 @@ describe('Command Center API', () => {
       if (table === 'management_items') return createChain([{ type: 'TECHNOLOGY', priority: 'HIGH', title: 'Tech Error', status: 'ACTIVE' }]);
       if (table === 'pending_approvals') return createChain([{ id: '1' }]);
       if (table === 'agents') return createChain([{ id: 'a1', name: 'AI CEO', role: 'CEO', status: 'idle', capabilities: [] }, { id: 'a2', name: 'Worker', role: 'Worker', status: 'idle', capabilities: [] }]);
-      if (table === 'tasks') return createChain([{ assigned_agent_id: 'a1', status: 'FAILED', error: 'fail' }]);
+      if (table === 'tasks') return createChain([{ assigned_agent_id: 'a1', status: 'FAILED', error: 'fail'}, { assigned_agent_id: 'a1', status: 'RUNNING' }]);
       if (table === 'connections') return createChain([]);
       if (table === 'business_missions') return createChain([{ id: 'm1', status: 'ACTIVE', progress: 50 }]);
       if (table === 'opportunities') return createChain([{ id: 'o1', stage: 'QUALIFIED', value: 1000 }]);
       if (table === 'ceo_decisions') return createChain([{ id: 'd1', decision: 'Wait', created_at: new Date().toISOString() }]);
       if (table === 'mission_events') return createChain([{ id: 'me1', event_type: 'MILESTONE', created_at: new Date().toISOString() }]);
-      if (table === 'company_memory') return createChain([{ memory_type: 'DECISION' }]);
+      if (table === 'company_memory') return createChain([{ memory_type: 'RULE', source_type: 'OWNER' }]);
       
       return createChain([]);
     });
@@ -89,7 +90,7 @@ describe('Command Center API', () => {
     
     // Check Workforce
     expect(res.body.workforce).toHaveLength(2);
-    expect(res.body.workforce[0].status).toBe('WORKING'); // CEO has RUNNING task
+    expect(res.body.workforce[0].state).toBe('WORKING'); // CEO has RUNNING task
     
     // Check Steering
     expect(res.body.companySteering.rules).toBe(1);

@@ -1,12 +1,11 @@
 import { Router, Request, Response } from 'express';
-
 import { BusinessGoalInterpreter } from '../services/BusinessGoalInterpreter';
 import { OutcomePlannerService } from '../services/OutcomePlannerService';
 import { COOService } from '../services/COOService';
 import { BusinessDataRegistry } from '../services/BusinessDataRegistry';
 import { OutcomeVerificationService } from '../services/OutcomeVerificationService';
-import { BusinessBottleneckService } from '../services/BusinessBottleneckService';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import OpenAI from 'openai';
 
 const router = Router({ mergeParams: true });
 router.use(requireAuth);
@@ -14,52 +13,81 @@ router.use(requireAuth);
 router.post('/', async (req: any, res) => {
   try {
     if (!req.supabase) return res.status(500).json({ error: 'DB required' });
-    const { input, website } = req.body;
+    const { input, context_answers } = req.body;
     const workspaceId = req.params.workspaceId as string;
 
-    // Check if company website is already known
+    // Fetch existing company memory
     const { data: mems } = await req.supabase
       .from('company_memory')
       .select('*')
       .eq('workspace_id', workspaceId)
-      .eq('category', 'STRATEGIC_CONTEXT')
-      .eq('title', 'Company Website')
-      .limit(1);
+      .in('category', ['STRATEGIC_CONTEXT', 'FACT']);
 
-        const hasWebsite = mems && mems.length > 0 && mems[0].content && mems[0].content.trim().length > 0;
+    const memorySummary: any = {};
+    (mems || []).forEach((m: any) => {
+      memorySummary[m.title.toLowerCase().replace(/ /g, '_')] = m.content;
+    });
 
-    if (!hasWebsite && !website) {
-      // Need context before proceeding
+    // If the user provided answers to missing context, save them first
+    if (context_answers) {
+      for (const [key, value] of Object.entries(context_answers)) {
+        if (value && typeof value === 'string' && value.trim().length > 0) {
+          const contentStr = value.trim();
+          await req.supabase.from('company_memory').insert({
+            workspace_id: workspaceId,
+            category: 'STRATEGIC_CONTEXT',
+            memory_type: 'FACT',
+            title: key,
+            content: contentStr.includes('://') && key === 'website' ? contentStr : (key === 'website' ? 'https://' + contentStr : contentStr),
+            source_type: 'OWNER',
+            importance: 'high',
+            confidence: 'verified'
+          });
+          memorySummary[key.toLowerCase()] = contentStr;
+        }
+      }
+    }
+
+    const interpretation = await BusinessGoalInterpreter.interpretGoal(req.supabase, workspaceId, input, memorySummary);
+
+    // Filter out fields that are already in memory, just to be safe from LLM hallucinations
+    const genuinelyMissing = (interpretation.missing_company_context || []).filter(f => !memorySummary[f.toLowerCase()]);
+    if (interpretation.website_required && !memorySummary['website']) {
+      if (!genuinelyMissing.includes('website')) genuinelyMissing.push('website');
+    }
+
+    if (genuinelyMissing.length > 0) {
       return res.status(200).json({
         requires_context: true,
-        missing_fields: ['website'],
-        message: 'Before I can operate this goal, I need to understand your business.'
+        missing_fields: genuinelyMissing,
+        message: `To do this accurately, I need a bit more context. Could you provide: ${genuinelyMissing.join(', ')}?`
       });
     }
 
-    if (website && !hasWebsite) {
-      try {
-        new URL(website.includes('://') ? website : 'https://' + website);
-      } catch (e) {
-        return res.status(400).json({ error: 'Invalid website URL provided.' });
-      }
-
-      // Store the website as strategic context
-      await req.supabase.from('company_memory').insert({
-        workspace_id: workspaceId,
-        category: 'STRATEGIC_CONTEXT',
-        memory_type: 'FACT',
-        title: 'Company Website',
-        content: website.includes('://') ? website : 'https://' + website,
-        source_type: 'OWNER',
-        importance: 'high',
-        confidence: 'verified'
-      });
+    // Direct Response for General Scope
+    if (interpretation.scope === 'GENERAL') {
+       // Answer it inline via OpenAI or just create a goal and resolve immediately.
+       // The prompt says: "if request is general... DIRECT RESPONSE".
+       // We can just hit OpenAI quickly to answer if it's a QUESTION/RESEARCH.
+       if (interpretation.request_type === 'QUESTION' || interpretation.request_type === 'RESEARCH') {
+         const openai = new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY || 'mock', baseURL: 'https://openrouter.ai/api/v1', defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173' } });
+         let directAnswer = "I'm researching that now...";
+         try {
+           const model = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
+           const chatRes = await openai.chat.completions.create({ model, messages: [{ role: 'user', content: input }] });
+           directAnswer = chatRes.choices[0].message.content || directAnswer;
+         } catch(e) {}
+         
+         return res.status(200).json({
+           requires_context: false,
+           is_direct_response: true,
+           answer: directAnswer,
+           interpretation
+         });
+       }
     }
 
-    const goal = await BusinessGoalInterpreter.createGoal(req.supabase, workspaceId, input);
-    
-    // Auto-plan if not missing data
+    const goal = await BusinessGoalInterpreter.createGoal(req.supabase, workspaceId, input, interpretation);
     const planResult = await OutcomePlannerService.planOutcome(req.supabase, workspaceId, goal.id);
 
     res.json({ goal, plan: planResult, requires_context: false });
@@ -84,12 +112,10 @@ router.get('/', async (req: any, res) => {
       
     if (error) throw error;
     
-    // Auto-verify on fetch for now
     for (const g of goals || []) {
       await OutcomeVerificationService.verifyGoalProgress(req.supabase, workspaceId, g.id);
     }
 
-    // refetch to get updated status/metrics
     const { data: updatedGoals } = await req.supabase
       .from('business_goals')
       .select(`
@@ -117,24 +143,4 @@ router.get('/what-next', async (req: any, res) => {
   }
 });
 
-router.get('/business-data', async (req: any, res) => {
-  try {
-    if (!req.supabase) return res.status(500).json({ error: 'DB required' });
-    const workspaceId = req.params.workspaceId as string;
-    
-    await BusinessDataRegistry.syncRegistry(req.supabase, workspaceId);
-    
-    const { data: registry } = await req.supabase
-      .from('business_data_registry')
-      .select('*')
-      .eq('workspace_id', workspaceId);
-
-    res.json(registry);
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
 export default router;
-
-

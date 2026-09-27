@@ -13,11 +13,11 @@ export class CapabilityRegistry {
     'COMPETITOR_RESEARCH': { id: 'COMPETITOR_RESEARCH', name: 'Competitor Research', description: 'Research competitor data', owningAction: 'COMPETITOR_RESEARCH' },
     'DATA_TRANSFORMATION': { id: 'DATA_TRANSFORMATION', name: 'Data Transformation', description: 'Transform arbitrary data formats', owningAction: 'DATA_TRANSFORMATION' },
     'GENERATE_BUSINESS_REPORT': { id: 'GENERATE_BUSINESS_REPORT', name: 'Generate Business Report', description: 'Generate business insights reports', owningAction: 'GENERATE_BUSINESS_REPORT' },
-    'LEAD_RESEARCH': { id: 'LEAD_RESEARCH', name: 'Lead Research', description: 'Research potential leads', owningAction: 'LEAD_RESEARCH' },
+    'LEAD_RESEARCH': { id: 'LEAD_RESEARCH', name: 'Lead Research', description: 'Research potential leads', owningAction: 'LEAD_RESEARCH', requiredConnection: 'web_search' },
     'OUTREACH_DRAFTING': { id: 'OUTREACH_DRAFTING', name: 'Outreach Drafting', description: 'Draft outreach messages', owningAction: 'OUTREACH_DRAFTING' },
     'AWAIT_OUTREACH_APPROVALS': { id: 'AWAIT_OUTREACH_APPROVALS', name: 'Await Outreach Approvals', description: 'Wait for outreach approvals', owningAction: 'AWAIT_OUTREACH_APPROVALS' },
     'STORE_BUSINESS_DATA': { id: 'STORE_BUSINESS_DATA', name: 'Store Business Data', description: 'Store structured business data', owningAction: 'STORE_BUSINESS_DATA' },
-    'WEB_RESEARCH': { id: 'WEB_RESEARCH', name: 'Web Research', description: 'Research topics on the web', owningAction: 'WEB_RESEARCH' },
+    'WEB_RESEARCH': { id: 'WEB_RESEARCH', name: 'Web Research', description: 'Research topics on the web', owningAction: 'WEB_RESEARCH', requiredConnection: 'web_search' },
     'SEND_EMAIL': { id: 'SEND_EMAIL', name: 'Send Email', description: 'Send an email', owningAction: 'SEND_EMAIL' },
     
     // GitHub

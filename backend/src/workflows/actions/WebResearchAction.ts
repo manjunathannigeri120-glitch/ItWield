@@ -7,7 +7,7 @@ export class WebResearchAction implements Action {
   async execute(config: any, context: ActionContext): Promise<any> {
     const { query, objective } = config;
     if (!query) {
-      return { success: false, error: 'Web research requires a query parameter.' };
+      return { success: false, error: 'Web research requires a query parameter.', missing_dependency: true };
     }
 
     try {

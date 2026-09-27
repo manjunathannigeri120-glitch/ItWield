@@ -15,6 +15,7 @@ import memoryRoutes from './memory';
 import commandCenterRoutes from './commandCenter';
 import crmRoutes from './crm';
 import goalsRouter from './goals';
+import cooRouter from './coo';
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.use('/workspaces/:workspaceId/memory', memoryRoutes);
 router.use('/workspaces/:workspaceId/command-center', commandCenterRoutes);
 router.use('/workspaces/:workspaceId/crm', crmRoutes);
 router.use('/workspaces/:workspaceId/goals', goalsRouter);
+router.use('/workspaces/:workspaceId', cooRouter);
 router.use('/workspaces', workspaceRoutes);
 router.use('/agents', agentRoutes);
 router.use('/conversations', conversationRoutes);
@@ -35,3 +37,4 @@ router.use('/ceo', ceoRouter);
 router.use('/scheduler', schedulerRouter);
 
 export default router;
+

@@ -1,0 +1,182 @@
+warning: in the working copy of 'backend/src/services/BusinessDataRegistry.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/services/OutcomeVerificationService.ts', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/backend/src/services/BusinessDataRegistry.ts b/backend/src/services/BusinessDataRegistry.ts[m
+[1mindex 314d42b..ed2fe1c 100644[m
+[1m--- a/backend/src/services/BusinessDataRegistry.ts[m
+[1m+++ b/backend/src/services/BusinessDataRegistry.ts[m
+[36m@@ -4,7 +4,7 @@[m [mexport class BusinessDataRegistry {[m
+   static async syncRegistry(supabase: SupabaseClient, workspaceId: string): Promise<void> {[m
+     // 1. Detect CRM availability[m
+     const { count: crmCount } = await supabase[m
+[31m-      .from('crm_opportunities')[m
+[32m+[m[32m      .from('opportunities')[m
+       .select('*', { count: 'exact', head: true })[m
+       .eq('workspace_id', workspaceId);[m
+ [m
+[1mdiff --git a/backend/src/services/BusinessGoalInterpreter.ts b/backend/src/services/BusinessGoalInterpreter.ts[m
+[1mindex b244d2b..cae8902 100644[m
+[1m--- a/backend/src/services/BusinessGoalInterpreter.ts[m
+[1m+++ b/backend/src/services/BusinessGoalInterpreter.ts[m
+[36m@@ -67,6 +67,21 @@[m [mexport class BusinessGoalInterpreter {[m
+   }[m
+ [m
+   static async createGoal(supabase: SupabaseClient, workspaceId: string, rawInput: string): Promise<any> {[m
+[32m+[m[32m    const normalizedInput = rawInput.trim();[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Deduplicate: check for identical ACTIVE goal by raw_input[m
+[32m+[m[32m    const { data: existingGoals, error: checkError } = await supabase[m
+[32m+[m[32m      .from('business_goals')[m
+[32m+[m[32m      .select('*')[m
+[32m+[m[32m      .eq('workspace_id', workspaceId)[m
+[32m+[m[32m      .eq('status', 'ACTIVE')[m
+[32m+[m[32m      .ilike('raw_input', normalizedInput)[m
+[32m+[m[32m      .limit(1);[m
+[32m+[m
+[32m+[m[32m    if (!checkError && existingGoals && existingGoals.length > 0) {[m
+[32m+[m[32m      return existingGoals[0];[m
+[32m+[m[32m    }[m
+[32m+[m
+     const interpretation = await this.interpretGoal(supabase, workspaceId, rawInput);[m
+     [m
+     const { data: goal, error } = await supabase[m
+[1mdiff --git a/backend/src/services/CustomerGrowthService.ts b/backend/src/services/CustomerGrowthService.ts[m
+[1mindex e1a8d70..2095fb0 100644[m
+[1m--- a/backend/src/services/CustomerGrowthService.ts[m
+[1m+++ b/backend/src/services/CustomerGrowthService.ts[m
+[36m@@ -38,7 +38,7 @@[m [mexport class CustomerGrowthService {[m
+    * Records a verified conversion (WON or LOST).[m
+    * Automatically generates Company Memory OUTCOME and proposes Mission Learning.[m
+    */[m
+[31m-  static async recordConversion(supabase: SupabaseClient, workspaceId: string, oppId: string, outcome: 'WON' | 'LOST', evidence: string, valueStr?: string) {[m
+[32m+[m[32m  static async recordConversion(supabase: SupabaseClient, workspaceId: string, oppId: string, outcome: 'CONVERTED' | 'LOST', evidence: string, valueStr?: string) {[m
+     const { data: opp, error } = await supabase.from('opportunities').select('*').eq('id', oppId).eq('workspace_id', workspaceId).single();[m
+     if (error || !opp) throw new Error('Opportunity not found');[m
+ [m
+[36m@@ -61,7 +61,7 @@[m [mexport class CustomerGrowthService {[m
+     await CompanyMemoryService.recordOutcome(workspaceId, title, content, opp.id, 'OWNER', undefined, undefined, supabase);[m
+ [m
+     // Feed Mission Learning Pipeline if this originated from a mission[m
+[31m-    if (opp.mission_id && outcome === 'WON') {[m
+[32m+[m[32m    if (opp.mission_id && outcome === 'CONVERTED') {[m
+       const learning = {[m
+         title: `Conversion Factor: ${opp.company_name}`,[m
+         content: `Prospect converted into a customer. Reason for match was: ${opp.evidence?.reason_for_match || 'Unknown'}.`,[m
+[1mdiff --git a/backend/src/services/OutcomeVerificationService.ts b/backend/src/services/OutcomeVerificationService.ts[m
+[1mindex 7f73a27..cb30f2a 100644[m
+[1m--- a/backend/src/services/OutcomeVerificationService.ts[m
+[1m+++ b/backend/src/services/OutcomeVerificationService.ts[m
+[36m@@ -6,13 +6,26 @@[m [mexport class OutcomeVerificationService {[m
+     if (!goal) return null;[m
+ [m
+     let currentMetricValue = goal.current_metric || 0;[m
+[32m+[m[32m    let updatedMissingData = goal.missing_data || [];[m
+ [m
+     // Hardcoded verifiers for now based on domain[m
+     if (goal.target_metric?.toLowerCase().includes('customer') || goal.objective.toLowerCase().includes('customer')) {[m
+[31m-      const { count } = await supabase.from('crm_opportunities').select('*', { count: 'exact', head: true })[m
+[31m-        .eq('workspace_id', workspaceId)[m
+[31m-        .eq('status', 'WON');[m
+[31m-      currentMetricValue = count || 0;[m
+[32m+[m[41m      [m
+[32m+[m[32m      // Test if internal opportunities source is available[m
+[32m+[m[32m      const { error: oppTestError } = await supabase.from('opportunities').select('id').eq('workspace_id', workspaceId).limit(1);[m
+[32m+[m[41m      [m
+[32m+[m[32m      if (!oppTestError) {[m
+[32m+[m[32m        // Internal CRM is available and satisfies these abstract domains[m
+[32m+[m[32m        updatedMissingData = updatedMissingData.filter((d: string) =>[m[41m [m
+[32m+[m[32m          !d.toLowerCase().includes('customer')[m
+[32m+[m[32m        );[m
+[32m+[m
+[32m+[m[32m        // Calculate progress exactly based on CONVERTED stage[m
+[32m+[m[32m        const { count } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })[m
+[32m+[m[32m          .eq('workspace_id', workspaceId)[m
+[32m+[m[32m          .eq('stage', 'CONVERTED');[m
+[32m+[m[32m        currentMetricValue = count || 0;[m
+[32m+[m[32m      }[m
+     }[m
+ [m
+     const target = goal.target || 0;[m
+[36m@@ -35,6 +48,7 @@[m [mexport class OutcomeVerificationService {[m
+ [m
+     await supabase.from('business_goals').update({[m
+       current_metric: currentMetricValue,[m
+[32m+[m[32m      missing_data: updatedMissingData,[m
+       status,[m
+       updated_at: new Date().toISOString()[m
+     }).eq('id', goalId);[m
+[36m@@ -44,7 +58,8 @@[m [mexport class OutcomeVerificationService {[m
+       target,[m
+       current: currentMetricValue,[m
+       gap,[m
+[31m-      status[m
+[32m+[m[32m      status,[m
+[32m+[m[32m      missing_data: updatedMissingData[m
+     };[m
+   }[m
+ }[m
+[1mdiff --git a/frontend/src/App.tsx b/frontend/src/App.tsx[m
+[1mindex f7d088f..4615024 100644[m
+[1m--- a/frontend/src/App.tsx[m
+[1m+++ b/frontend/src/App.tsx[m
+[36m@@ -23,6 +23,7 @@[m [mimport { OAuthCallback } from '@/pages/OAuthCallback';[m
+ [m
+ import { Missions } from '@/pages/Missions';[m
+ import { MissionDetail } from '@/pages/MissionDetail';[m
+[32m+[m[32mimport { GoalDetail } from '@/pages/GoalDetail';[m
+ import CRM from '@/pages/CRM';[m
+ import { Memory } from '@/pages/Memory';[m
+ [m
+[36m@@ -88,6 +89,7 @@[m [mfunction App() {[m
+           <Route path="/dashboard" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Dashboard /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />[m
+           <Route path="/crm" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><CRM /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />[m
+           <Route path="/memory" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Memory /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />[m
+[32m+[m[32m          <Route path="/goals/:goalId" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><GoalDetail /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />[m
+           <Route path="/missions" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Missions /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />[m
+           <Route path="/missions/:missionId" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><MissionDetail /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />[m
+           <Route path="/agents" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Agents /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />[m
+[1mdiff --git a/frontend/src/pages/Dashboard.tsx b/frontend/src/pages/Dashboard.tsx[m
+[1mindex ab0d2fc..a8f1141 100644[m
+[1m--- a/frontend/src/pages/Dashboard.tsx[m
+[1m+++ b/frontend/src/pages/Dashboard.tsx[m
+[36m@@ -212,12 +212,13 @@[m [mexport default function Dashboard() {[m
+ [m
+         <div className="grid grid-cols-1 gap-4 mt-4">[m
+           {goals.map(g => ([m
+[31m-            <Card key={g.id} className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow">[m
+[31m-              <CardContent className="pt-6">[m
+[31m-                <div className="flex justify-between items-start mb-4">[m
+[31m-                  <div>[m
+[31m-                    <h3 className="text-xl font-bold text-gray-900">{g.objective}</h3>[m
+[31m-                    <div className="text-sm text-gray-500 mt-1">Goal interpretation from: "{g.raw_input}"</div>[m
+[32m+[m[32m            <Link to={`/goals/${g.id}`} key={g.id} className="block group">[m
+[32m+[m[32m              <Card className="border-l-4 border-l-blue-500 shadow-sm group-hover:shadow-md transition-all cursor-pointer h-full">[m
+[32m+[m[32m                <CardContent className="pt-6">[m
+[32m+[m[32m                  <div className="flex justify-between items-start mb-4">[m
+[32m+[m[32m                    <div>[m
+[32m+[m[32m                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-700 transition-colors">{g.objective}</h3>[m
+[32m+[m[32m                      <div className="text-sm text-gray-500 mt-1">Goal interpretation from: "{g.raw_input}"</div>[m
+                   </div>[m
+                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${[m
+                     g.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :[m
+[36m@@ -243,7 +244,7 @@[m [mexport default function Dashboard() {[m
+                   </div>[m
+                 </div>[m
+ [m
+[31m-                {g.missing_data && g.missing_data.length > 0 && ([m
+[32m+[m[32m                {((g.target_metric?.toLowerCase().includes('customer') || g.objective.toLowerCase().includes('customer')) ? g.missing_data?.some((d: string) => d.toLowerCase().includes('customer')) : (g.missing_data && g.missing_data.length > 0)) && ([m
+                   <div className="mb-4 bg-amber-50 border border-amber-200 p-3 rounded flex flex-col gap-1">[m
+                     <span className="text-amber-800 text-sm font-bold">DATA NOT AVAILABLE</span>[m
+                     <span className="text-amber-700 text-xs">To measure this goal, connect: {g.missing_data.join(', ')}</span>[m
+[36m@@ -265,6 +266,7 @@[m [mexport default function Dashboard() {[m
+                 )}[m
+               </CardContent>[m
+             </Card>[m
+[32m+[m[32m          </Link>[m
+           ))}[m
+         </div>[m
+       </div>[m
+[36m@@ -741,3 +743,4 @@[m [mexport default function Dashboard() {[m
+   );[m
+ }[m
+ [m
+[41m+[m

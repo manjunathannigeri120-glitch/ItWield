@@ -5,9 +5,19 @@ export class TransformDataAction implements Action {
 
   async execute(config: any, context: ActionContext): Promise<any> {
     const { input, operations } = config;
-    if (!input) throw new Error('Missing required field (input)');
+    if (!input) {
+      return { 
+        success: false, 
+        error: 'Transformation requires source data. Missing explicit input payload.',
+        missing_dependency: true
+      };
+    }
     if (!operations || !Array.isArray(operations)) {
-      throw new Error('Operations must be an array');
+      return { 
+        success: false, 
+        error: 'Transformation requires operations configuration. Missing explicit operations array.',
+        missing_dependency: true
+      };
     }
 
     let data: any = input;
@@ -22,7 +32,9 @@ export class TransformDataAction implements Action {
     }
 
     for (const op of operations) {
-      if (!op || !op.type) throw new Error('Invalid operation: missing type');
+      if (!op || !op.type) {
+        return { success: false, error: 'Invalid operation: missing type' };
+      }
       
       try {
         if (op.type === 'uppercase') {

@@ -45,8 +45,8 @@ router.post('/opportunities/:oppId/convert', async (req: any, res) => {
   const supabase = req.supabase;
 
   try {
-    if (!['WON', 'LOST'].includes(outcome)) {
-      return res.status(400).json({ error: 'Outcome must be WON or LOST' });
+    if (!['CONVERTED', 'LOST'].includes(outcome)) {
+      return res.status(400).json({ error: 'Outcome must be CONVERTED or LOST' });
     }
     const updated = await CustomerGrowthService.recordConversion(supabase, workspaceId, oppId, outcome, evidence, valueStr);
     res.json(updated);

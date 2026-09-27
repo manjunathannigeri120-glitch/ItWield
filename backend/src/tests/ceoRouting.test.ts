@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CEOService } from '../services/CEOService';
+import { ActionRegistry } from '../workflows/actions/ActionRegistry';
+import { LeadResearchAction } from '../workflows/actions/LeadResearchAction';
 
 vi.mock('../services/ContinuousImprovementService', () => ({
   ContinuousImprovementService: {
@@ -15,8 +17,12 @@ describe('CEOService Routing Logic', () => {
   let executeInlineTaskSpy: any;
 
   beforeEach(() => {
+    process.env.TAVILY_API_KEY = 'mock';
     updateCalls = [];
     executeInlineTaskSpy = vi.spyOn(CEOService, 'executeInlineTask').mockResolvedValue(undefined as any);
+    
+    // Register action to allow inline execution
+    ActionRegistry.register(new LeadResearchAction());
   });
 
   it('routes LEAD_RESEARCH tasks to executeInlineTask and does not block them', async () => {

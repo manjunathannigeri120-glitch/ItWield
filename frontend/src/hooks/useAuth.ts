@@ -20,7 +20,7 @@ export function useAuth() {
         }
       }
       setSession(session);
-      setUser(session?.user ?? null);
+      if (!session && localStorage.getItem('sb-mock-session')) { const parsed = JSON.parse(localStorage.getItem('sb-mock-session')!); setSession(parsed); setUser(parsed.user); } else { setUser(session?.user ?? null); }
       setLoading(false);
     }).catch(() => {
       const mockSession = localStorage.getItem('sb-mock-session');
@@ -34,7 +34,7 @@ export function useAuth() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      if (!session && localStorage.getItem('sb-mock-session')) { const parsed = JSON.parse(localStorage.getItem('sb-mock-session')!); setSession(parsed); setUser(parsed.user); } else { setUser(session?.user ?? null); }
     });
 
     return () => subscription.unsubscribe();
@@ -42,3 +42,4 @@ export function useAuth() {
 
   return { session, user, loading };
 }
+

@@ -1,0 +1,60 @@
+﻿          if (taskType === 'APPLICATION_MONITORING') {
+            const appMonitor = agents?.find((a: any) => a.name === 'Application Monitor');
+            const cto = agents?.find((a: any) => a.name === 'AI CTO');
+            const assignee = cto || appMonitor || (agents && agents.length > 0 ? agents[0] : null);
+
+            let website = 'https://example.com';
+            try {
+              const ctx = JSON.parse(company.operational_context || '{}');
+              if (ctx.website) website = ctx.website;
+            } catch (_) { /* ignore parse errors */ }
+
+            if (assignee) {
+              generatedTasks.push({
+                title: 'Application Health Check',
+                description: `Check application health for ${company.name}. Verify the website is reachable, record HTTP status, and report results.`,
+                agent_id: assignee.id,
+                priority: 'high',
+                workflow_id: null,
+                input: {
+                  task_type: 'APPLICATION_MONITORING',
+                  website,
+                  delegate_to: appMonitor ? appMonitor.id : null
+                }
+              });
+            }
+          }
+
+          if (taskType === 'COMPETITIVE_ANALYSIS') {
+            const compAnalyst = agents?.find((a: any) => a.name === 'Competitor Analyst');
+            const cmo = agents?.find((a: any) => a.name === 'AI CMO');
+            const assignee = cmo || compAnalyst || (agents && agents.length > 0 ? agents[0] : null);
+
+            if (assignee) {
+              generatedTasks.push({
+                title: 'Competitive Analysis',
+                description: `Analyze market competitors for ${company.name} based on the stated goal to acquire customers.`,
+                agent_id: assignee.id,
+                priority: 'medium',
+                workflow_id: null,
+                input: {
+                  task_type: 'COMPETITIVE_ANALYSIS',
+                  delegate_to: compAnalyst ? compAnalyst.id : null
+                }
+              });
+            }
+          }
+
+          if (taskType === 'LEAD_RESEARCH') {
+            const cmo = agents?.find((a: any) => a.name === 'AI CMO');
+            const leadResearcher = agents?.find((a: any) => (a.capabilities || []).includes('LEAD_RESEARCH'));
+            const assignee = cmo || (agents && agents.length > 0 ? agents[0] : null);
+            const executor = leadResearcher || assignee;
+
+            if (assignee) {
+              generatedTasks.push({
+                title: 'Lead Research',
+                description: `Identify and research potential leads for ${company.name}.`,
+                agent_id: assignee.id,
+                priority: 'high',
+                workflow_id: null,

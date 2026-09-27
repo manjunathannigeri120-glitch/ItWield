@@ -8,7 +8,7 @@ export class LeadResearchAction implements Action {
     const { targetCustomerProfile, industry, geography, maxResults = 5 } = config;
     
     if (!targetCustomerProfile && !industry) {
-      return { success: false, error: 'Lead research requires targetCustomerProfile or industry.' };
+      return { success: false, error: 'Lead research requires targetCustomerProfile or industry.', missing_dependency: true };
     }
 
     try {

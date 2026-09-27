@@ -25,6 +25,10 @@ const executeRoute = async (reqArg: any) => {
     await layer.route.stack[0].handle(reqArg, res, () => {});
   }
   
+  if (statusCode === 500) {
+    console.error('500 ERROR BODY:', responseBody);
+  }
+  
   return { status: statusCode, body: responseBody };
 };
 
@@ -54,7 +58,8 @@ describe('Human-in-the-Loop Approval Workflows', () => {
             if (data.status) statusSetTo = data.status;
             return chain;
           }),
-          insert: vi.fn(() => chain)
+          insert: vi.fn(() => chain),
+          upsert: vi.fn(() => chain)
         };
         return chain;
       })
@@ -90,7 +95,8 @@ describe('Human-in-the-Loop Approval Workflows', () => {
             if (data.status) statusSetTo = data.status;
             return chain;
           }),
-          insert: vi.fn(() => chain)
+          insert: vi.fn(() => chain),
+          upsert: vi.fn(() => chain)
         };
         return chain;
       })

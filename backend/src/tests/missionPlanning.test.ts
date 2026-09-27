@@ -53,9 +53,9 @@ describe('Mission Planning & Adaptive Execution (Phase 7)', () => {
         expect(planData.steps[0].step_order).toBe(1);
         expect(planData.steps[7].step_order).toBe(8);
         
-        // Assert explicitly that Step 1 is DATA_TRANSFORMATION (ICP mapping fix)
-        expect(planData.steps[0].step_type).toBe('DATA_TRANSFORMATION');
-        expect(planData.steps[0].authorization_class).toBe('DATA_TRANSFORMATION');
+        // Assert explicitly that Step 1 is WEB_RESEARCH (ICP mapping fix)
+        expect(planData.steps[0].step_type).toBe('WEB_RESEARCH');
+        expect(planData.steps[0].authorization_class).toBe('WEB_RESEARCH');
         
         // Assert explicitly that Step 2 remains LEAD_RESEARCH
         expect(planData.steps[1].step_type).toBe('LEAD_RESEARCH');

@@ -733,7 +733,7 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
       return res.status(409).json({ error: 'Conflict: Approval was resolved by another process.' });
     }
 
-    await CompanyMemoryService.recordDecision(workspaceId, `Owner approved ${updated.action}`, `Owner approved ${updated.action} for ${updated.title}.`, String(approvalId), 'OWNER', req.supabase);
+    await CompanyMemoryService.recordDecision(workspaceId, `Owner approved ${updated.action}`, `Owner approved ${updated.action} for ${updated.title}.`, String(approvalId), 'OWNER', undefined, req.supabase);
 
     // 3. Re-authorize via AuthorizationRegistry
     const { data: ws } = await req.supabase.from('workspaces').select('operational_context').eq('id', workspaceId).single();
@@ -898,7 +898,7 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
       return res.status(409).json({ error: 'Conflict: Approval was resolved by another process.' });
     }
 
-    await CompanyMemoryService.recordDecision(workspaceId, `Owner rejected ${updated.action}`, `Owner rejected ${updated.action} for ${updated.title}. Reason: ${reason || 'None provided'}`, String(approvalId), 'OWNER', req.supabase);
+    await CompanyMemoryService.recordDecision(workspaceId, `Owner rejected ${updated.action}`, `Owner rejected ${updated.action} for ${updated.title}. Reason: ${reason || 'None provided'}`, String(approvalId), 'OWNER', undefined, req.supabase);
 
     await req.supabase.from('task_events').insert({
       workspace_id: workspaceId,
@@ -1036,6 +1036,7 @@ router.post('/:id/improvements/:improvId/dismiss', async (req: AuthRequest, res)
       `Owner explicitly dismissed improvement proposal: "${proposal.title}". ${reason ? `Reason: ${reason}` : ''}`,
       `improvement:${improvId}`,
       'OWNER',
+      undefined,
       req.supabase
     );
 

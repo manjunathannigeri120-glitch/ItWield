@@ -1,0 +1,1 @@
+const fs = require('fs'); const path = 'frontend/src/pages/Onboarding.tsx'; let lines = fs.readFileSync(path, 'utf8').split('\n'); for (let i=0; i<lines.length; i++) { if (lines[i].includes('/goals')) { lines[i] = lines[i].replace('{ input: goalInput }', '{ input: goalInput, website: companyData.website }'); } } fs.writeFileSync(path, lines.join('\n'));
