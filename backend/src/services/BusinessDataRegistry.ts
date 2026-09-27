@@ -4,7 +4,7 @@ export class BusinessDataRegistry {
   static async syncRegistry(supabase: SupabaseClient, workspaceId: string): Promise<void> {
     // 1. Detect CRM availability
     const { count: crmCount } = await supabase
-      .from('crm_opportunities')
+      .from('opportunities')
       .select('*', { count: 'exact', head: true })
       .eq('workspace_id', workspaceId);
 

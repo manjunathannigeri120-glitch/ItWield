@@ -6,13 +6,26 @@ export class OutcomeVerificationService {
     if (!goal) return null;
 
     let currentMetricValue = goal.current_metric || 0;
+    let updatedMissingData = goal.missing_data || [];
 
     // Hardcoded verifiers for now based on domain
     if (goal.target_metric?.toLowerCase().includes('customer') || goal.objective.toLowerCase().includes('customer')) {
-      const { count } = await supabase.from('crm_opportunities').select('*', { count: 'exact', head: true })
-        .eq('workspace_id', workspaceId)
-        .eq('status', 'WON');
-      currentMetricValue = count || 0;
+      
+      // Test if internal opportunities source is available
+      const { error: oppTestError } = await supabase.from('opportunities').select('id').eq('workspace_id', workspaceId).limit(1);
+      
+      if (!oppTestError) {
+        // Internal CRM is available and satisfies these abstract domains
+        updatedMissingData = updatedMissingData.filter((d: string) => 
+          !d.toLowerCase().includes('customer')
+        );
+
+        // Calculate progress exactly based on CONVERTED stage
+        const { count } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
+          .eq('workspace_id', workspaceId)
+          .eq('stage', 'CONVERTED');
+        currentMetricValue = count || 0;
+      }
     }
 
     const target = goal.target || 0;
@@ -35,6 +48,7 @@ export class OutcomeVerificationService {
 
     await supabase.from('business_goals').update({
       current_metric: currentMetricValue,
+      missing_data: updatedMissingData,
       status,
       updated_at: new Date().toISOString()
     }).eq('id', goalId);
@@ -44,7 +58,8 @@ export class OutcomeVerificationService {
       target,
       current: currentMetricValue,
       gap,
-      status
+      status,
+      missing_data: updatedMissingData
     };
   }
 }

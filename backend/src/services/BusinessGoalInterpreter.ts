@@ -67,6 +67,21 @@ export class BusinessGoalInterpreter {
   }
 
   static async createGoal(supabase: SupabaseClient, workspaceId: string, rawInput: string): Promise<any> {
+    const normalizedInput = rawInput.trim();
+    
+    // Deduplicate: check for identical ACTIVE goal by raw_input
+    const { data: existingGoals, error: checkError } = await supabase
+      .from('business_goals')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .eq('status', 'ACTIVE')
+      .ilike('raw_input', normalizedInput)
+      .limit(1);
+
+    if (!checkError && existingGoals && existingGoals.length > 0) {
+      return existingGoals[0];
+    }
+
     const interpretation = await this.interpretGoal(supabase, workspaceId, rawInput);
     
     const { data: goal, error } = await supabase

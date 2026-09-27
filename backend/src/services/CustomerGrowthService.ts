@@ -38,7 +38,7 @@ export class CustomerGrowthService {
    * Records a verified conversion (WON or LOST).
    * Automatically generates Company Memory OUTCOME and proposes Mission Learning.
    */
-  static async recordConversion(supabase: SupabaseClient, workspaceId: string, oppId: string, outcome: 'WON' | 'LOST', evidence: string, valueStr?: string) {
+  static async recordConversion(supabase: SupabaseClient, workspaceId: string, oppId: string, outcome: 'CONVERTED' | 'LOST', evidence: string, valueStr?: string) {
     const { data: opp, error } = await supabase.from('opportunities').select('*').eq('id', oppId).eq('workspace_id', workspaceId).single();
     if (error || !opp) throw new Error('Opportunity not found');
 
@@ -61,7 +61,7 @@ export class CustomerGrowthService {
     await CompanyMemoryService.recordOutcome(workspaceId, title, content, opp.id, 'OWNER', undefined, undefined, supabase);
 
     // Feed Mission Learning Pipeline if this originated from a mission
-    if (opp.mission_id && outcome === 'WON') {
+    if (opp.mission_id && outcome === 'CONVERTED') {
       const learning = {
         title: `Conversion Factor: ${opp.company_name}`,
         content: `Prospect converted into a customer. Reason for match was: ${opp.evidence?.reason_for_match || 'Unknown'}.`,

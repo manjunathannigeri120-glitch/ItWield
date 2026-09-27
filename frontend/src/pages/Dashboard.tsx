@@ -212,12 +212,13 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 gap-4 mt-4">
           {goals.map(g => (
-            <Card key={g.id} className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">{g.objective}</h3>
-                    <div className="text-sm text-gray-500 mt-1">Goal interpretation from: "{g.raw_input}"</div>
+            <Link to={`/goals/${g.id}`} key={g.id} className="block group">
+              <Card className="border-l-4 border-l-blue-500 shadow-sm group-hover:shadow-md transition-all cursor-pointer h-full">
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-700 transition-colors">{g.objective}</h3>
+                      <div className="text-sm text-gray-500 mt-1">Goal interpretation from: "{g.raw_input}"</div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                     g.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
@@ -243,7 +244,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {g.missing_data && g.missing_data.length > 0 && (
+                {((g.target_metric?.toLowerCase().includes('customer') || g.objective.toLowerCase().includes('customer')) ? g.missing_data?.some((d: string) => d.toLowerCase().includes('customer')) : (g.missing_data && g.missing_data.length > 0)) && (
                   <div className="mb-4 bg-amber-50 border border-amber-200 p-3 rounded flex flex-col gap-1">
                     <span className="text-amber-800 text-sm font-bold">DATA NOT AVAILABLE</span>
                     <span className="text-amber-700 text-xs">To measure this goal, connect: {g.missing_data.join(', ')}</span>
@@ -265,6 +266,7 @@ export default function Dashboard() {
                 )}
               </CardContent>
             </Card>
+          </Link>
           ))}
         </div>
       </div>
@@ -740,4 +742,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
 

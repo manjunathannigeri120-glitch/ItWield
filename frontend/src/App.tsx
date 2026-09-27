@@ -23,6 +23,7 @@ import { OAuthCallback } from '@/pages/OAuthCallback';
 
 import { Missions } from '@/pages/Missions';
 import { MissionDetail } from '@/pages/MissionDetail';
+import { GoalDetail } from '@/pages/GoalDetail';
 import CRM from '@/pages/CRM';
 import { Memory } from '@/pages/Memory';
 
@@ -88,6 +89,7 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Dashboard /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/crm" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><CRM /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/memory" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Memory /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
+          <Route path="/goals/:goalId" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><GoalDetail /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/missions" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Missions /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/missions/:missionId" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><MissionDetail /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/agents" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Agents /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
