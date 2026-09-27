@@ -14,8 +14,9 @@ export function Onboarding() {
   
   const [companyData, setCompanyData] = useState({
     name: '',
-    industry: '',
-    description: ''
+      industry: '',
+      description: '',
+      website: ''
   });
 
   const [goalInput, setGoalInput] = useState('');
@@ -42,7 +43,8 @@ export function Onboarding() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.post(`/workspaces/${workspaceId}/goals`, { input: goalInput });
+      const res = await api.post(`/workspaces/${workspaceId}/goals`, { input: goalInput, website: companyData.website });
+        if (res.data.requires_context) return setError(res.data.message || 'Missing context');
       setGoalResult(res.data);
       setStep(3); // Interpretation & Plan preview
     } catch (e: any) {
@@ -77,6 +79,10 @@ export function Onboarding() {
               <CardDescription className="text-base mt-2">What does your company do?</CardDescription>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
+                            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Company Website</label>
+                <Input value={companyData.website} onChange={e => setCompanyData({...companyData, website: e.target.value})} placeholder="https://example.com" />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Company Name</label>
                 <Input value={companyData.name} onChange={e => setCompanyData({...companyData, name: e.target.value})} placeholder="Acme Corp" />
@@ -214,3 +220,7 @@ export function Onboarding() {
     </div>
   );
 }
+
+
+
+

@@ -26,7 +26,7 @@ router.post('/', async (req: any, res) => {
       .eq('title', 'Company Website')
       .limit(1);
 
-    const hasWebsite = mems && mems.length > 0;
+        const hasWebsite = mems && mems.length > 0 && mems[0].content && mems[0].content.trim().length > 0;
 
     if (!hasWebsite && !website) {
       // Need context before proceeding
@@ -38,13 +38,19 @@ router.post('/', async (req: any, res) => {
     }
 
     if (website && !hasWebsite) {
+      try {
+        new URL(website.includes('://') ? website : 'https://' + website);
+      } catch (e) {
+        return res.status(400).json({ error: 'Invalid website URL provided.' });
+      }
+
       // Store the website as strategic context
       await req.supabase.from('company_memory').insert({
         workspace_id: workspaceId,
         category: 'STRATEGIC_CONTEXT',
         memory_type: 'FACT',
         title: 'Company Website',
-        content: website,
+        content: website.includes('://') ? website : 'https://' + website,
         source_type: 'OWNER',
         importance: 'high',
         confidence: 'verified'
@@ -130,3 +136,5 @@ router.get('/business-data', async (req: any, res) => {
 });
 
 export default router;
+
+

@@ -86,11 +86,32 @@ export default function Dashboard() {
   }, []);
 
 
+    const isValidUrl = (url: string) => {
+    try {
+      new URL(url.includes('://') ? url : 'https://' + url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const handleCreateGoal = async () => {
     if (!goalInput.trim()) return;
+
+    let finalWebsite = websiteInput.trim();
+    if (intakeMode) {
+      if (!isValidUrl(finalWebsite)) {
+        alert('Please enter a valid URL (e.g. https://example.com)');
+        return;
+      }
+      if (!finalWebsite.includes('://')) {
+        finalWebsite = 'https://' + finalWebsite;
+      }
+    }
+
     setGoalSubmitting(true);
     try {
-      const res = await api.post(`/workspaces/${workspace.id}/goals`, { input: goalInput, website: websiteInput });
+      const res = await api.post('/workspaces/' + workspace.id + '/goals', { input: goalInput, website: finalWebsite });
       if (res.data.requires_context) {
         setIntakeMode(true);
         setIntakeMessage(res.data.message || 'Before I can operate this goal, I need to understand your business.');
@@ -784,6 +805,8 @@ export default function Dashboard() {
     </div>
   );
 }
+
+
 
 
 
