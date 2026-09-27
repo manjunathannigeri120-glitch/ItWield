@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import api from '../lib/api';
+
+import { api } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 
 export function GoalDetail() {
   const { goalId } = useParams<{ goalId: string }>();
-  const [workspace, setWorkspace] = useState<any>(null);
+  
   const [goal, setGoal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +19,7 @@ export function GoalDetail() {
       const wsRes = await api.get('/workspaces');
       const ws = wsRes.data.find((w: any) => w.status === 'operating');
       if (!ws) throw new Error('No operating workspace found');
-      setWorkspace(ws);
+      
 
       const res = await api.get(`/workspaces/${ws.id}/goals`);
       const matchedGoal = res.data.find((g: any) => g.id === goalId);
@@ -40,13 +40,16 @@ export function GoalDetail() {
   if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
   if (!goal) return null;
 
-  const isCustomerGoal = goal.target_metric?.toLowerCase().includes('customer') || goal.objective.toLowerCase().includes('customer');
-  const hasCustomerDataMissing = goal.missing_data?.some((d: string) => d.toLowerCase().includes('customer'));
-  
-  // Phase 4 - DATA NOT AVAILABLE SEMANTICS
-  // The primary source is available if it's a customer goal AND 'customer' is NOT missing,
-  // or if it's a non-customer goal and it has no missing data overall.
-  const isAvailable = isCustomerGoal ? !hasCustomerDataMissing : (!goal.missing_data || goal.missing_data.length === 0);
+      const isCustomerGoal = goal.target_metric?.toLowerCase().includes('customer') || goal.objective.toLowerCase().includes('customer');
+    
+    // Phase 4 - DATA NOT AVAILABLE SEMANTICS
+    // The measurement source is available UNLESS the specific authoritative source failed.
+    let isAvailable = true;
+    if (isCustomerGoal) {
+      isAvailable = !goal.missing_data?.includes('Customer conversion data could not be queried.');
+    } else {
+      isAvailable = (!goal.missing_data || goal.missing_data.length === 0);
+    }
   
   let progressText = '';
   if (!isAvailable) {
@@ -196,6 +199,9 @@ export function GoalDetail() {
     </div>
   );
 }
+
+
+
 
 
 

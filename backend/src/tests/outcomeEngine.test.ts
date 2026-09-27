@@ -26,18 +26,33 @@ describe('V3.9 Business Outcome Engine & AI COO', () => {
     };
   });
 
-  describe('Outcome Verification', () => {
-    it('TEST 1: No opportunities source available -> DATA NOT AVAILABLE', async () => {
-      mockSingleData = { id: 'g1', target: 20, missing_data: ['Customer data'], target_metric: 'customer', status: 'ACTIVE' };
-      // Simulate limit(1) returning an error (source not available)
-      const chain = mockSupabase.from();
-      chain.limit = vi.fn().mockResolvedValue({ error: new Error('Table not found') });
-      mockSupabase.from.mockReturnValue(chain);
-      
-      const result = await OutcomeVerificationService.verifyGoalProgress(mockSupabase, 'ws-1', 'g1');
-      expect(result.missing_data).toContain('Customer data');
-      expect(result.current).toBe(0);
-    });
+      describe('Outcome Verification', () => {
+      it('TEST 1: No opportunities source available -> DATA NOT AVAILABLE (identifies actual failed source)', async () => {
+        mockSingleData = { id: 'g1', target: 20, missing_data: ['Customer data'], target_metric: 'customer', status: 'ACTIVE' };
+        // Simulate limit(1) returning an error (source not available)
+        const chain = mockSupabase.from();
+        chain.limit = vi.fn().mockResolvedValue({ error: new Error('Table not found') });
+        mockSupabase.from.mockReturnValue(chain);
+        
+        const result = await OutcomeVerificationService.verifyGoalProgress(mockSupabase, 'ws-1', 'g1');
+        expect(result.missing_data).toContain('Customer conversion data could not be queried.');
+        expect(result.current).toBe(0);
+      });
+  
+      it('TEST 2: Opportunities source available -> 0 CONVERTED -> verified_progress = 0 -> NOT DATA NOT AVAILABLE', async () => {
+        mockSingleData = { id: 'g1', target: 20, missing_data: ['Customer data', 'Purchase history data', 'customer behavior data', 'Other'], target_metric: 'customer', status: 'ACTIVE' };
+        
+        const chain = mockSupabase.from();
+        chain.limit = vi.fn().mockResolvedValue({ error: null, data: [{id: 'opp1'}] });
+        mockCount = 0;
+  
+        const result = await OutcomeVerificationService.verifyGoalProgress(mockSupabase, 'ws-1', 'g1');
+        expect(result.missing_data).not.toContain('Customer data');
+        expect(result.missing_data).toContain('Purchase history data');
+        expect(result.missing_data).toContain('customer behavior data'); // unrelated customer behavior missing does NOT invalidate customer count
+        expect(result.missing_data).toContain('Other');
+        expect(result.current).toBe(0);
+      });
 
     it('TEST 2: Opportunities source available -> 0 CONVERTED -> verified_progress = 0 -> NOT DATA NOT AVAILABLE', async () => {
       mockSingleData = { id: 'g1', target: 20, missing_data: ['Customer data', 'Purchase history data', 'Other'], target_metric: 'customer', status: 'ACTIVE' };
@@ -191,4 +206,5 @@ describe('Business Goal Deduplication', () => {
     expect(insertSpy).toHaveBeenCalled();
   });
 });
+
 

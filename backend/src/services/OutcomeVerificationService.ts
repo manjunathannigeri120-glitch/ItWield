@@ -8,23 +8,35 @@ export class OutcomeVerificationService {
     let currentMetricValue = goal.current_metric || 0;
     let updatedMissingData = goal.missing_data || [];
 
-    // Hardcoded verifiers for now based on domain
+        // Hardcoded verifiers for now based on domain
     if (goal.target_metric?.toLowerCase().includes('customer') || goal.objective.toLowerCase().includes('customer')) {
       
       // Test if internal opportunities source is available
       const { error: oppTestError } = await supabase.from('opportunities').select('id').eq('workspace_id', workspaceId).limit(1);
       
       if (!oppTestError) {
-        // Internal CRM is available and satisfies these abstract domains
+        // Internal CRM is available. We only resolve generic "Customer data" as satisfied.
+        // We DO NOT blindly remove other context like "customer behavior data" or "purchase history".
         updatedMissingData = updatedMissingData.filter((d: string) => 
-          !d.toLowerCase().includes('customer')
+          d.toLowerCase() !== 'customer data' && d !== 'Customer conversion data could not be queried.'
         );
 
         // Calculate progress exactly based on CONVERTED stage
-        const { count } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
+        const { count, error: countError } = await supabase.from('opportunities').select('*', { count: 'exact', head: true })
           .eq('workspace_id', workspaceId)
           .eq('stage', 'CONVERTED');
-        currentMetricValue = count || 0;
+          
+        if (!countError) {
+          currentMetricValue = count || 0; // 0 is a valid verified customer measurement
+        } else {
+          if (!updatedMissingData.includes('Customer conversion data could not be queried.')) {
+            updatedMissingData.push('Customer conversion data could not be queried.');
+          }
+        }
+      } else {
+        if (!updatedMissingData.includes('Customer conversion data could not be queried.')) {
+          updatedMissingData.push('Customer conversion data could not be queried.');
+        }
       }
     }
 
@@ -63,3 +75,4 @@ export class OutcomeVerificationService {
     };
   }
 }
+
