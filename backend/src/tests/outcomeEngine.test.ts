@@ -70,6 +70,18 @@ describe('V3.9 Business Outcome Engine & AI COO', () => {
       expect(result.status).toBe('ACTIVE');
     });
 
+    it('TEST 14: 1 CONVERTED -> verified_progress = 1, gap = 19, ACTIVE', async () => {
+      mockSingleData = { id: 'g1', target: 20, missing_data: ['Customer data'], target_metric: 'customer', status: 'ACTIVE' };
+      const chain = mockSupabase.from();
+      chain.limit = vi.fn().mockResolvedValue({ error: null, data: [{id: 'opp1'}] });
+      mockSupabase.from.mockReturnValue(chain);
+      mockCount = 1;
+      
+      const result = await OutcomeVerificationService.verifyGoalProgress(mockSupabase, 'ws-1', 'g1');
+      expect(result.current).toBe(1);
+      expect(result.gap).toBe(19);
+      expect(result.status).toBe('ACTIVE');
+    });
     it('TEST 3: 10 CONVERTED -> verified_progress = 10, gap = 10, ACTIVE', async () => {
       mockSingleData = { id: 'g1', target: 20, missing_data: ['Customer data'], target_metric: 'customer', status: 'ACTIVE' };
       const chain = mockSupabase.from();
@@ -206,5 +218,6 @@ describe('Business Goal Deduplication', () => {
     expect(insertSpy).toHaveBeenCalled();
   });
 });
+
 
 

@@ -84,9 +84,28 @@ describe('Business Goal Intake Flow (API)', () => {
     }));
   });
 
-  it('TEST 4: customer goal still verifies opportunities correctly (semantics untouched)', async () => {
-    
-    expect(OutcomeVerificationService).toBeDefined();
+  it('TEST 5: empty or whitespace-only company website memory -> treated as missing', async () => {
+    mockCompanyMemory = [{ id: 'mem-1', content: '   ' }];
+    const res = await request(app).post('/workspaces/ws-1/goals').send({ input: 'Get me 20 customers' });
+    expect(res.status).toBe(200);
+    expect(res.body.requires_context).toBe(true);
+    expect(BusinessGoalInterpreter.createGoal).not.toHaveBeenCalled();
+  });
+
+  it('TEST 6: invalid website -> rejected', async () => {
+    const res = await request(app).post('/workspaces/ws-1/goals').send({ input: 'Get me 20 customers', website: 'not-a-valid-url!@#' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('Invalid website URL');
+    expect(insertSpy).not.toHaveBeenCalled();
+  });
+
+  it('TEST 7: example.com -> normalized to https://example.com', async () => {
+    const res = await request(app).post('/workspaces/ws-1/goals').send({ input: 'Get me 20 customers', website: 'example.com' });
+    expect(res.status).toBe(200);
+    expect(insertSpy).toHaveBeenCalledWith(expect.objectContaining({
+      content: 'https://example.com'
+    }));
   });
 });
+
 
