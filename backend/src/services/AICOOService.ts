@@ -11,12 +11,13 @@ import { ExecutiveOperatingEngine } from './ExecutiveOperatingEngine';
 import { CMOCapability } from './CMOCapability';
 import { CTOCapability } from './CTOCapability';
 import { CFOCapability } from './CFOCapability';
+import { CEOCapability } from './CEOCapability';
 import { StubCapability } from './ExecutiveRegistry';
 
 ExecutiveRegistry.register(new CMOCapability());
 ExecutiveRegistry.register(new CTOCapability());
 ExecutiveRegistry.register(new CFOCapability());
-ExecutiveRegistry.register(new StubCapability('CEO'));
+ExecutiveRegistry.register(new CEOCapability());
 
 export class AICOOService {
   static async operateCompany(supabase: SupabaseClient, workspaceId: string): Promise<any> {

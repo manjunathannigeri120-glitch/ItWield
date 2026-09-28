@@ -52,12 +52,13 @@ export class ExecutiveRegistry {
     if (objLower.includes('cost reduction') || objLower.includes('financial') || objLower.includes('cash flow') || objLower.includes('margin') || objLower.includes('revenue') || objLower.includes('expense') || objLower.includes('profit') || objLower.includes('budget') || objLower.includes('forecast') || objLower.includes('burn rate') || objLower.includes('runway') || objLower.includes('pricing')) {
       return this.capabilities.get('CFO') || null;
     }
-    if (objLower.includes('cross company') || objLower.includes('strategic') || objLower.includes('operations')) {
+    if (objLower.includes('cross company') || objLower.includes('strategic') || objLower.includes('operations') || objLower.includes('company do next') || objLower.includes('focus on') || objLower.includes('biggest problem') || objLower.includes('doing overall') || objLower.includes('blocking growth') || objLower.includes('create a strategy') || objLower.includes('prioritize my business goals') || objLower.includes('replan the company') || objLower.includes('company')) {
       return this.capabilities.get('CEO') || null;
     }
     
     return null;
   }
 }
+
 
 
