@@ -61,7 +61,7 @@ describe('Company Memory / Operational Memory V3.2', () => {
     ];
 
     const context = CompanyMemoryService.formatMemoryForContext(memories);
-    expect(context).toContain('COMPANY MEMORY & OWNER DIRECTIVES');
+    expect(context).toContain('COMPANY BRAIN - SHARED ORGANIZATIONAL MEMORY');
     expect(context).toContain('>>> [OWNER RULE] No Weekend Outreach <<<');
     expect(context).toContain('>>> [OWNER DECISION] Focus on SMB SaaS <<<');
     expect(context).toContain('[INCIDENT] Site Outage');
@@ -110,3 +110,4 @@ describe('Company Memory / Operational Memory V3.2', () => {
     }
   });
 });
+

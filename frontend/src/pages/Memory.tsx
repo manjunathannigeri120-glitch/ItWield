@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { Plus, Database, Globe, Search, Loader2 } from 'lucide-react';
+import { Plus, Archive, Database, Globe, Search, Loader2, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -88,9 +88,9 @@ export function Memory() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
             <Database className="w-8 h-8 text-indigo-600" />
-            Company Brain
+            Company Brain 2.0
           </h1>
-          <p className="text-slate-500 mt-1">Core knowledge and discovery for AI operations.</p>
+          <p className="text-slate-500 mt-1">Shared organizational memory and evidence-aware context.</p>
         </div>
       </div>
 
@@ -145,10 +145,17 @@ export function Memory() {
                     onChange={e => setAddForm({...addForm, memory_type: e.target.value})}
                   >
                     <option value="STRATEGIC_CONTEXT">Strategic Context</option>
+                    <option value="CUSTOMER_CONTEXT">Customer Context</option>
+                    <option value="MARKET_CONTEXT">Market Context</option>
+                    <option value="FINANCIAL_CONTEXT">Financial Context</option>
+                    <option value="TECHNICAL_CONTEXT">Technical Context</option>
+                    <option value="OPERATIONAL_CONTEXT">Operational Context</option>
+                    <option value="DECISION">Decision</option>
+                    <option value="LESSON">Lesson</option>
+                    <option value="FAILURE">Failure</option>
                     <option value="RULE">Business Rule</option>
                     <option value="FACT">Company Fact</option>
                     <option value="PREFERENCE">Preference</option>
-                    <option value="DECISION">Decision</option>
                   </select>
                 </div>
                 <div className="w-2/3">
@@ -172,32 +179,58 @@ export function Memory() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {memories.map(m => (
-          <div key={m.id} className="p-5 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div key={m.id} className={"p-5 bg-white border rounded-xl hover:shadow-md transition-shadow relative overflow-hidden group " + (m.freshness_status === 'SUPERSEDED' ? 'border-dashed border-slate-300 opacity-60' : 'border-slate-200')}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
-                <span className={"text-xs font-bold px-2 py-1 rounded " + 
+                <span className={"text-[10px] uppercase font-bold px-2 py-1 rounded " + 
                   (m.category === 'RULE' ? "bg-amber-100 text-amber-800" :
-                   m.category === 'FACT' || m.category === 'STRATEGIC_CONTEXT' ? "bg-blue-100 text-blue-800" :
-                   m.category === 'PREFERENCE' ? "bg-purple-100 text-purple-800" : 
-                   "bg-slate-100 text-slate-800")
+                   m.category === 'DECISION' ? "bg-purple-100 text-purple-800" :
+                   m.category === 'LESSON' || m.category === 'OUTCOME' ? "bg-emerald-100 text-emerald-800" :
+                   m.category === 'FAILURE' ? "bg-red-100 text-red-800" : 
+                   "bg-blue-100 text-blue-800")
                 }>
                   {m.category || m.memory_type}
                 </span>
-                <span className={"text-xs font-semibold px-2 py-1 rounded border " + 
-                  (m.source_type === 'WEBSITE_DISCOVERY' ? "border-green-200 text-green-700 bg-green-50" : "border-slate-200 text-slate-600 bg-slate-50")
+                
+                <span className={"text-[10px] uppercase font-semibold px-2 py-1 rounded border " + 
+                  (m.source_type === 'WEBSITE_DISCOVERY' ? "border-green-200 text-green-700 bg-green-50" : 
+                   m.source_type === 'OWNER' ? "border-indigo-200 text-indigo-700 bg-indigo-50" :
+                   "border-slate-200 text-slate-600 bg-slate-50")
                 }>
                   {m.source_type}
                 </span>
+
+                {m.freshness_status && (
+                    <span className={"text-[10px] uppercase font-semibold px-2 py-1 rounded flex items-center " + 
+                      (m.freshness_status === 'CURRENT' ? "text-slate-500" : 
+                       m.freshness_status === 'AGING' ? "text-amber-600 bg-amber-50" : 
+                       m.freshness_status === 'SUPERSEDED' ? "text-slate-400 bg-slate-100" : 
+                       "text-red-500 bg-red-50")
+                    }>
+                      {m.freshness_status === 'CURRENT' && <CheckCircle className="w-3 h-3 mr-1" />}
+                      {m.freshness_status === 'AGING' && <Clock className="w-3 h-3 mr-1" />}
+                      {m.freshness_status === 'SUPERSEDED' && <Archive className="w-3 h-3 mr-1" />}
+                      {m.freshness_status === 'STALE' && <AlertTriangle className="w-3 h-3 mr-1" />}
+                      {m.freshness_status}
+                    </span>
+                )}
               </div>
             </div>
-            <p className="text-slate-700 text-sm">{m.content}</p>
+            
+            <p className={"text-sm " + (m.freshness_status === 'SUPERSEDED' ? 'text-slate-500 line-through' : 'text-slate-700 font-medium')}>{m.content}</p>
+            
             {m.evidence && (
               <div className="mt-3 text-xs bg-slate-50 p-2 rounded text-slate-600 border border-slate-100">
-                <span className="font-semibold text-slate-700">Evidence ({m.evidence.evidence_type}): </span>
-                {m.evidence.excerpt}
-                <div className="text-[10px] text-slate-400 mt-1 truncate">Source: {m.evidence.url}</div>
+                <span className="font-semibold text-slate-700">Evidence ({m.evidence.evidence_type || 'SOURCE'}): </span>
+                {m.evidence.excerpt || m.evidence.reason || JSON.stringify(m.evidence)}
+                {m.evidence.url && <div className="text-[10px] text-slate-400 mt-1 truncate">Source: {m.evidence.url}</div>}
               </div>
             )}
+
+            <div className="mt-3 flex items-center justify-between text-[10px] text-slate-400">
+               <div>Verified: {m.verification_status || 'UNVERIFIED'}</div>
+               <div>{new Date(m.created_at).toLocaleDateString()}</div>
+            </div>
           </div>
         ))}
       </div>

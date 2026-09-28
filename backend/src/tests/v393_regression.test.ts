@@ -53,7 +53,7 @@ describe('ItWield V3.9.3 - Company Brain + Executive Action Loop', () => {
         test('C. aggregates blockers from missions and incidents', async () => {
             mockSupabase.from.mockImplementation((table: string) => {
                 const queryObj: any = {
-                    select: vi.fn(() => queryObj), eq: vi.fn(() => queryObj), in: vi.fn(() => queryObj), order: vi.fn(() => queryObj), limit: vi.fn(() => queryObj), single: vi.fn(() => Promise.resolve({ data: { name: 'Test Corp' } })),
+                    select: vi.fn(() => queryObj), eq: vi.fn(() => queryObj), in: vi.fn(() => queryObj), neq: vi.fn(() => queryObj), order: vi.fn(() => queryObj), limit: vi.fn(() => queryObj), single: vi.fn(() => Promise.resolve({ data: { name: 'Test Corp' } })),
                     then: (resolve: any) => {
                         if (table === 'incidents') resolve({ data: [{ id: 'inc-1', status: 'BLOCKED', title: 'Test Block' }] });
                         else resolve({ data: [] });
@@ -68,7 +68,7 @@ describe('ItWield V3.9.3 - Company Brain + Executive Action Loop', () => {
         test('D. classifies workers separately from executives', async () => {
              mockSupabase.from.mockImplementation((table: string) => {
                 const queryObj: any = {
-                    select: vi.fn(() => queryObj), eq: vi.fn(() => queryObj), in: vi.fn(() => queryObj), order: vi.fn(() => queryObj), limit: vi.fn(() => queryObj), single: vi.fn(() => Promise.resolve({ data: { name: 'Test Corp' } })),
+                    select: vi.fn(() => queryObj), eq: vi.fn(() => queryObj), in: vi.fn(() => queryObj), neq: vi.fn(() => queryObj), order: vi.fn(() => queryObj), limit: vi.fn(() => queryObj), single: vi.fn(() => Promise.resolve({ data: { name: 'Test Corp' } })),
                     then: (resolve: any) => {
                         if (table === 'agents') resolve({ data: [{ role: 'CEO' }, { role: 'service_role' }] });
                         else resolve({ data: [] });
@@ -174,7 +174,7 @@ describe('ItWield V3.9.3 - Company Brain + Executive Action Loop', () => {
         test('Q. retrieves memories correctly prioritized', async () => {
              mockSupabase.from.mockImplementation(() => {
                 const queryObj: any = {
-                    select: vi.fn(() => queryObj), eq: vi.fn(() => queryObj), in: vi.fn(() => queryObj), order: vi.fn(() => queryObj), limit: vi.fn(() => queryObj),
+                    select: vi.fn(() => queryObj), eq: vi.fn(() => queryObj), in: vi.fn(() => queryObj), neq: vi.fn(() => queryObj), order: vi.fn(() => queryObj), limit: vi.fn(() => queryObj),
                     then: (resolve: any) => resolve({ data: [
                         { id: '1', category: 'OUTCOME', source_type: 'SYSTEM' },
                         { id: '2', category: 'RULE', source_type: 'OWNER' }
@@ -220,3 +220,5 @@ describe('ItWield V3.9.3 - Company Brain + Executive Action Loop', () => {
         });
     });
 });
+
+

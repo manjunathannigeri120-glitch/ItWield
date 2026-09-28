@@ -1,4 +1,6 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+const fs = require('fs');
+
+const content = \import { SupabaseClient } from '@supabase/supabase-js';
 
 export type MemoryCategory = 'STRATEGIC_CONTEXT' | 'DECISION' | 'LESSON' | 'INCIDENT' | 'OUTCOME' | 'GOAL' | 'FACT' | 'RULE' | 'PREFERENCE' | 'CUSTOMER_CONTEXT' | 'PRODUCT_CONTEXT' | 'MARKET_CONTEXT' | 'FINANCIAL_CONTEXT' | 'TECHNICAL_CONTEXT' | 'OPERATIONAL_CONTEXT' | 'FAILURE' | 'ASSUMPTION' | 'INFERENCE';
 
@@ -65,7 +67,7 @@ export class CompanyMemoryService {
               const existingRank = authRank(ex.source_type);
               
               if (incomingRank < existingRank) {
-                  isSuperseded = true;
+                  isSuperseded = false;
                   contradictionTargetId = ex.id;
               } else if (incomingRank > existingRank) {
                   // The new one is higher authority, supersedes the old
@@ -105,7 +107,7 @@ export class CompanyMemoryService {
         .single();
       
       if (error) {
-        console.error(`[CompanyMemoryService] Error creating memory: ${error.message}`);
+        console.error('[CompanyMemoryService] Error creating memory:', error);
         return null;
       }
       
@@ -120,7 +122,7 @@ export class CompanyMemoryService {
 
       return data;
     } catch (e: any) {
-      console.error(`[CompanyMemoryService] Error: ${e.message}`);
+      console.error('[CompanyMemoryService] Error:', e);
       return null;
     }
   }
@@ -255,10 +257,10 @@ export class CompanyMemoryService {
   static formatMemoryForContext(memories: any[]): string {
     if (!memories || memories.length === 0) return '';
     
-    let context = `\n==================================================\n`;
-    context += `COMPANY BRAIN - SHARED ORGANIZATIONAL MEMORY\n`;
-    context += `(Owner rules MUST be strictly followed as operational constraints)\n`;
-    context += `==================================================\n\n`;
+    let context = "\\n==================================================\\n";
+    context += "COMPANY BRAIN - SHARED ORGANIZATIONAL MEMORY\\n";
+    context += "(Owner rules MUST be strictly followed as operational constraints)\\n";
+    context += "==================================================\\n\\n";
 
     for (const mem of memories) {
       const dateStr = mem.created_at ? new Date(mem.created_at).toISOString().split('T')[0] : 'unknown';
@@ -266,22 +268,22 @@ export class CompanyMemoryService {
       const cat = mem.category || mem.memory_type;
       
       if (isOwner) {
-        context += `>>> [OWNER ${cat}] ${mem.title} <<<\n`;
-        context += `Content: ${mem.content}\n`;
-        context += `Status: ${mem.freshness_status} | Verification: INDEPENDENTLY_VERIFIED\n`;
-        context += `(Mandatory owner directive)\n\n`;
+        context += ">>> [OWNER " + cat + "] " + mem.title + " <<<\\n";
+        context += "Content: " + mem.content + "\\n";
+        context += "Status: " + mem.freshness_status + " | Verification: INDEPENDENTLY_VERIFIED\\n";
+        context += "(Mandatory owner directive)\\n\\n";
       } else {
-        context += `[${cat}] ${mem.title}\n`;
-        context += `Date: ${dateStr} | Source: ${mem.source_type} | Freshness: ${mem.freshness_status || 'CURRENT'}\n`;
-        context += `Content: ${mem.content}\n`;
-        if (mem.evidence) context += `Evidence: ${JSON.stringify(mem.evidence)}\n`;
-        if (mem.verification_status) context += `Status: ${mem.verification_status}\n`;
-        context += `\n`;
+        context += "[" + cat + "] " + mem.title + "\\n";
+        context += "Date: " + dateStr + " | Source: " + mem.source_type + " | Freshness: " + (mem.freshness_status || 'CURRENT') + "\\n";
+        context += "Content: " + mem.content + "\\n";
+        if (mem.evidence) context += "Evidence: " + JSON.stringify(mem.evidence) + "\\n";
+        if (mem.verification_status) context += "Status: " + mem.verification_status + "\\n";
+        context += "\\n";
       }
     }
 
     return context;
   }
-}
+}\;
 
-
+fs.writeFileSync('backend/src/services/CompanyMemoryService.ts', content);
