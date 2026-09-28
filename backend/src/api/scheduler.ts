@@ -3,6 +3,7 @@ import { getServiceSupabase } from '../db/supabaseClient';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { calculateNextRunAt } from '../workflows/scheduler';
 import { CEOService } from '../services/CEOService';
+import { AICOOService } from '../services/AICOOService';
 import { IntelligenceService } from '../services/IntelligenceService';
 
 const router = Router();
@@ -167,6 +168,24 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
         } catch (e) {
           console.error('[Scheduler] Intelligence/Observation error for workspace', w.id, e);
         }
+      }
+    }
+
+    // 6. Continuous Operating Loop (V3.12)
+    const { data: dueGoals } = await supabase.from('business_goals')
+      .select('id, workspace_id')
+      .eq('status', 'ACTIVE')
+      .neq('operating_status', 'PAUSED')
+      .neq('operating_status', 'BLOCKED')
+      .lte('next_evaluation_at', new Date().toISOString())
+      .limit(10);
+      
+    if (dueGoals && dueGoals.length > 0) {
+      const uniqueWids = [...new Set(dueGoals.map((g: any) => g.workspace_id))];
+      for (const wid of uniqueWids) {
+        console.log(`[Scheduler] Autonomous objective due for evaluation. Triggering AICOOService for workspace ${wid}`);
+        AICOOService.operateCompany(supabase, wid).catch(console.error);
+        triggeredCount++;
       }
     }
 

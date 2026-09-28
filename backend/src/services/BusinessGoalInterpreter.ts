@@ -2,9 +2,10 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
 export interface BusinessGoalInterpretation {
-  intent_type: 'OUTCOME' | 'INVESTIGATION' | 'RESEARCH' | 'ANALYSIS' | 'GENERAL' | 'ACTION' | 'PLANNING' | 'MONITORING';
+  intent_type: 'OUTCOME' | 'INVESTIGATION' | 'RESEARCH' | 'ANALYSIS' | 'GENERAL' | 'ACTION' | 'PLANNING' | 'MONITORING' | 'CONTROL' | 'STATUS_QUERY';
   scope: 'OWN_COMPANY' | 'GENERAL' | 'EXTERNAL_BUSINESS' | 'MIXED';
   request_type: 'QUESTION' | 'RESEARCH' | 'ANALYSIS' | 'INVESTIGATION' | 'OUTCOME' | 'ACTION' | 'PLANNING' | 'MONITORING';
+  control_action?: 'PAUSE' | 'RESUME' | 'STOP';
   objective: string;
   target?: number;
   target_metric?: string;
@@ -56,12 +57,14 @@ export class BusinessGoalInterpreter {
          - GENERAL: e.g. "What is CAC?", "How do SaaS companies reduce churn?"
          - EXTERNAL_BUSINESS: e.g. "Find new markets for my company"
          - MIXED: e.g. "Look at my company and tell me what market to enter"
+      6. Control Commands (intent_type = 'CONTROL'): e.g. "Pause customer acquisition", "Stop working on sales", "Resume getting customers".
+      7. Status Queries (intent_type = 'STATUS_QUERY'): e.g. "What is the AI doing right now?", "Why did you change strategy?"
 
       Determine the required missing context.
       
       Return ONLY valid JSON matching this schema:
       {
-        "intent_type": "OUTCOME | INVESTIGATION | RESEARCH | ANALYSIS | GENERAL | ACTION | PLANNING | MONITORING",
+        "intent_type": "OUTCOME | INVESTIGATION | RESEARCH | ANALYSIS | GENERAL | ACTION | PLANNING | MONITORING | CONTROL | STATUS_QUERY",
         "scope": "OWN_COMPANY | GENERAL | EXTERNAL_BUSINESS | MIXED",
         "request_type": "QUESTION | RESEARCH | ANALYSIS | INVESTIGATION | OUTCOME | ACTION | PLANNING | MONITORING",
         "objective": "High level objective translated from user input",
@@ -74,7 +77,8 @@ export class BusinessGoalInterpreter {
         "external_information_required": ["External data sources strictly required (e.g. 'financial_data', 'competitor_data')"],
         "website_required": boolean,
         "reason": "Deterministic justification for why context/website is required or not.",
-        "confidence": 0.95
+        "confidence": 0.95,
+        "control_action": "PAUSE | RESUME | STOP | null"
       }
     `;
 

@@ -50,6 +50,57 @@ router.post('/', async (req: any, res) => {
 
     const interpretation = await BusinessGoalInterpreter.interpretGoal(req.supabase, workspaceId, input, memorySummary);
 
+    // ----------------------------------------------------
+    // V3.12: Natural Language Control & Status Queries
+    // ----------------------------------------------------
+    if (interpretation.intent_type === 'CONTROL' && interpretation.control_action) {
+       let updatedStatus = 'ACTIVE';
+       let successMsg = 'Objective updated.';
+       if (interpretation.control_action === 'PAUSE') {
+           updatedStatus = 'PAUSED';
+           successMsg = 'Customer acquisition has been paused. Autonomous operations will stop until resumed.';
+       } else if (interpretation.control_action === 'RESUME') {
+           updatedStatus = 'ACTIVE';
+           successMsg = 'Customer acquisition resumed. The AI COO will evaluate the current state and continue.';
+       } else if (interpretation.control_action === 'STOP') {
+           updatedStatus = 'ARCHIVED';
+           successMsg = 'Autonomous operations stopped and objective archived.';
+       }
+       
+       await req.supabase.from('business_goals').update({ operating_status: updatedStatus })
+            .eq('workspace_id', workspaceId).eq('status', 'ACTIVE');
+            
+       return res.status(200).json({
+           requires_context: false,
+           is_direct_response: true,
+           answer: successMsg,
+           interpretation
+       });
+    }
+
+    if (interpretation.intent_type === 'STATUS_QUERY') {
+       // Query current active goal stats
+       const { data: currentGoals } = await req.supabase.from('business_goals').select('*').eq('workspace_id', workspaceId).eq('status', 'ACTIVE');
+       if (!currentGoals || currentGoals.length === 0) {
+           return res.status(200).json({
+               requires_context: false,
+               is_direct_response: true,
+               answer: "There are no active business objectives right now.",
+               interpretation
+           });
+       }
+       const g = currentGoals[0];
+       let ans = `Your objective "${g.objective}" is currently ${g.operating_status}. You have ${g.current_metric || 0} / ${g.target} verified results.`;
+       
+       return res.status(200).json({
+           requires_context: false,
+           is_direct_response: true,
+           answer: ans,
+           interpretation
+       });
+    }
+    // ----------------------------------------------------
+
     // Filter out fields that are already in memory, just to be safe from LLM hallucinations
     const genuinelyMissing = (interpretation.missing_company_context || []).filter(f => !memorySummary[f.toLowerCase()]);
     if (interpretation.website_required && !memorySummary['website']) {
@@ -144,3 +195,4 @@ router.get('/what-next', async (req: any, res) => {
 });
 
 export default router;
+

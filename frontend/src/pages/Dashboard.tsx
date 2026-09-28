@@ -222,7 +222,7 @@ export default function Dashboard() {
                     <div>
                       <div className="flex justify-between items-start mb-2">
                         <Activity className="w-5 h-5 text-indigo-500" />
-                        <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded">ACTIVE</span>
+                        <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded">{g.operating_status || g.status}</span>
                       </div>
                       <h3 className="font-bold text-slate-900 text-lg">{g.objective}</h3>
                     </div>
@@ -267,4 +267,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
 
