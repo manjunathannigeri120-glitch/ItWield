@@ -1050,7 +1050,7 @@ router.post('/:id/improvements/:improvId/dismiss', async (req: AuthRequest, res)
 
 
 // POST /api/v1/workspaces/:id/feedback - Submit founder feedback
-router.post('/:id/feedback', async (req, res) => {
+router.post('/:id/feedback', async (req: any, res) => {
   try {
     const workspaceId = req.params.id;
     const { category, message, current_path } = req.body;
