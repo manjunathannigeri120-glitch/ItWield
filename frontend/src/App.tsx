@@ -4,7 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 
-import { DashboardLayout } from '@/layouts/DashboardLayout';
+import { DashboardLayout } from './layouts/DashboardLayout';
+import { FeedbackModal } from './components/FeedbackModal';
 import { Login } from '@/pages/Login';
 import { Landing } from '@/pages/Landing';
 import { Pricing } from '@/pages/Pricing';
@@ -105,9 +106,11 @@ function App() {
           {/* OAuth integrations do not render full layouts, but still require an operating workspace context */}
           <Route path="/settings/connections/callback" element={<ProtectedRoute><WorkspaceGuard><OAuthCallback /></WorkspaceGuard></ProtectedRoute>} />
         </Routes>
-      </Router>
+        <FeedbackModal />
+        </Router>
     </QueryClientProvider>
   );
 }
 
 export default App;
+

@@ -1048,3 +1048,40 @@ router.post('/:id/improvements/:improvId/dismiss', async (req: AuthRequest, res)
 
 
 
+
+// POST /api/v1/workspaces/:id/feedback - Submit founder feedback
+router.post('/:id/feedback', async (req, res) => {
+  try {
+    const workspaceId = req.params.id;
+    const { category, message, current_path } = req.body;
+    
+    if (!category || !message) {
+      return res.status(400).json({ error: 'Category and message are required' });
+    }
+    
+    // Auth check via middleware already sets req.user
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { error } = await req.supabase
+      .from('founder_feedback')
+      .insert({
+        workspace_id: workspaceId,
+        user_id: userId,
+        category,
+        message,
+        current_path
+      });
+
+    if (error) {
+      console.error('Feedback insertion error:', error);
+      throw new Error('Failed to save feedback');
+    }
+
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
