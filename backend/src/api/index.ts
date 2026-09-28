@@ -17,7 +17,9 @@ import crmRoutes from './crm';
 import goalsRouter from './goals';
 import cooRouter from './coo';
 
+import companyRouter from './company';
 const router = Router();
+router.use('/workspaces/:workspaceId/company', companyRouter);
 
 router.use('/workspaces/:workspaceId/missions', missionsRoutes);
 router.use('/workspaces/:workspaceId/memory', memoryRoutes);
@@ -37,4 +39,5 @@ router.use('/ceo', ceoRouter);
 router.use('/scheduler', schedulerRouter);
 
 export default router;
+
 

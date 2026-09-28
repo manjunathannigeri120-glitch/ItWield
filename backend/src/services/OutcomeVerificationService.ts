@@ -56,6 +56,9 @@ export class OutcomeVerificationService {
         authorization_state: 'VERIFIED',
         result: 'Goal marked COMPLETED'
       });
+      
+      const { CompanyCoordinationService } = await import('./CompanyCoordinationService');
+      await CompanyCoordinationService.resolveDependencies(supabase, workspaceId, goalId, 'Business outcome successfully verified against real data.');
     }
 
     await supabase.from('business_goals').update({
@@ -75,4 +78,5 @@ export class OutcomeVerificationService {
     };
   }
 }
+
 

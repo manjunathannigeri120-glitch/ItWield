@@ -87,6 +87,27 @@ export class AICOOService {
         if (capability && capability.availability === 'AVAILABLE') {
           console.log(`[COO] Delegating goal ${goal.id} directly to ${capability.role}.`);
           const contract = await ExecutiveOperatingEngine.operate(supabase, workspaceId, goal, capability);
+          if (contract.blockers && contract.blockers.length > 0) {
+             const blockerDesc = contract.blockers[0];
+             const targetExec = ExecutiveRegistry.getCapabilityForObjective(blockerDesc)?.role || 'CEO';
+             if (targetExec !== capability.role) {
+                // Create dependency
+                const { CompanyCoordinationService } = await import('./CompanyCoordinationService');
+                const tempGoalId = require('crypto').randomUUID(); 
+                // We need to create a blocking goal for the target executive
+                const { data: newGoal } = await supabase.from('business_goals').insert({
+                   workspace_id: workspaceId,
+                   objective: 'Resolve blocker: ' + blockerDesc,
+                   status: 'ACTIVE',
+                   operating_status: 'ACTIVE'
+                }).select().single();
+                if (newGoal) {
+                   await CompanyCoordinationService.createDependency(supabase, workspaceId, goal.id, newGoal.id, capability.role, targetExec, blockerDesc);
+                   contract.currentStatus = 'BLOCKED';
+                }
+             }
+          }
+
           
           await supabase.from('decision_traces').insert({
             workspace_id: workspaceId,
@@ -240,3 +261,4 @@ export class AICOOService {
     }
   }
 }
+
