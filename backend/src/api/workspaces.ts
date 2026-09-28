@@ -834,14 +834,14 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
       // Mock execution completion since there's no real backend execution queue for these tasks yet
       setTimeout(async () => {
         await supabase.from('approvals').update({
-          status: 'COMPLETED',
+          status: 'UNAVAILABLE',
           execution_completed_at: new Date().toISOString(),
-          execution_result: { message: 'Execution simulated successfully' }
+          execution_result: { message: 'Real execution queue not connected' }
         }).eq('id', approvalId);
 
         await supabase.from('task_events').insert({
           workspace_id: workspaceId,
-          event_type: 'APPROVAL_EXECUTION_COMPLETED',
+          event_type: 'APPROVAL_EXECUTION_FAILED',
           details: { action: updated.action, actor: userId }
         });
       }, 100);
@@ -1085,3 +1085,4 @@ router.post('/:id/feedback', async (req: any, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
