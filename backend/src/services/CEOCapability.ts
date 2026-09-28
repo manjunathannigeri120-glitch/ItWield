@@ -1,3 +1,4 @@
+import { ensureAIProvider } from '../utils/aiConfig';
 import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { ExecutiveCapability, ExecutiveRegistry } from './ExecutiveRegistry';
@@ -69,6 +70,8 @@ export class CEOCapability implements ExecutiveCapability {
     let diagnostic: ExecutiveDiagnostic = { knownFacts: [], inferences: [], insufficientData: [], currentBottleneck: 'Unknown' };
 
     try {
+
+    ensureAIProvider();
       const openai = new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY || 'mock', baseURL: 'https://openrouter.ai/api/v1', defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173' } });
       const model = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
       const diagRes = await openai.chat.completions.create({ model, messages: [{ role: 'user', content: diagnosticPrompt }], response_format: { type: 'json_object' } });
@@ -116,6 +119,8 @@ export class CEOCapability implements ExecutiveCapability {
     `;
     let parsedPlan: any = { objective: '', strategy: '', actions: [], verification_method: '', authority_requirements: [], expected_effect: '', risks: [], missing_data: [], current_state: '', bottleneck: '', evidence: [], target_outcome: '' };
     try {
+
+    ensureAIProvider();
       const openai = new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY || 'mock', baseURL: 'https://openrouter.ai/api/v1', defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173' } });
       const model = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
       const planRes = await openai.chat.completions.create({ model, messages: [{ role: 'user', content: planPrompt }], response_format: { type: 'json_object' } });
@@ -129,3 +134,4 @@ export class CEOCapability implements ExecutiveCapability {
      return { status: 'OUTCOME_UNCHANGED', evidence: [], reason: 'Delegated' };
   }
 }
+

@@ -1,3 +1,4 @@
+import { ensureAIProvider } from '../utils/aiConfig';
 import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { BusinessBottleneckService } from './BusinessBottleneckService';
@@ -7,6 +8,8 @@ import { ExecutiveOperatingContract, ExecutiveDiagnostic, ExecutivePlan, Evaluat
 
 export class CMOService {
   static async operateCustomerAcquisition(supabase: SupabaseClient, workspaceId: string, goalId: string): Promise<ExecutiveOperatingContract> {
+
+    ensureAIProvider();
     const openai = new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY || 'mock', baseURL: 'https://openrouter.ai/api/v1', defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173' } });
 
     // 1. Load Goal
@@ -212,4 +215,5 @@ export class CMOService {
     };
   }
 }
+
 

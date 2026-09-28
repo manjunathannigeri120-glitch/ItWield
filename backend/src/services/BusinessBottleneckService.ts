@@ -1,3 +1,4 @@
+import { ensureAIProvider } from '../utils/aiConfig';
 import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { CompanyMemoryService } from './CompanyMemoryService';
@@ -22,6 +23,8 @@ export class BusinessBottleneckService {
     const { data: memoryRecords } = await supabase.from('company_memory')
       .select('title, content')
       .eq('workspace_id', workspaceId);
+
+    ensureAIProvider();
 
     const openai = new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY || 'mock', baseURL: 'https://openrouter.ai/api/v1', defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173', 'X-Title': 'ItWield Bottleneck Engine' } });
     
@@ -119,3 +122,4 @@ export class BusinessBottleneckService {
     }
   }
 }
+

@@ -1,3 +1,4 @@
+import { ensureAIProvider } from '../utils/aiConfig';
 import { Router, Request, Response } from 'express';
 import { BusinessGoalInterpreter } from '../services/BusinessGoalInterpreter';
 import { OutcomePlannerService } from '../services/OutcomePlannerService';
@@ -121,6 +122,8 @@ router.post('/', async (req: any, res) => {
        // The prompt says: "if request is general... DIRECT RESPONSE".
        // We can just hit OpenAI quickly to answer if it's a QUESTION/RESEARCH.
        if (interpretation.request_type === 'QUESTION' || interpretation.request_type === 'RESEARCH') {
+
+    ensureAIProvider();
          const openai = new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY || 'mock', baseURL: 'https://openrouter.ai/api/v1', defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173' } });
          let directAnswer = "I'm researching that now...";
          try {
@@ -195,5 +198,6 @@ router.get('/what-next', async (req: any, res) => {
 });
 
 export default router;
+
 
 

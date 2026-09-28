@@ -1,3 +1,4 @@
+import { ensureAIProvider } from '../utils/aiConfig';
 import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { AuthorizationRegistry } from './AuthorizationRegistry';
@@ -31,6 +32,8 @@ export class ExecutiveService {
      * Executive analyzes the item and proposes an action.
      */
     static async analyzeAndPropose(supabase: SupabaseClient, workspaceId: string, item: any, state: CompanyState): Promise<void> {
+
+    ensureAIProvider();
         const openai = new OpenAI({
             apiKey: process.env.OPENROUTER_API_KEY || 'mock',
             baseURL: 'https://openrouter.ai/api/v1',
@@ -62,7 +65,8 @@ Output JSON matching:
             });
             const content = completion.choices[0].message.content || '{}';
             analysisObj = JSON.parse(content);
-        } catch (err) {
+        } catch (err: any) {
+            if (err.message === 'AI provider configuration is unavailable.') throw err;
             console.error(`[ExecutiveService] Failed to analyze item ${item.id}:`, err);
             // Fallback deterministic proposal for the specific Competitive Analysis scenario (Part 7)
             if (item?.title?.includes('Workforce Capability Gap') || item?.title?.includes('Competitive Analysis')) {
@@ -255,3 +259,5 @@ Output JSON matching:
         }
     }
 }
+
+

@@ -1,3 +1,4 @@
+import { ensureAIProvider } from '../utils/aiConfig';
 import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { WorkflowEngine } from '../workflows/engine';
@@ -113,6 +114,8 @@ Output strictly valid JSON exactly matching this schema:
 }
 Only delegate to agents that actually exist in the Available Workforce. Do not invent agent IDs.
 Do not output anything outside the JSON structure.`;
+
+    ensureAIProvider();
 
     const openai = new OpenAI({
       apiKey: process.env.OPENROUTER_API_KEY || 'mock',
@@ -1252,6 +1255,8 @@ Output strictly valid JSON exactly matching this schema:
 }`;
 
     const { OpenAI } = require('openai');
+
+    ensureAIProvider();
     const openai = new OpenAI({
       apiKey: process.env.OPENROUTER_API_KEY || 'mock',
       baseURL: 'https://openrouter.ai/api/v1',
@@ -1434,6 +1439,7 @@ Output strictly valid JSON exactly matching this schema:
   }
 
 }
+
 
 
 

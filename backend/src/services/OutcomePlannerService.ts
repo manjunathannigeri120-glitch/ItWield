@@ -1,3 +1,4 @@
+import { ensureAIProvider } from '../utils/aiConfig';
 import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { MissionPlanningService } from './MissionPlanningService';
@@ -6,6 +7,8 @@ export class OutcomePlannerService {
   static async planOutcome(supabase: SupabaseClient, workspaceId: string, goalId: string): Promise<any> {
     const { data: goal } = await supabase.from('business_goals').select('*').eq('id', goalId).single();
     if (!goal) throw new Error('Goal not found');
+
+    ensureAIProvider();
 
     const openai = new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY || 'mock', baseURL: 'https://openrouter.ai/api/v1', defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173', 'X-Title': 'ItWield Planner' } });
     
@@ -93,6 +96,8 @@ export class OutcomePlannerService {
     const { data: goal } = await supabase.from('business_goals').select('*').eq('id', goalId).single();
     if (!goal) throw new Error('Goal not found');
 
+    ensureAIProvider();
+
     const openai = new OpenAI({ apiKey: process.env.OPENROUTER_API_KEY || 'mock', baseURL: 'https://openrouter.ai/api/v1', defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173', 'X-Title': 'ItWield Planner' } });
     
     const prompt = `
@@ -162,4 +167,5 @@ export class OutcomePlannerService {
     return { blocked: false, plan };
   }
 }
+
 

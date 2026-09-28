@@ -1,3 +1,4 @@
+import { ensureAIProvider } from '../utils/aiConfig';
 import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
@@ -28,6 +29,8 @@ export class BusinessGoalInterpreter {
     rawInput: string, 
     companyMemorySummary: any
   ): Promise<BusinessGoalInterpretation> {
+
+    ensureAIProvider();
     const openai = new OpenAI({ 
       apiKey: process.env.OPENROUTER_API_KEY || 'mock', 
       baseURL: 'https://openrouter.ai/api/v1', 
@@ -163,3 +166,4 @@ export class BusinessGoalInterpreter {
     return goal;
   }
 }
+
