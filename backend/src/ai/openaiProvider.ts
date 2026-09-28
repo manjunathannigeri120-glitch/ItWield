@@ -3,9 +3,9 @@ import { AIProvider, GenerateResult, Message, ToolDefinition } from './provider'
 
 export class OpenAIProvider implements AIProvider {
   private client: OpenAI;
-  public providerName: 'OPENROUTER' | 'OLLAMA';
+  public providerName: 'OPENROUTER' | 'OLLAMA' | 'OPENAI';
 
-  constructor(apiKey: string | undefined, baseURL?: string, defaultHeaders?: any, providerName: 'OPENROUTER' | 'OLLAMA' = 'OPENROUTER') {
+  constructor(apiKey: string | undefined, baseURL?: string, defaultHeaders?: any, providerName: 'OPENROUTER' | 'OLLAMA' | 'OPENAI' = 'OPENROUTER') {
     // OpenAI client allows undefined apiKey if baseURL doesn't require it (e.g. local Ollama)
     this.client = new OpenAI({ apiKey: apiKey || 'dummy-key-for-local', baseURL, defaultHeaders });
     this.providerName = providerName;

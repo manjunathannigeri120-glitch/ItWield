@@ -21,10 +21,15 @@ import { ProviderFactory } from '../ai/providerFactory';
 export class AgentRuntime {
   
   static getProvider(): AIProvider {
-    const key = process.env.OPENROUTER_API_KEY;
-    if (key) {
+    const hasKey = !!process.env.OPENROUTER_API_KEY || !!process.env.OPENAI_API_KEY;
+    if (hasKey) {
       return ProviderFactory.getInstance();
     }
+    
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Production AI provider configuration is unavailable. Both OPENROUTER_API_KEY and OPENAI_API_KEY are missing.');
+    }
+    
     return new MockProvider();
   }
 

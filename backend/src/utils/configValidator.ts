@@ -51,9 +51,14 @@ const CONFIG_VARS: ConfigVar[] = [
     validate: (v) => v.startsWith('https://') ? null : 'Must be an HTTPS URL in production'
   },
   {
+    name: 'OPENROUTER_API_KEY',
+    required: false,
+    description: 'OpenRouter API key for AI generation (Primary provider).'
+  },
+  {
     name: 'OPENAI_API_KEY',
     required: false,
-    description: 'OpenAI API key for AI workflow generation. If absent, AI generation uses mock mode.'
+    description: 'OpenAI API key for AI generation (Alternative provider).'
   },
   {
     name: 'GOOGLE_CLIENT_ID',
@@ -137,6 +142,9 @@ export function validateProductionConfig(): ConfigCheckResult {
     if (!process.env.SUPABASE_URL?.includes('supabase.co') && !process.env.SUPABASE_URL?.startsWith('https://')) {
       warnings.push('SUPABASE_URL does not look like a production Supabase URL');
     }
+    if (!process.env.OPENROUTER_API_KEY && !process.env.OPENAI_API_KEY) {
+      errors.push('MISSING REQUIRED: AI Provider Key (OPENROUTER_API_KEY or OPENAI_API_KEY must be set in production)');
+    }
   }
 
   return { ok: errors.length === 0, errors, warnings };
@@ -166,3 +174,4 @@ export function assertProductionConfig(): void {
     console.log('[Config] Production configuration validated ✓');
   }
 }
+

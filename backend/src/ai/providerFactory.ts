@@ -7,12 +7,24 @@ export class ProviderFactory implements AIProvider {
   private secondaryModelDefault: string | undefined;
 
   constructor() {
-    this.primaryProvider = new OpenAIProvider(
-      process.env.OPENROUTER_API_KEY || '',
-      'https://openrouter.ai/api/v1',
-      { 'HTTP-Referer': 'http://localhost:5173', 'X-Title': 'ItWield CEO' },
-      'OPENROUTER'
-    );
+    const aiProvider = (process.env.AI_PROVIDER || '').toLowerCase();
+    const useOpenAI = aiProvider === 'openai' || (!process.env.OPENROUTER_API_KEY && process.env.OPENAI_API_KEY);
+
+    if (useOpenAI) {
+      this.primaryProvider = new OpenAIProvider(
+        process.env.OPENAI_API_KEY || '',
+        undefined, // Uses default OpenAI base URL
+        undefined,
+        'OPENAI'
+      );
+    } else {
+      this.primaryProvider = new OpenAIProvider(
+        process.env.OPENROUTER_API_KEY || '',
+        'https://openrouter.ai/api/v1',
+        { 'HTTP-Referer': 'https://itwield.vercel.app', 'X-Title': 'ItWield' },
+        'OPENROUTER'
+      );
+    }
 
     const ollamaBaseUrl = process.env.OLLAMA_BASE_URL;
     const ollamaModel = process.env.OLLAMA_MODEL;

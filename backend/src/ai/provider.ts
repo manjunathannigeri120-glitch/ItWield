@@ -32,7 +32,7 @@ export interface GenerateResult {
     total_tokens: number;
   };
   model: string;
-  providerUsed?: 'OPENROUTER' | 'OLLAMA';
+  providerUsed?: 'OPENROUTER' | 'OLLAMA' | 'OPENAI';
   fallbackUsed?: boolean;
 }
 

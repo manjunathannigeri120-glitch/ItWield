@@ -148,8 +148,11 @@ export async function generateWorkflow(options: GenerateOptions): Promise<Genera
     return { status: 'error', message: 'Prompt too long. Maximum 2000 characters.' };
   }
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
+  const hasKey = !!process.env.OPENROUTER_API_KEY || !!process.env.OPENAI_API_KEY;
+  if (!hasKey) {
+    if (process.env.NODE_ENV === 'production') {
+      return { status: 'error', message: 'Production AI provider configuration is unavailable. Both OPENROUTER_API_KEY and OPENAI_API_KEY are missing.' };
+    }
     // Return a mock response for development/testing without real OpenRouter key
     return mockGenerate(prompt, connections, agents);
   }
