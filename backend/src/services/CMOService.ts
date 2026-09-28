@@ -1,5 +1,4 @@
-const fs = require('fs');
-const content = import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { BusinessBottleneckService } from './BusinessBottleneckService';
 import { CompanyMemoryService } from './CompanyMemoryService';
@@ -30,13 +29,13 @@ export class CMOService {
 
     const memoryContext = (memories || []).map((m: any) => m.title + ': ' + m.content);
 
-    const diagnosticPrompt = \
+    const diagnosticPrompt = `
       You are the CMO evaluating customer acquisition.
-      Objective: \
-      Current Verified Progress: \ / \ CONVERTED opportunities
-      Total Opportunities: \
-      Company Context: \
-      Existing Bottlenecks: \
+      Objective: ${goal.objective}
+      Current Verified Progress: ${convertedCount || 0} / ${goal.target} CONVERTED opportunities
+      Total Opportunities: ${totalOpps || 0}
+      Company Context: ${memoryContext.join(', ')}
+      Existing Bottlenecks: ${bottlenecks?.map((b: any) => b.explanation).join(', ')}
 
       Analyze the current state.
       Identify KNOWN_FACTS, INFERENCES, and INSUFFICIENT_DATA.
@@ -50,7 +49,7 @@ export class CMOService {
         "insufficientData": ["..."],
         "currentBottleneck": "..."
       }
-    \;
+    `;
 
     let diagnostic: ExecutiveDiagnostic = {
       knownFacts: [], inferences: [], insufficientData: [], currentBottleneck: 'Unknown'
@@ -89,7 +88,7 @@ export class CMOService {
     const { data: plans } = await supabase.from('mission_plans')
       .select('*, mission_plan_steps(*)')
       .eq('workspace_id', workspaceId)
-      .eq('mission_id', activeMission.id)
+      .eq('mission_id', activeMission!.id)
       .eq('status', 'ACTIVE');
       
     let activePlan = (plans && plans.length > 0) ? plans[0] : null;
@@ -101,7 +100,7 @@ export class CMOService {
        if (hasFailed || isComplete) {
          const evalResult: EvaluationResult = {
            status: (convertedCount && convertedCount > (goal.current_metric || 0)) ? 'OUTCOME_IMPROVED' : 'OUTCOME_UNCHANGED',
-           evidence: [\Converted moved to \\],
+           evidence: [`Converted moved to ${convertedCount}`],
            reason: hasFailed ? 'Steps failed' : 'Plan exhausted'
          };
 
@@ -120,7 +119,7 @@ export class CMOService {
                 category: 'STRATEGIC_CONTEXT',
                 memory_type: 'LESSON',
                 title: 'Customer Acquisition Failure',
-                content: \Strategy failed: \\,
+                content: `Strategy failed: ${activePlan.objective}`,
                 source_type: 'AI_AGENT',
                 confidence: 'inferred'
              });
@@ -134,11 +133,11 @@ export class CMOService {
     let finalPlan: ExecutivePlan | undefined = undefined;
 
     if (replanRequired) {
-      const planPrompt = \
+      const planPrompt = `
         You are the CMO creating a structured customer acquisition plan.
-        Goal: \
-        Current CONVERTED: \
-        Diagnostic: \
+        Goal: ${goal.objective}
+        Current CONVERTED: ${convertedCount || 0}
+        Diagnostic: ${JSON.stringify(diagnostic)}
         
         Generate an execution plan. Action types must map to existing capabilities:
         LEAD_RESEARCH, DATA_TRANSFORMATION, OUTREACH_DRAFTING, APPROVAL, EXTERNAL_COMMUNICATION.
@@ -157,7 +156,7 @@ export class CMOService {
             }
           ]
         }
-      \;
+      `;
 
       try {
         const model = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
@@ -166,14 +165,14 @@ export class CMOService {
         
         const stepDefs = parsedPlan.actions.map((a: any) => ({
            title: a.purpose,
-           description: \\ (\)\,
+           description: `${a.purpose} (${a.reversibility})`,
            step_type: a.actionType,
            worker_role: 'service_role',
            authorization_class: a.actionType,
            success_criteria: JSON.stringify({ authorityRequired: a.authorityRequired, verificationMethod: a.verificationMethod })
         }));
 
-        await MissionPlanningService.createPlan(supabase, workspaceId, activeMission.id, parsedPlan.objective, stepDefs);
+        await MissionPlanningService.createPlan(supabase, workspaceId, activeMission!.id, parsedPlan.objective, stepDefs);
         finalPlan = parsedPlan as ExecutivePlan;
 
         await supabase.from('decision_traces').insert({
@@ -194,7 +193,7 @@ export class CMOService {
       workspaceId,
       executiveRole: 'CMO',
       goalId,
-      missionId: activeMission.id,
+      missionId: activeMission!.id,
       objective: goal.objective,
       successCriteria: 'COUNT(opportunities WHERE stage = CONVERTED) >= target',
       companyContext: memoryContext,
@@ -205,12 +204,12 @@ export class CMOService {
       plan: finalPlan,
       verificationCriteria: 'CONVERTED opportunities',
       currentStatus: 'EXECUTING',
-      evidence: [\\ CONVERTED opportunities counted.\],
+      evidence: [`${convertedCount} CONVERTED opportunities counted.`],
       blockers: diagnostic.currentBottleneck !== 'Unknown' ? [diagnostic.currentBottleneck] : [],
       nextAction: replanRequired ? 'Generated new plan' : 'Monitoring workers',
       replanRequired: false,
       founderNotificationRequired: false
     };
   }
-}\;
-fs.writeFileSync('backend/src/services/CMOService.ts', content);
+}
+

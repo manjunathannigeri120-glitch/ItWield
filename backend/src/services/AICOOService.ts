@@ -5,6 +5,7 @@ import { OutcomePlannerService } from './OutcomePlannerService';
 import { ExecutiveService } from './ExecutiveService';
 import { OutcomeVerificationService } from './OutcomeVerificationService';
 import { CompanyMemoryService } from './CompanyMemoryService';
+import { CMOService } from './CMOService';
 
 export class AICOOService {
   static async operateCompany(supabase: SupabaseClient, workspaceId: string): Promise<any> {
@@ -42,7 +43,6 @@ export class AICOOService {
         await OutcomeVerificationService.verifyGoalProgress(supabase, workspaceId, goal.id);
       }
       
-      // Reload active goals after verification (some might have completed)
       const { data: updatedGoals } = await supabase.from('business_goals')
         .select('*')
         .eq('workspace_id', workspaceId)
@@ -56,9 +56,31 @@ export class AICOOService {
       // 4. Detect Bottlenecks (Intelligent AI Engine)
       await BusinessBottleneckService.evaluateBottlenecks(supabase, workspaceId, updatedGoals);
 
-      // 5. Check if any goals need a plan or replan
+      // 5. Delegate Executive Operations natively where applicable
       for (const goal of updatedGoals) {
-        // If no pending or active missions for this goal, plan it.
+        // Evaluate if CMO should handle this
+        const isCustomerAcquisition = goal.objective.toLowerCase().includes('customer') || 
+                                      (goal.target_metric && goal.target_metric.toLowerCase().includes('customer')) || 
+                                      goal.objective.toLowerCase().includes('acquisition');
+                                      
+        if (isCustomerAcquisition) {
+          console.log(`[COO] Delegating Customer Acquisition goal ${goal.id} directly to CMO.`);
+          const contract = await CMOService.operateCustomerAcquisition(supabase, workspaceId, goal.id);
+          
+          await supabase.from('decision_traces').insert({
+            workspace_id: workspaceId,
+            event_name: 'COO_EXECUTIVE_REPORT_REVIEW',
+            context_data: contract as any,
+            conclusion: `CMO reported status: ${contract.currentStatus}`,
+            proposed_action: contract.nextAction,
+            authorization_state: 'SYSTEM',
+            result: `Monitored execution. Blockers: ${contract.blockers.join(', ') || 'None'}`
+          });
+
+          continue; // The CMO Service handles the full lifecycle for this goal
+        }
+
+        // For non-CMO goals, fallback to legacy V3.10 Outcome Planner behavior
         const { count } = await supabase.from('business_missions')
           .select('id', { count: 'exact', head: true })
           .eq('workspace_id', workspaceId)
@@ -66,23 +88,22 @@ export class AICOOService {
           .in('status', ['PENDING', 'ACTIVE', 'EXECUTING']);
           
         if (count === 0) {
-          console.log(`[COO] No active missions for goal ${goal.id}. Planning outcome...`);
+          console.log(`[COO] No active missions for legacy goal ${goal.id}. Planning outcome...`);
           await OutcomePlannerService.planOutcome(supabase, workspaceId, goal.id);
         } else {
-           // check if we need to replan based on bottlenecks
            const { data: bottlenecks } = await supabase.from('business_bottlenecks')
              .select('*')
              .eq('workspace_id', workspaceId)
              .eq('related_goal_id', goal.id)
              .eq('status', 'DETECTED');
            if (bottlenecks && bottlenecks.length > 0) {
-              console.log(`[COO] Detected active bottleneck for goal ${goal.id}. Escaping/replanning...`);
+              console.log(`[COO] Detected active bottleneck for legacy goal ${goal.id}. Escaping/replanning...`);
               await OutcomePlannerService.replanOutcome(supabase, workspaceId, goal.id, bottlenecks);
            }
         }
       }
 
-      // 6. Delegate Executive Actions
+      // 6. Delegate Executive Actions for legacy missions
       await this.delegateToExecutives(supabase, workspaceId);
 
       // 7. Record decision trace for cycle completion
@@ -185,4 +206,3 @@ export class AICOOService {
     }
   }
 }
-
