@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { supabase } from '../utils/supabaseClient';
-import { requireAuth, requireWorkspace } from './auth';
+import { getServiceSupabase } from '../db/supabaseClient';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 import { ControlLayerService } from '../services/ControlLayerService';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 // GET company control state
-router.get('/state', requireAuth, requireWorkspace, async (req, res) => {
+router.get('/state', requireAuth, async (req: AuthRequest, res) => {
     try {
-        const { data: ws, error } = await supabase.from('workspaces').select('operating_state').eq('id', req.workspaceId).single();
+        const { data: ws, error } = await getServiceSupabase()!.from('workspaces').select('operating_state').eq('id', (req.params.workspaceId as string)).single();
         if (error) throw error;
         res.json({ operating_state: ws.operating_state });
     } catch (err: any) {
@@ -17,13 +17,13 @@ router.get('/state', requireAuth, requireWorkspace, async (req, res) => {
 });
 
 // POST pause / resume / stop
-router.post('/state', requireAuth, requireWorkspace, async (req, res) => {
+router.post('/state', requireAuth, async (req: AuthRequest, res) => {
     try {
         const { state } = req.body;
         if (!['OPERATING', 'PAUSED', 'WAITING_FOR_FOUNDER', 'STOPPED'].includes(state)) {
             return res.status(400).json({ error: 'Invalid state' });
         }
-        await ControlLayerService.setOperatingState(supabase, req.workspaceId!, state as any);
+        await ControlLayerService.setOperatingState(getServiceSupabase()!, (req.params.workspaceId as string), state as any);
         res.json({ success: true, operating_state: state });
     } catch (err: any) {
         res.status(500).json({ error: err.message });
@@ -31,9 +31,9 @@ router.post('/state', requireAuth, requireWorkspace, async (req, res) => {
 });
 
 // GET company systems
-router.get('/systems', requireAuth, requireWorkspace, async (req, res) => {
+router.get('/systems', requireAuth, async (req: AuthRequest, res) => {
     try {
-        const { data: systems, error } = await supabase.from('company_systems').select('*').eq('workspace_id', req.workspaceId);
+        const { data: systems, error } = await getServiceSupabase()!.from('company_systems').select('*').eq('workspace_id', (req.params.workspaceId as string));
         if (error) throw error;
         res.json({ systems });
     } catch (err: any) {
@@ -42,12 +42,12 @@ router.get('/systems', requireAuth, requireWorkspace, async (req, res) => {
 });
 
 // GET action audit history
-router.get('/audit', requireAuth, requireWorkspace, async (req, res) => {
+router.get('/audit', requireAuth, async (req: AuthRequest, res) => {
     try {
-        const { data: auditLogs, error } = await supabase
+        const { data: auditLogs, error } = await getServiceSupabase()!
             .from('action_audit_logs')
             .select('*')
-            .eq('workspace_id', req.workspaceId)
+            .eq('workspace_id', (req.params.workspaceId as string))
             .order('created_at', { ascending: false })
             .limit(100);
         if (error) throw error;
@@ -58,12 +58,12 @@ router.get('/audit', requireAuth, requireWorkspace, async (req, res) => {
 });
 
 // GET pending approvals
-router.get('/approvals/pending', requireAuth, requireWorkspace, async (req, res) => {
+router.get('/approvals/pending', requireAuth, async (req: AuthRequest, res) => {
     try {
-        const { data: approvals, error } = await supabase
+        const { data: approvals, error } = await getServiceSupabase()!
             .from('approvals')
             .select('*')
-            .eq('workspace_id', req.workspaceId)
+            .eq('workspace_id', (req.params.workspaceId as string))
             .eq('status', 'PENDING_APPROVAL')
             .order('created_at', { ascending: false });
         if (error) throw error;
@@ -74,3 +74,4 @@ router.get('/approvals/pending', requireAuth, requireWorkspace, async (req, res)
 });
 
 export default router;
+

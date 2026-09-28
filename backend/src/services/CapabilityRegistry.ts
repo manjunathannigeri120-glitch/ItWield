@@ -2,7 +2,7 @@ export interface CapabilityDefinition {
   id: string;
   name: string;
   description: string;
-  owningAction?: string; // The action that this capability permits
+  owningAction?: string;
   requiredConnection?: string;
 }
 
@@ -27,6 +27,7 @@ export class CapabilityRegistry {
     'GITHUB_GET_REPOSITORY_ACTIVITY': { id: 'GITHUB_GET_REPOSITORY_ACTIVITY', name: 'GitHub Get Repository Activity', description: 'Get GitHub repo activity', requiredConnection: 'github', owningAction: 'GITHUB_GET_REPOSITORY_ACTIVITY' },
     'GITHUB_GET_ISSUE': { id: 'GITHUB_GET_ISSUE', name: 'GitHub Get Issue', description: 'Get GitHub issue', requiredConnection: 'github', owningAction: 'GITHUB_GET_ISSUE' },
     'GITHUB_GET_PULL_REQUEST': { id: 'GITHUB_GET_PULL_REQUEST', name: 'GitHub Get PR', description: 'Get GitHub PR', requiredConnection: 'github', owningAction: 'GITHUB_GET_PULL_REQUEST' },
+    'GITHUB_ISSUES_CREATE': { id: 'GITHUB_ISSUES_CREATE', name: 'GitHub Create Issue', description: 'Create GitHub issue', requiredConnection: 'github', owningAction: 'GITHUB_ISSUES_CREATE' },
 
     // Slack
     'SLACK_LIST_CHANNELS': { id: 'SLACK_LIST_CHANNELS', name: 'Slack List Channels', description: 'List Slack channels', requiredConnection: 'slack', owningAction: 'SLACK_LIST_CHANNELS' },
@@ -37,28 +38,27 @@ export class CapabilityRegistry {
     // Google Sheets
     'GOOGLE_SHEETS_LIST': { id: 'GOOGLE_SHEETS_LIST', name: 'Google Sheets List', description: 'List Google Sheets', requiredConnection: 'google_sheets', owningAction: 'GOOGLE_SHEETS_LIST' },
     'GOOGLE_SHEETS_READ': { id: 'GOOGLE_SHEETS_READ', name: 'Google Sheets Read', description: 'Read Google Sheets', requiredConnection: 'google_sheets', owningAction: 'GOOGLE_SHEETS_READ' },
+
+    // Vercel
+    'VERCEL_PROJECTS_READ': { id: 'VERCEL_PROJECTS_READ', name: 'Vercel Read Projects', description: 'Read Vercel projects', requiredConnection: 'vercel', owningAction: 'VERCEL_PROJECTS_READ' },
+    'VERCEL_DEPLOYMENTS_READ': { id: 'VERCEL_DEPLOYMENTS_READ', name: 'Vercel Read Deployments', description: 'Read Vercel deployments', requiredConnection: 'vercel', owningAction: 'VERCEL_DEPLOYMENTS_READ' },
+    'VERCEL_DEPLOYMENTS_CREATE': { id: 'VERCEL_DEPLOYMENTS_CREATE', name: 'Vercel Create Deployment', description: 'Create Vercel deployment', requiredConnection: 'vercel', owningAction: 'VERCEL_DEPLOYMENTS_CREATE' },
+
+    // Supabase
+    'SUPABASE_PROJECTS_READ': { id: 'SUPABASE_PROJECTS_READ', name: 'Supabase Read Projects', description: 'Read Supabase projects', requiredConnection: 'supabase', owningAction: 'SUPABASE_PROJECTS_READ' }
   };
 
-  /**
-   * Normalizes a capability string deterministically.
-   * "Competitive Analysis" -> "COMPETITIVE_ANALYSIS"
-   * "competitive_analysis" -> "COMPETITIVE_ANALYSIS"
-   * " COMPETITOR_RESEARCH " -> "COMPETITOR_RESEARCH"
-   */
   static normalize(raw: string): string {
     if (!raw) return '';
     let normalized = raw.trim().toUpperCase();
     normalized = normalized.replace(/\s+/g, '_');
     normalized = normalized.replace(/-+/g, '_');
-    
-    // Exact mapping check (e.g. if we had historical aliases)
     const exactAliases: Record<string, string> = {
-      'COMPETITOR_ANALYSIS': 'COMPETITIVE_ANALYSIS' // handle common misconfigurations safely
+      'COMPETITOR_ANALYSIS': 'COMPETITIVE_ANALYSIS'
     };
     if (exactAliases[normalized]) {
         normalized = exactAliases[normalized];
     }
-    
     return normalized;
   }
 
@@ -71,7 +71,6 @@ export class CapabilityRegistry {
   }
 
   static getRequiredCapabilityForAction(actionId: string): string | undefined {
-    // Actions are typically 1:1 mapped with capability IDs for now
     const cap = this.get(actionId);
     return cap?.id;
   }

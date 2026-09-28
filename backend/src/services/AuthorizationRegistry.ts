@@ -146,7 +146,12 @@ export class AuthorizationRegistry {
     'GITHUB_GET_REPOSITORY_ACTIVITY': { id: 'GITHUB_GET_REPOSITORY_ACTIVITY', name: 'GitHub Get Repository Activity', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'github' },
     'GITHUB_GET_ISSUE': { id: 'GITHUB_GET_ISSUE', name: 'GitHub Get Issue', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'github' },
     'GITHUB_GET_PULL_REQUEST': { id: 'GITHUB_GET_PULL_REQUEST', name: 'GitHub Get PR', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'github' },
+    'GITHUB_ISSUES_CREATE': { id: 'GITHUB_ISSUES_CREATE', name: 'GitHub Create Issue', owningExecutive: 'AI CTO', riskLevel: 'medium', isAutonomous: false, requiresOwnerApproval: true, readOnly: false, modifiesExternal: true, requiredConnection: 'github' },
     
+    'VERCEL_PROJECTS_READ': { id: 'VERCEL_PROJECTS_READ', name: 'Vercel Read Projects', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'vercel' },
+    'VERCEL_DEPLOYMENTS_READ': { id: 'VERCEL_DEPLOYMENTS_READ', name: 'Vercel Read Deployments', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'vercel' },
+    'VERCEL_DEPLOYMENTS_CREATE': { id: 'VERCEL_DEPLOYMENTS_CREATE', name: 'Vercel Create Deployment', owningExecutive: 'AI CTO', riskLevel: 'high', isAutonomous: false, requiresOwnerApproval: true, readOnly: false, modifiesExternal: true, requiredConnection: 'vercel' },
+    'SUPABASE_PROJECTS_READ': { id: 'SUPABASE_PROJECTS_READ', name: 'Supabase Read Projects', owningExecutive: 'AI CTO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'supabase' },
     'SLACK_LIST_CHANNELS': { id: 'SLACK_LIST_CHANNELS', name: 'Slack List Channels', owningExecutive: 'AI CMO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'slack' },
     'SLACK_READ_CHANNEL': { id: 'SLACK_READ_CHANNEL', name: 'Slack Read Channel', owningExecutive: 'AI CMO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'slack' },
     'SLACK_SEARCH_MESSAGES': { id: 'SLACK_SEARCH_MESSAGES', name: 'Slack Search Messages', owningExecutive: 'AI CMO', riskLevel: 'low', isAutonomous: true, requiresOwnerApproval: false, readOnly: true, modifiesExternal: false, requiredConnection: 'slack' },
@@ -238,3 +243,4 @@ export class AuthorizationRegistry {
     return { authorized: true, reason: `Authorized automatically because ${definition.name} is enabled and classified as ${definition.riskLevel}-risk work.`, requiresApproval: false, definition };
   }
 }
+

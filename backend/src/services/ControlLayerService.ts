@@ -1,6 +1,8 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { AuthorizationRegistry } from './AuthorizationRegistry';
 import { CapabilityRegistry } from './CapabilityRegistry';
+import { getAdapter } from '../adapters';
+import { decryptObject } from '../utils/encryption';
 
 export type AuthorityLevel = 'AUTONOMOUS' | 'RECOMMEND' | 'APPROVAL_REQUIRED' | 'BLOCKED';
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -36,6 +38,67 @@ export interface AuthorizationResult {
 }
 
 export class ControlLayerService {
+    static async executeTool(supabase: SupabaseClient, req: ActionRequest): Promise<any> {
+        // 1. Authorize
+        const authResult = await this.authorizeAction(supabase, req);
+        
+        if (!authResult.authorized) {
+            if (authResult.effectiveAuthority === 'APPROVAL_REQUIRED') {
+                await this.requestApproval(supabase, req, authResult, 'Action requested by ' + req.actor, 'Expected execution of ' + req.action);
+            }
+            await this.recordAudit(supabase, req, authResult, 'Blocked execution', undefined, authResult.policyDecision);
+            return { success: false, reason: authResult.policyDecision, requiresApproval: authResult.effectiveAuthority === 'APPROVAL_REQUIRED' };
+        }
+
+        // 2. Fetch System Credentials
+        const { data: system } = await supabase.from('company_systems')
+            .select('*')
+            .eq('workspace_id', req.workspaceId)
+            .eq('system_type', req.system.toUpperCase())
+            .eq('status', 'CONNECTED')
+            .single();
+
+        if (!system || !system.connection_id) {
+            const error = 'System ' + req.system + ' is not connected or available.';
+            await this.recordAudit(supabase, req, authResult, error, undefined, error);
+            return { success: false, reason: error };
+        }
+
+        // 3. Get Adapter
+        const adapter = getAdapter(req.system.toLowerCase());
+        if (!adapter) {
+            const error = 'No tool adapter for ' + req.system;
+            await this.recordAudit(supabase, req, authResult, error, undefined, error);
+            return { success: false, reason: error };
+        }
+
+        // 4. Decrypt credentials & Execute
+        try {
+            const credentials = decryptObject(system.connection_id);
+            const executionResult = await adapter.execute(req.capability, req.inputSummary ? JSON.parse(req.inputSummary) : {}, credentials);
+            
+            if (!executionResult.success) {
+                await this.recordAudit(supabase, req, authResult, 'Execution failed: ' + executionResult.errorMessage, undefined, executionResult.errorMessage);
+                return { success: false, reason: executionResult.errorMessage };
+            }
+
+            // 5. Verify
+            const isVerified = await adapter.verify(req.capability, executionResult, credentials);
+            if (!isVerified) {
+                const error = 'Verification failed after execution.';
+                await this.recordAudit(supabase, req, authResult, 'Executed but unverified', executionResult.evidence?.summary, error);
+                return { success: false, reason: error, executed: true };
+            }
+
+            // 6. Success Audit
+            await this.recordAudit(supabase, req, authResult, executionResult.evidence?.summary, JSON.stringify(executionResult.evidence));
+            return { success: true, evidence: executionResult.evidence };
+
+        } catch (err: any) {
+            await this.recordAudit(supabase, req, authResult, 'Execution error', undefined, err.message);
+            return { success: false, reason: err.message };
+        }
+    }
 
     static classifyRisk(system: string, capability: string, action: string): RiskLevel {
         const normalized = capability.toLowerCase();
@@ -176,3 +239,4 @@ export class ControlLayerService {
         await supabase.from('workspaces').update({ operating_state: state }).eq('id', workspaceId);
     }
 }
+

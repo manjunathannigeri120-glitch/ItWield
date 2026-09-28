@@ -13,8 +13,8 @@ router.get('/', async (req: AuthRequest, res) => {
     if (!req.supabase) return res.json([]);
 
     const { data, error } = await req.supabase
-        .from('connections')
-        .select('id, workspace_id, provider, name, status, metadata, created_at, updated_at')
+        .from('company_systems')
+        .select('id, workspace_id, system_type, display_name, status, metadata, created_at, updated_at')
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: false });
 
@@ -46,15 +46,15 @@ router.post('/', async (req: AuthRequest, res) => {
     const encryptedCredentials = encryptObject(credentials);
 
     const { data, error } = await req.supabase
-        .from('connections')
+        .from('company_systems')
         .insert({
             workspace_id: workspaceId,
             provider,
             name,
-            credentials: encryptedCredentials,
+            connection_id: encryptedCredentials,
             metadata: metadata || {}
         })
-        .select('id, workspace_id, provider, name, status, metadata, created_at, updated_at')
+        .select('id, workspace_id, system_type, display_name, status, metadata, created_at, updated_at')
         .single();
 
     if (error) {
@@ -73,7 +73,7 @@ router.delete('/:id', async (req: AuthRequest, res) => {
     const { id } = req.params;
 
     const { error } = await req.supabase
-        .from('connections')
+        .from('company_systems')
         .delete()
         .eq('id', id)
         .eq('workspace_id', workspaceId);
@@ -253,15 +253,15 @@ router.post('/:provider/callback', async (req: AuthRequest, res) => {
     const encryptedCredentials = encryptObject(credentials);
 
     const { data: conn, error: connError } = await req.supabase!
-        .from('connections')
+        .from('company_systems')
         .insert({
             workspace_id: stateData.workspace_id,
-            provider,
-            name: connectionName,
-            credentials: encryptedCredentials,
+            system_type: String(provider).toUpperCase(),
+            display_name: connectionName,
+            connection_id: encryptedCredentials,
             metadata: {}
         })
-        .select('id, workspace_id, provider, name, status, metadata, created_at, updated_at')
+        .select('id, workspace_id, system_type, display_name, status, metadata, created_at, updated_at')
         .single();
 
     if (connError) return res.status(500).json({ error: connError.message });
@@ -269,3 +269,42 @@ router.post('/:provider/callback', async (req: AuthRequest, res) => {
 });
 
 export default router;
+
+
+import { getAdapter } from '../adapters';
+import { decryptObject } from '../utils/encryption';
+
+router.post('/:id/test', requireAuth, async (req: AuthRequest, res) => {
+    try {
+        const { data: system, error } = await req.supabase!
+            .from('company_systems')
+            .select('*')
+            .eq('id', req.params.id)
+            .eq('workspace_id', req.body.workspace_id || req.query.workspace_id)
+            .single();
+            
+        if (error || !system) return res.status(404).json({ error: 'System not found' });
+        
+        const provider = system.system_type.toLowerCase();
+        const adapter = getAdapter(provider);
+        if (!adapter) return res.status(400).json({ error: 'Adapter not implemented' });
+        
+        const credentials = decryptObject(system.connection_id);
+        const testResult = await adapter.testConnection(credentials);
+        
+        let capabilities = system.capabilities || [];
+        if (testResult.status === 'CONNECTED') {
+            capabilities = await adapter.getCapabilities(credentials);
+        }
+        
+        await req.supabase!
+            .from('company_systems')
+            .update({ status: testResult.status, capabilities })
+            .eq('id', system.id);
+            
+        res.json({ success: true, status: testResult.status, message: testResult.message, capabilities });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
