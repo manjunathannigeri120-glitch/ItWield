@@ -20,6 +20,8 @@ import cooRouter from './coo';
 import companyRouter from './company';
 import controlRouter from './control';
 import discoveryRouter from './discovery';
+import workforceRouter from './workforce';
+
 const router = Router();
 router.get('/health', (req, res) => res.json({ status: 'ok', version: '3.19.0' }));
 router.use('/workspaces/:workspaceId/company', companyRouter);
@@ -29,6 +31,7 @@ router.use('/workspaces/:workspaceId/memory', memoryRoutes);
 router.use('/workspaces/:workspaceId/command-center', commandCenterRoutes);
 router.use('/workspaces/:workspaceId/crm', crmRoutes);
 router.use('/workspaces/:workspaceId/goals', goalsRouter);
+router.use('/workspaces/:workspaceId/workforce', workforceRouter);
 router.use('/workspaces/:workspaceId', cooRouter);
 router.use('/workspaces/:workspaceId/control', controlRouter);
 router.use('/workspaces/:workspaceId/discovery', discoveryRouter);
