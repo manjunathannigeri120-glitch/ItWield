@@ -2,7 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 export type MemoryCategory = 'STRATEGIC_CONTEXT' | 'DECISION' | 'LESSON' | 'INCIDENT' | 'OUTCOME' | 'GOAL' | 'FACT' | 'RULE' | 'PREFERENCE';
 
-export type SourceType = 'USER' | 'SYSTEM' | 'AGENT' | 'OWNER' | 'APPROVAL' | 'TASK' | 'INCIDENT';
+export type SourceType = 'USER' | 'SYSTEM' | 'AGENT' | 'OWNER' | 'APPROVAL' | 'TASK' | 'INCIDENT' | 'WEBSITE_DISCOVERY';
 
 export interface CreateMemoryParams {
   workspaceId: string;
@@ -208,3 +208,4 @@ export class CompanyMemoryService {
     return context;
   }
 }
+
