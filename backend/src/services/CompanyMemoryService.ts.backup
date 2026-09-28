@@ -24,34 +24,13 @@ export interface CreateMemoryParams {
 }
 
 export class CompanyMemoryService {
-  static checkSecrets(content: string) {
-    const secretPatterns = [
-        /(sk-[a-zA-Z0-9-]{20,})/i,
-        /(gh[pousrab]_[a-zA-Z0-9]{36})/i,
-        /(xox[baprs]-[0-9a-zA-Z]{10,})/i,
-        /(ya29\.[0-9a-zA-Z_-]+)/i,
-        /(eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)/i,
-        /(AKIA[0-9A-Z]{16})/i,
-        /-----BEGIN PRIVATE KEY-----/i,
-        /-----BEGIN RSA PRIVATE KEY-----/i,
-        /(postgres(ql)?:\/\/.*:.*@.*)/i,
-        /(mysql:\/\/.*:.*@.*)/i,
-        /bearer\s+[a-zA-Z0-9_\-\.]+/i,
-        /(api[_-]?key[\s:=]+['"]?[a-zA-Z0-9\-_]+['"]?)/i,
-        /(secret[\s:=]+['"]?[a-zA-Z0-9\-_]+['"]?)/i,
-        /(password[\s:=]+['"]?[a-zA-Z0-9\-_!@#$%^&*]+['"]?)/i
-    ];
-    for (const pattern of secretPatterns) {
-        if (pattern.test(content)) return true;
-    }
-    return false;
-  }
-
   static async createMemory(params: CreateMemoryParams, supabaseClient: SupabaseClient) {
     if (!params.workspaceId) throw new Error('Workspace ID is required');
     const client = supabaseClient;
     
-    if (this.checkSecrets(params.content)) {
+    // Security: block secret storage
+    const lower = params.content.toLowerCase();
+    if (lower.includes('password') || lower.includes('sk-ant-') || lower.includes('api_key') || lower.includes('secret_key')) {
       throw new Error('Security: Cannot store secrets in memory');
     }
 
@@ -60,17 +39,20 @@ export class CompanyMemoryService {
         .from('company_memory')
         .select('*')
         .eq('workspace_id', params.workspaceId)
-        .eq('title', params.title)
+        .eq('category', params.category)
         .neq('freshness_status', 'SUPERSEDED');
 
       let isSuperseded = false;
       let contradictionTargetId: string | null = null;
-      let relationshipType = 'CONTRADICTS';
       
       if (existing && existing.length > 0) {
           for (const ex of existing) {
-              if (ex.content === params.content) return ex;
+              if (ex.content === params.content) {
+                  return ex; // deduplicate
+              }
               
+              // Authority Precedence:
+              // OWNER > CONNECTED_SYSTEM > WEBSITE_DISCOVERY > EXECUTIVE > WORKER
               const authRank = (type: string) => {
                   if (type === 'OWNER') return 5;
                   if (type === 'CONNECTED_SYSTEM') return 4;
@@ -82,38 +64,24 @@ export class CompanyMemoryService {
               const incomingRank = authRank(params.sourceType);
               const existingRank = authRank(ex.source_type);
               
-              const isIncomingHistorical = params.evidence?.temporal_scope === 'HISTORICAL';
-              const isExistingHistorical = ex.evidence?.temporal_scope === 'HISTORICAL';
-              
-              if (isIncomingHistorical || isExistingHistorical) {
+              if (incomingRank < existingRank) {
+                  isSuperseded = true;
                   contradictionTargetId = ex.id;
-                  relationshipType = 'RELATES_TO';
+              } else if (incomingRank > existingRank) {
+                  // The new one is higher authority, supersedes the old
+                  await client.from('company_memory').update({ freshness_status: 'SUPERSEDED' }).eq('id', ex.id);
+                  // We could log superseded relationship here
               } else {
-                  if (incomingRank < existingRank) {
-                      isSuperseded = true;
-                      contradictionTargetId = ex.id;
-                      relationshipType = 'CONTRADICTS';
-                  } else if (incomingRank >= existingRank) {
-                      if (incomingRank === existingRank && ex.source_type === 'OWNER') {
-                           await client.from('company_memory').update({ freshness_status: 'SUPERSEDED' }).eq('id', ex.id);
-                           contradictionTargetId = ex.id;
-                           relationshipType = 'SUPERSEDES';
-                      } else if (incomingRank > existingRank) {
-                          await client.from('company_memory').update({ freshness_status: 'SUPERSEDED' }).eq('id', ex.id);
-                          contradictionTargetId = ex.id;
-                          relationshipType = 'SUPERSEDES';
-                      } else {
-                          contradictionTargetId = ex.id;
-                          relationshipType = 'CONTRADICTS';
-                      }
-                  }
+                  // Equal rank, conflicting content
+                  contradictionTargetId = ex.id;
               }
           }
       }
 
       const { data, error } = await client
         .from('company_memory')
-        .insert({
+        .insert(
+          {
             workspace_id: params.workspaceId,
             memory_type: params.category || params.memoryType,
             category: params.category,
@@ -124,19 +92,20 @@ export class CompanyMemoryService {
             importance: params.importance || 'medium',
             created_by: params.createdBy,
             evidence: params.evidence,
-            confidence: params.confidence || (params.sourceType === 'OWNER' ? 1.0 : 0.8),
+            confidence: params.confidence,
             verification_status: params.verificationStatus || 'UNVERIFIED',
             related_mission_id: params.relatedMissionId,
             related_incident_id: params.relatedIncidentId,
             related_decision_id: params.relatedDecisionId,
             superseded_by: params.supersededBy,
             freshness_status: isSuperseded ? 'SUPERSEDED' : 'CURRENT'
-        })
+          }
+        )
         .select()
         .single();
       
       if (error) {
-        console.error('[CompanyMemoryService] Error creating memory:', error);
+        console.error(`[CompanyMemoryService] Error creating memory: ${error.message}`);
         return null;
       }
       
@@ -145,13 +114,13 @@ export class CompanyMemoryService {
               workspace_id: params.workspaceId,
               source_memory_id: data.id,
               target_memory_id: contradictionTargetId,
-              relationship_type: relationshipType
+              relationship_type: 'CONTRADICTS'
           });
       }
 
       return data;
     } catch (e: any) {
-      console.error('[CompanyMemoryService] Error:', e);
+      console.error(`[CompanyMemoryService] Error: ${e.message}`);
       return null;
     }
   }
@@ -165,7 +134,7 @@ export class CompanyMemoryService {
       content,
       sourceType: 'APPROVAL',
       sourceId,
-      evidence: { ...evidence, expected_effect: evidence?.expected_effect, actual_result: evidence?.actual_result },
+      evidence,
       createdBy,
       importance: 'high',
       verificationStatus: 'INDEPENDENTLY_VERIFIED'
@@ -191,9 +160,6 @@ export class CompanyMemoryService {
 
   static async recordLesson(workspaceId: string, title: string, content: string, sourceId: string, createdBy: string = 'SYSTEM', relatedIncidentId?: string, evidence?: any, db?: SupabaseClient) {
     if (!db) throw new Error('Supabase client is required');
-    if (!evidence || !evidence.observation || !evidence.interpretation) {
-      evidence = { ...evidence, status: 'INSUFFICIENT_DATA', interpretation: 'Unknown root cause due to lack of evidence.' };
-    }
     return this.createMemory({
       workspaceId,
       category: 'LESSON',
@@ -219,7 +185,7 @@ export class CompanyMemoryService {
       sourceType: 'INCIDENT',
       sourceId,
       relatedIncidentId,
-      evidence: { ...evidence, confirmed_cause: evidence?.confirmed_cause || false, suspected_cause: evidence?.suspected_cause },
+      evidence,
       createdBy,
       importance: 'high',
       verificationStatus: 'INDEPENDENTLY_VERIFIED'
@@ -266,32 +232,17 @@ export class CompanyMemoryService {
       if (error || !data) return [];
       
       const sortedData = data.sort((a: any, b: any) => {
-        const authRank = (type: string) => {
-            if (type === 'OWNER') return 5;
-            if (type === 'CONNECTED_SYSTEM') return 4;
-            if (type === 'WEBSITE_DISCOVERY') return 3;
-            if (type === 'EXECUTIVE') return 2;
-            return 1;
+        const getPriority = (mem: any) => {
+          if (mem.source_type === 'OWNER' && mem.category === 'RULE') return 1;
+          if (mem.source_type === 'OWNER') return 2;
+          if (mem.verification_status === 'INDEPENDENTLY_VERIFIED') return 3;
+          if (mem.category === 'LESSON' || mem.category === 'OUTCOME') return 4;
+          if (mem.verification_status === 'SOURCE_BACKED') return 5;
+          return 6;
         };
-
-        const rankA = authRank(a.source_type);
-        const rankB = authRank(b.source_type);
-
-        if (rankA !== rankB) return rankB - rankA;
-
-        const isVerifA = a.verification_status === 'INDEPENDENTLY_VERIFIED' || a.verification_status === 'VERIFIED';
-        const isVerifB = b.verification_status === 'INDEPENDENTLY_VERIFIED' || b.verification_status === 'VERIFIED';
-        
-        if (isVerifA !== isVerifB) return isVerifA ? -1 : 1;
-        
-        const isCurrentA = a.freshness_status === 'CURRENT';
-        const isCurrentB = b.freshness_status === 'CURRENT';
-        
-        if (isCurrentA !== isCurrentB) return isCurrentA ? -1 : 1;
-
-        if (a.category === 'RULE' && b.category !== 'RULE') return -1;
-        if (b.category === 'RULE' && a.category !== 'RULE') return 1;
-
+        const pA = getPriority(a);
+        const pB = getPriority(b);
+        if (pA !== pB) return pA - pB;
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
 
@@ -332,5 +283,6 @@ export class CompanyMemoryService {
     return context;
   }
 }
+
 
 

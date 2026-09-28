@@ -14,7 +14,7 @@ router.get('/', async (req: any, res) => {
   try {
     let query = supabase
       .from('company_memory')
-      .select('*')
+      .select('*, memory_relationships!source_memory_id(*)')
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
 
@@ -25,7 +25,14 @@ router.get('/', async (req: any, res) => {
     const { data, error } = await query;
     if (error) throw error;
 
-    res.json(data || []);
+    // Supabase returns related table rows as an array property. 
+    // Format to make it easy for the UI.
+    const formattedData = (data || []).map((m: any) => ({
+      ...m,
+      contradicts: (m.memory_relationships || []).some((r: any) => r.relationship_type === 'CONTRADICTS')
+    }));
+
+    res.json({ memories: formattedData });
   } catch (error: any) {
     res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }

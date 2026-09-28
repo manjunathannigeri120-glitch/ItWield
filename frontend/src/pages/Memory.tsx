@@ -202,16 +202,18 @@ export function Memory() {
 
                 {m.freshness_status && (
                     <span className={"text-[10px] uppercase font-semibold px-2 py-1 rounded flex items-center " + 
-                      (m.freshness_status === 'CURRENT' ? "text-slate-500" : 
+                      (m.contradicts ? "text-orange-700 bg-orange-100 border border-orange-200" :
+                       m.freshness_status === 'CURRENT' ? "text-slate-500" : 
                        m.freshness_status === 'AGING' ? "text-amber-600 bg-amber-50" : 
                        m.freshness_status === 'SUPERSEDED' ? "text-slate-400 bg-slate-100" : 
                        "text-red-500 bg-red-50")
                     }>
-                      {m.freshness_status === 'CURRENT' && <CheckCircle className="w-3 h-3 mr-1" />}
-                      {m.freshness_status === 'AGING' && <Clock className="w-3 h-3 mr-1" />}
-                      {m.freshness_status === 'SUPERSEDED' && <Archive className="w-3 h-3 mr-1" />}
-                      {m.freshness_status === 'STALE' && <AlertTriangle className="w-3 h-3 mr-1" />}
-                      {m.freshness_status}
+                      {m.contradicts ? <AlertTriangle className="w-3 h-3 mr-1" /> :
+                       m.freshness_status === 'CURRENT' ? <CheckCircle className="w-3 h-3 mr-1" /> :
+                       m.freshness_status === 'AGING' ? <Clock className="w-3 h-3 mr-1" /> :
+                       m.freshness_status === 'SUPERSEDED' ? <Archive className="w-3 h-3 mr-1" /> :
+                       m.freshness_status === 'STALE' ? <AlertTriangle className="w-3 h-3 mr-1" /> : null}
+                      {m.contradicts ? 'CONTRADICTED' : m.freshness_status}
                     </span>
                 )}
               </div>

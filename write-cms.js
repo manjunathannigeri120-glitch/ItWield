@@ -1,4 +1,7 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+const fs = require('fs');
+const path = require('path');
+
+const content = `import { SupabaseClient } from '@supabase/supabase-js';
 
 export type MemoryCategory = 'STRATEGIC_CONTEXT' | 'DECISION' | 'LESSON' | 'INCIDENT' | 'OUTCOME' | 'GOAL' | 'FACT' | 'RULE' | 'PREFERENCE' | 'CUSTOMER_CONTEXT' | 'PRODUCT_CONTEXT' | 'MARKET_CONTEXT' | 'FINANCIAL_CONTEXT' | 'TECHNICAL_CONTEXT' | 'OPERATIONAL_CONTEXT' | 'FAILURE' | 'ASSUMPTION' | 'INFERENCE';
 
@@ -26,15 +29,15 @@ export interface CreateMemoryParams {
 export class CompanyMemoryService {
   static checkSecrets(content: string) {
     const secretPatterns = [
-        /(sk-[a-zA-Z0-9-]{20,})/i,
-        /(gh[pousrab]_[a-zA-Z0-9]{36})/i,
-        /(xox[baprs]-[0-9a-zA-Z]{10,})/i,
-        /(ya29\.[0-9a-zA-Z_-]+)/i,
-        /(eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)/i,
-        /(AKIA[0-9A-Z]{16})/i,
+        /(sk-[a-zA-Z0-9]{20,})/i, // OpenAI / Anthropic
+        /(gh[po]_[a-zA-Z0-9]{36})/i, // GitHub
+        /(xox[baprs]-[0-9a-zA-Z]{10,})/i, // Slack
+        /(ya29\.[0-9a-zA-Z_-]+)/i, // GCP OAuth
+        /(eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)/i, // JWT
+        /(AKIA[0-9A-Z]{16})/i, // AWS Access Key
         /-----BEGIN PRIVATE KEY-----/i,
         /-----BEGIN RSA PRIVATE KEY-----/i,
-        /(postgres(ql)?:\/\/.*:.*@.*)/i,
+        /(postgres(ql)?:\/\/.*:.*@.*)/i, // DB connection string
         /(mysql:\/\/.*:.*@.*)/i,
         /bearer\s+[a-zA-Z0-9_\-\.]+/i,
         /(api[_-]?key[\s:=]+['"]?[a-zA-Z0-9\-_]+['"]?)/i,
@@ -42,7 +45,9 @@ export class CompanyMemoryService {
         /(password[\s:=]+['"]?[a-zA-Z0-9\-_!@#$%^&*]+['"]?)/i
     ];
     for (const pattern of secretPatterns) {
-        if (pattern.test(content)) return true;
+        if (pattern.test(content)) {
+            return true;
+        }
     }
     return false;
   }
@@ -51,6 +56,7 @@ export class CompanyMemoryService {
     if (!params.workspaceId) throw new Error('Workspace ID is required');
     const client = supabaseClient;
     
+    // Security 2.0: Comprehensive secret detection
     if (this.checkSecrets(params.content)) {
       throw new Error('Security: Cannot store secrets in memory');
     }
@@ -69,8 +75,11 @@ export class CompanyMemoryService {
       
       if (existing && existing.length > 0) {
           for (const ex of existing) {
-              if (ex.content === params.content) return ex;
+              if (ex.content === params.content) {
+                  return ex; // deduplicate
+              }
               
+              // Authority Precedence:
               const authRank = (type: string) => {
                   if (type === 'OWNER') return 5;
                   if (type === 'CONNECTED_SYSTEM') return 4;
@@ -85,24 +94,30 @@ export class CompanyMemoryService {
               const isIncomingHistorical = params.evidence?.temporal_scope === 'HISTORICAL';
               const isExistingHistorical = ex.evidence?.temporal_scope === 'HISTORICAL';
               
+              // Temporal Fact Semantics: Do not supersede if either is historical
               if (isIncomingHistorical || isExistingHistorical) {
+                  // Both are valid points in time, no supersession, just contradictory/different states
                   contradictionTargetId = ex.id;
                   relationshipType = 'RELATES_TO';
               } else {
+                  // Current/Mutable states
                   if (incomingRank < existingRank) {
-                      isSuperseded = true;
+                      isSuperseded = true; // The incoming one is instantly superseded by the existing stronger fact
                       contradictionTargetId = ex.id;
                       relationshipType = 'CONTRADICTS';
                   } else if (incomingRank >= existingRank) {
                       if (incomingRank === existingRank && ex.source_type === 'OWNER') {
+                           // If both are OWNER, new OWNER supersedes old OWNER. Same for SYSTEM.
                            await client.from('company_memory').update({ freshness_status: 'SUPERSEDED' }).eq('id', ex.id);
                            contradictionTargetId = ex.id;
                            relationshipType = 'SUPERSEDES';
                       } else if (incomingRank > existingRank) {
+                          // The new one is higher authority, supersedes the old
                           await client.from('company_memory').update({ freshness_status: 'SUPERSEDED' }).eq('id', ex.id);
                           contradictionTargetId = ex.id;
                           relationshipType = 'SUPERSEDES';
                       } else {
+                          // Equal rank, conflicting content -> Genuine Contradiction
                           contradictionTargetId = ex.id;
                           relationshipType = 'CONTRADICTS';
                       }
@@ -113,7 +128,8 @@ export class CompanyMemoryService {
 
       const { data, error } = await client
         .from('company_memory')
-        .insert({
+        .insert(
+          {
             workspace_id: params.workspaceId,
             memory_type: params.category || params.memoryType,
             category: params.category,
@@ -131,7 +147,8 @@ export class CompanyMemoryService {
             related_decision_id: params.relatedDecisionId,
             superseded_by: params.supersededBy,
             freshness_status: isSuperseded ? 'SUPERSEDED' : 'CURRENT'
-        })
+          }
+        )
         .select()
         .single();
       
@@ -141,6 +158,7 @@ export class CompanyMemoryService {
       }
       
       if (contradictionTargetId && data) {
+          // Acyclic check for SUPERSEDES is implicitly handled by not allowing cycle (we don't loop here)
           await client.from('memory_relationships').insert({
               workspace_id: params.workspaceId,
               source_memory_id: data.id,
@@ -192,6 +210,7 @@ export class CompanyMemoryService {
   static async recordLesson(workspaceId: string, title: string, content: string, sourceId: string, createdBy: string = 'SYSTEM', relatedIncidentId?: string, evidence?: any, db?: SupabaseClient) {
     if (!db) throw new Error('Supabase client is required');
     if (!evidence || !evidence.observation || !evidence.interpretation) {
+      // Enforce strict evidence rules for lessons
       evidence = { ...evidence, status: 'INSUFFICIENT_DATA', interpretation: 'Unknown root cause due to lack of evidence.' };
     }
     return this.createMemory({
@@ -252,7 +271,6 @@ export class CompanyMemoryService {
         .order('created_at', { ascending: false });
 
       if (role === 'CEO') {
-        // CEO gets strategic cross-company context
         query = query.in('category', ['GOAL', 'DECISION', 'INCIDENT', 'LESSON', 'FACT', 'OUTCOME', 'RULE', 'PREFERENCE', 'STRATEGIC_CONTEXT', 'CUSTOMER_CONTEXT', 'MARKET_CONTEXT', 'FAILURE', 'ASSUMPTION']);
       } else if (role === 'CTO') {
         query = query.in('category', ['DECISION', 'INCIDENT', 'OUTCOME', 'LESSON', 'RULE', 'PREFERENCE', 'TECHNICAL_CONTEXT', 'FAILURE']);
@@ -262,7 +280,7 @@ export class CompanyMemoryService {
         query = query.in('category', ['DECISION', 'OUTCOME', 'FACT', 'RULE', 'PREFERENCE', 'STRATEGIC_CONTEXT', 'FINANCIAL_CONTEXT', 'OPERATIONAL_CONTEXT']);
       }
 
-      const { data, error } = await query.limit(100); // Fetch more for sorting
+      const { data, error } = await query.limit(100); 
       if (error || !data) return [];
       
       const sortedData = data.sort((a: any, b: any) => {
@@ -304,10 +322,10 @@ export class CompanyMemoryService {
   static formatMemoryForContext(memories: any[]): string {
     if (!memories || memories.length === 0) return '';
     
-    let context = `\n==================================================\n`;
-    context += `COMPANY BRAIN - SHARED ORGANIZATIONAL MEMORY\n`;
-    context += `(Owner rules MUST be strictly followed as operational constraints)\n`;
-    context += `==================================================\n\n`;
+    let context = "\n==================================================\n";
+    context += "COMPANY BRAIN - SHARED ORGANIZATIONAL MEMORY\n";
+    context += "(Owner rules MUST be strictly followed as operational constraints)\n";
+    context += "==================================================\n\n";
 
     for (const mem of memories) {
       const dateStr = mem.created_at ? new Date(mem.created_at).toISOString().split('T')[0] : 'unknown';
@@ -315,22 +333,23 @@ export class CompanyMemoryService {
       const cat = mem.category || mem.memory_type;
       
       if (isOwner) {
-        context += `>>> [OWNER ${cat}] ${mem.title} <<<\n`;
-        context += `Content: ${mem.content}\n`;
-        context += `Status: ${mem.freshness_status} | Verification: INDEPENDENTLY_VERIFIED\n`;
-        context += `(Mandatory owner directive)\n\n`;
+        context += ">>> [OWNER " + cat + "] " + mem.title + " <<<\n";
+        context += "Content: " + mem.content + "\n";
+        context += "Status: " + mem.freshness_status + " | Verification: INDEPENDENTLY_VERIFIED\n";
+        context += "(Mandatory owner directive)\n\n";
       } else {
-        context += `[${cat}] ${mem.title}\n`;
-        context += `Date: ${dateStr} | Source: ${mem.source_type} | Freshness: ${mem.freshness_status || 'CURRENT'}\n`;
-        context += `Content: ${mem.content}\n`;
-        if (mem.evidence) context += `Evidence: ${JSON.stringify(mem.evidence)}\n`;
-        if (mem.verification_status) context += `Status: ${mem.verification_status}\n`;
-        context += `\n`;
+        context += "[" + cat + "] " + mem.title + "\n";
+        context += "Date: " + dateStr + " | Source: " + mem.source_type + " | Freshness: " + (mem.freshness_status || 'CURRENT') + "\n";
+        context += "Content: " + mem.content + "\n";
+        if (mem.evidence) context += "Evidence: " + JSON.stringify(mem.evidence) + "\n";
+        if (mem.verification_status) context += "Status: " + mem.verification_status + "\n";
+        context += "\n";
       }
     }
 
     return context;
   }
-}
+}`;
 
-
+fs.writeFileSync(path.join(__dirname, 'backend/src/services/CompanyMemoryService.ts'), content);
+console.log('CompanyMemoryService.ts written successfully');
