@@ -49,7 +49,7 @@ export class ExecutiveRegistry {
     if (objLower.includes('technical') || objLower.includes('bug') || objLower.includes('incident') || objLower.includes('website') || objLower.includes('reliability') || objLower.includes('api') || objLower.includes('backend') || objLower.includes('database') || objLower.includes('workflow') || objLower.includes('worker') || objLower.includes('deployment') || objLower.includes('error') || objLower.includes('failure')) {
       return this.capabilities.get('CTO') || null;
     }
-    if (objLower.includes('cost reduction') || objLower.includes('financial') || objLower.includes('cash flow') || objLower.includes('margin')) {
+    if (objLower.includes('cost reduction') || objLower.includes('financial') || objLower.includes('cash flow') || objLower.includes('margin') || objLower.includes('revenue') || objLower.includes('expense') || objLower.includes('profit') || objLower.includes('budget') || objLower.includes('forecast') || objLower.includes('burn rate') || objLower.includes('runway') || objLower.includes('pricing')) {
       return this.capabilities.get('CFO') || null;
     }
     if (objLower.includes('cross company') || objLower.includes('strategic') || objLower.includes('operations')) {
@@ -59,4 +59,5 @@ export class ExecutiveRegistry {
     return null;
   }
 }
+
 

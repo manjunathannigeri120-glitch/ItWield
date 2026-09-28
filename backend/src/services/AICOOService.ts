@@ -10,11 +10,12 @@ import { ExecutiveRegistry } from './ExecutiveRegistry';
 import { ExecutiveOperatingEngine } from './ExecutiveOperatingEngine';
 import { CMOCapability } from './CMOCapability';
 import { CTOCapability } from './CTOCapability';
+import { CFOCapability } from './CFOCapability';
 import { StubCapability } from './ExecutiveRegistry';
 
 ExecutiveRegistry.register(new CMOCapability());
 ExecutiveRegistry.register(new CTOCapability());
-ExecutiveRegistry.register(new StubCapability('CFO'));
+ExecutiveRegistry.register(new CFOCapability());
 ExecutiveRegistry.register(new StubCapability('CEO'));
 
 export class AICOOService {
