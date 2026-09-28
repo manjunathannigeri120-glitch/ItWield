@@ -49,7 +49,7 @@ export class SupabaseAdapter implements ToolAdapter {
         return { success: false, errorMessage: 'Capability ' + capability + ' not implemented.' };
     }
 
-    async verify(capability: string, executionResult: ToolExecutionResult, credentials: any): Promise<boolean> {
+    async verify(capability: string, executionResult: ToolExecutionResult, credentials: any, input?: any): Promise<boolean> {
         return executionResult.success;
     }
 

@@ -69,6 +69,35 @@ export class GitHubAdapter implements ToolAdapter {
 
     private async createIssue(input: any, credentials: any): Promise<ToolExecutionResult> {
         try {
+            // Idempotency check: look for an issue with the exact same title in this repo
+            if (input.title && input.owner && input.repo) {
+                const searchUrl = `https://api.github.com/search/issues?q=repo:${input.owner}/${input.repo}+in:title+"${encodeURIComponent(input.title)}"`;
+                const searchRes = await fetch(searchUrl, {
+                    headers: {
+                        'Authorization': 'Bearer ' + credentials.token,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'User-Agent': 'ItWield-App'
+                    }
+                });
+                if (searchRes.ok) {
+                    const searchData = await searchRes.json();
+                    // Just take the first match as proof it was already created
+                    if (searchData.items && searchData.items.length > 0) {
+                        const existing = searchData.items[0];
+                        return {
+                            success: true,
+                            evidence: {
+                                externalId: existing.id.toString(),
+                                url: existing.html_url,
+                                timestamp: new Date().toISOString(),
+                                summary: 'Found existing issue #' + existing.number + ': ' + existing.title + ' (Idempotency)',
+                                rawResponse: { number: existing.number, id: existing.id }
+                            }
+                        };
+                    }
+                }
+            }
+
             const res = await fetch('https://api.github.com/repos/' + input.owner + '/' + input.repo + '/issues', {
                 method: 'POST',
                 headers: {
@@ -99,11 +128,26 @@ export class GitHubAdapter implements ToolAdapter {
         }
     }
 
-    async verify(capability: string, executionResult: ToolExecutionResult, credentials: any): Promise<boolean> {
+    async verify(capability: string, executionResult: ToolExecutionResult, credentials: any, input?: any): Promise<boolean> {
         if (!executionResult.success || !executionResult.evidence?.externalId) return false;
         
-        if (capability === 'GITHUB_ISSUES_CREATE') {
-            return !!executionResult.evidence.rawResponse?.number;
+        if (capability === 'GITHUB_ISSUES_CREATE' && input?.owner && input?.repo) {
+            try {
+                const number = executionResult.evidence.rawResponse?.number;
+                if (!number) return false;
+                const res = await fetch('https://api.github.com/repos/' + input.owner + '/' + input.repo + '/issues/' + number, {
+                    headers: {
+                        'Authorization': 'Bearer ' + credentials.token,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'User-Agent': 'ItWield-App'
+                    }
+                });
+                if (!res.ok) return false;
+                const data = await res.json();
+                return data.title === input.title;
+            } catch (e) {
+                return false;
+            }
         }
         return true;
     }

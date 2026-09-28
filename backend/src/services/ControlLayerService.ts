@@ -83,7 +83,9 @@ export class ControlLayerService {
             }
 
             // 5. Verify
-            const isVerified = await adapter.verify(req.capability, executionResult, credentials);
+            let parsedInput = {};
+            try { if (req.inputSummary) parsedInput = JSON.parse(req.inputSummary); } catch(e) {}
+            const isVerified = await adapter.verify(req.capability, executionResult, credentials, parsedInput);
             if (!isVerified) {
                 const error = 'Verification failed after execution.';
                 await this.recordAudit(supabase, req, authResult, 'Executed but unverified', executionResult.evidence?.summary, error);

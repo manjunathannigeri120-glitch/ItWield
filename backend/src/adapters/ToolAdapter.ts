@@ -27,7 +27,7 @@ export interface ToolAdapter {
     execute(capability: string, input: any, credentials: any): Promise<ToolExecutionResult>;
     
     // Verify an action occurred
-    verify(capability: string, executionResult: ToolExecutionResult, credentials: any): Promise<boolean>;
+    verify(capability: string, executionResult: ToolExecutionResult, credentials: any, input?: any): Promise<boolean>;
     
     // Disconnect/Revoke
     disconnect(credentials: any): Promise<void>;

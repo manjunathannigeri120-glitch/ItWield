@@ -107,6 +107,21 @@ export class WorkerExecutionService {
                   }
               }
           }
+
+          // Company Brain Integration
+          if (result.evidence?.summary) {
+              await CompanyMemoryService.createMemory({
+                  workspaceId: workspaceId,
+                  category: 'FACT',
+                  title: 'Execution: ' + task.title,
+                  content: result.evidence.summary,
+                  sourceType: 'CONNECTED_SYSTEM',
+                  sourceId: provider,
+                  evidence: result.evidence,
+                  verificationStatus: 'SOURCE_BACKED',
+                  createdBy: worker.id
+              }, db);
+          }
       }
 
       return { status: verified ? 'COMPLETED' : 'VERIFICATION_PENDING', result };

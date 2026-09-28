@@ -32,12 +32,35 @@ export class VercelAdapter implements ToolAdapter {
         if (capability === 'VERCEL_DEPLOYMENTS_READ') {
             return this.readDeployments(input, credentials);
         }
+        if (capability === 'VERCEL_PROJECTS_READ') {
+            return this.readProjects(input, credentials);
+        }
         return { success: false, errorMessage: 'Capability ' + capability + ' not implemented.' };
+    }
+
+    private async readProjects(input: any, credentials: any): Promise<ToolExecutionResult> {
+        try {
+            const res = await fetch('https://api.vercel.com/v9/projects', {
+                headers: { 'Authorization': 'Bearer ' + credentials.token }
+            });
+            if (!res.ok) throw new Error('Vercel API Error: ' + res.statusText);
+            const data = await res.json();
+            return {
+                success: true,
+                evidence: {
+                    timestamp: new Date().toISOString(),
+                    summary: 'Found ' + (data.projects?.length || 0) + ' projects.',
+                    rawResponse: data
+                }
+            };
+        } catch (err: any) {
+            return { success: false, errorMessage: err.message };
+        }
     }
 
     private async readDeployments(input: any, credentials: any): Promise<ToolExecutionResult> {
         try {
-            const res = await fetch('https://api.vercel.com/v6/deployments?projectId=' + input.projectId, {
+            const res = await fetch('https://api.vercel.com/v6/deployments' + (input?.projectId ? '?projectId=' + input.projectId : ''), {
                 headers: { 'Authorization': 'Bearer ' + credentials.token }
             });
             if (!res.ok) throw new Error('Vercel API Error: ' + res.statusText);
@@ -55,7 +78,7 @@ export class VercelAdapter implements ToolAdapter {
         }
     }
 
-    async verify(capability: string, executionResult: ToolExecutionResult, credentials: any): Promise<boolean> {
+    async verify(capability: string, executionResult: ToolExecutionResult, credentials: any, input?: any): Promise<boolean> {
         return executionResult.success;
     }
 
