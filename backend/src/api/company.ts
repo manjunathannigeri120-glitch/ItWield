@@ -22,7 +22,7 @@ router.get('/state', async (req: any, res) => {
         dependencies: dependencies || []
     });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -54,8 +54,9 @@ router.post('/next-action', async (req: any, res) => {
 
     res.json({ nextAction });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
 export default router;
+

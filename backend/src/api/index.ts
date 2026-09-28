@@ -19,6 +19,7 @@ import cooRouter from './coo';
 
 import companyRouter from './company';
 const router = Router();
+router.get('/health', (req, res) => res.json({ status: 'ok', version: '3.19.0' }));
 router.use('/workspaces/:workspaceId/company', companyRouter);
 
 router.use('/workspaces/:workspaceId/missions', missionsRoutes);
@@ -39,5 +40,6 @@ router.use('/ceo', ceoRouter);
 router.use('/scheduler', schedulerRouter);
 
 export default router;
+
 
 

@@ -295,11 +295,12 @@ router.get('/', async (req: any, res) => {
     res.json(payload);
   } catch (error: any) {
     console.error('Command Center Error:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
 export default router;
+
 
 
 

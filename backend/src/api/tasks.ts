@@ -31,7 +31,7 @@ router.get('/', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -48,7 +48,7 @@ router.get('/:id', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -95,7 +95,7 @@ router.post('/', async (req: AuthRequest, res) => {
 
     res.json(data);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -142,7 +142,7 @@ router.patch('/:id', async (req: AuthRequest, res) => {
 
     res.json(data);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -159,8 +159,9 @@ router.get('/:id/events', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
 export const tasksRouter = router;
+

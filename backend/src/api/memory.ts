@@ -27,7 +27,7 @@ router.get('/', async (req: any, res) => {
 
     res.json(data || []);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -67,9 +67,9 @@ router.post('/', async (req: any, res) => {
     res.status(201).json(memory);
   } catch (error: any) {
     if (error.message.includes('Security')) {
-      return res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
     }
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -106,8 +106,9 @@ router.put('/:id', async (req: any, res) => {
     if (updateError) throw updateError;
     res.json(updated);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
 export default router;
+

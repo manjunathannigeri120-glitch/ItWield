@@ -167,16 +167,11 @@ export class AICOOService {
         result: 'Cycle finished.'
       });
 
-      // Release Lock and Goal Operating Status
-      for (const goal of updatedGoals) {
-        await supabase.from('business_goals').update({ operating_status: 'ACTIVE' }).eq('id', goal.id).eq('operating_status', 'OPERATING');
-      }
-      await supabase.from('workspaces').update({ status: 'ACTIVE' }).eq('id', workspaceId);
-
       return { status: 'CONTINUE', message: 'Operating cycle complete.' };
-
     } catch (err: any) {
       console.error('[COO] Error during operation cycle:', err);
+      return { status: 'ERROR', message: err.message };
+    } finally {
       // Release Lock and Goal Operating Status
       if (updatedGoalsRef && updatedGoalsRef.length > 0) {
          for (const goal of updatedGoalsRef) {
@@ -184,7 +179,6 @@ export class AICOOService {
          }
       }
       await supabase.from('workspaces').update({ status: 'ACTIVE' }).eq('id', workspaceId);
-      return { status: 'ERROR', message: err.message };
     }
   }
   
@@ -261,4 +255,5 @@ export class AICOOService {
     }
   }
 }
+
 

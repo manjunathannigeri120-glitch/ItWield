@@ -27,7 +27,7 @@ router.get('/', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -59,7 +59,7 @@ router.post('/', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -171,7 +171,7 @@ router.post('/:id/analyze-company', async (req: AuthRequest, res) => {
       workforce: proposedWorkforce
     });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -257,7 +257,7 @@ router.post('/:id/activate', async (req: AuthRequest, res) => {
 
     res.json({ message: 'Workspace activated successfully' });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -385,7 +385,7 @@ router.get('/:id/while-away', async (req: AuthRequest, res) => {
       }
     });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -399,7 +399,7 @@ router.get('/:id/brain', async (req: AuthRequest, res) => {
     res.json(brain);
   } catch (error: any) {
     console.error('Brain Error:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -417,7 +417,7 @@ router.get('/:id/action-queue', async (req: AuthRequest, res) => {
     res.json(queue || []);
   } catch (error: any) {
     console.error('Action Queue Error:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -618,7 +618,7 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
       generatedAt: new Date().toISOString()
     });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -639,7 +639,7 @@ router.get('/:id/plan', async (req: AuthRequest, res) => {
       usage: usageSnapshot
     });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -654,7 +654,7 @@ router.post('/:id/plan', async (req: AuthRequest, res) => {
     const subscription = await SubscriptionService.changePlan(req.supabase, workspaceId, planId, req.user.id);
     res.json({ ok: true, subscription });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -665,7 +665,7 @@ router.post('/:id/subscription/cancel', async (req: AuthRequest, res) => {
     const subscription = await SubscriptionService.cancelSubscription(req.supabase, workspaceId, req.user.id);
     res.json({ ok: true, subscription });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -676,7 +676,7 @@ router.post('/:id/subscription/reactivate', async (req: AuthRequest, res) => {
     const subscription = await SubscriptionService.reactivateSubscription(req.supabase, workspaceId, req.user.id);
     res.json({ ok: true, subscription });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -849,7 +849,7 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
 
     res.json({ success: true, executed: true });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -908,7 +908,7 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
 
     res.json({ success: true });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -953,7 +953,7 @@ router.get('/:id/improvements', async (req: AuthRequest, res) => {
       total: proposals.length
     });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -987,7 +987,7 @@ router.get('/:id/improvements/:improvId', async (req: AuthRequest, res) => {
 
     res.json(proposal);
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -1042,8 +1042,9 @@ router.post('/:id/improvements/:improvId/dismiss', async (req: AuthRequest, res)
 
     res.json({ success: true, message: 'Improvement dismissed.' });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
+
 
 

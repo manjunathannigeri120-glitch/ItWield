@@ -36,7 +36,7 @@ router.get('/', async (req: any, res) => {
   } catch (error: any) {
     console.error('[Missions API] Exception in GET /:', error);
     res.status(500).json({ 
-      error: error.message || 'Internal server error fetching missions',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' || 'Internal server error fetching missions',
       details: error.details || undefined,
       code: error.code || undefined
     });
@@ -268,7 +268,7 @@ router.get('/:missionId', async (req: any, res) => {
         return res.status(404).json({ error: 'Mission not found' });
     }
     console.error('[Missions API GET /:id] Exception:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -409,10 +409,11 @@ router.post('/:missionId/:action', async (req: any, res) => {
 
     res.json(mission);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
 export default router;
+
 
 

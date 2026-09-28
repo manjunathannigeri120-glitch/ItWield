@@ -49,7 +49,7 @@ router.post('/workspace/:workspaceId', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -69,7 +69,7 @@ router.get('/workspace/:workspaceId', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -89,7 +89,7 @@ router.get('/:kbId/documents', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -226,7 +226,7 @@ router.post('/:kbId/documents', upload.single('file'), async (req: AuthRequest, 
     })();
 
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -258,7 +258,7 @@ router.delete('/documents/:docId', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json({ success: true });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -279,8 +279,9 @@ router.delete('/:kbId', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json({ success: true });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
 export default router;
+

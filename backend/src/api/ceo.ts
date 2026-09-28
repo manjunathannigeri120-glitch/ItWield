@@ -32,8 +32,9 @@ router.post('/run', async (req: AuthRequest, res) => {
     res.json(result);
   } catch (error: any) {
     console.error('[CEO API Error]', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
 export const ceoRouter = router;
+

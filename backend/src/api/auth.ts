@@ -16,8 +16,9 @@ router.get('/me', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
 export default router;
+

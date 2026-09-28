@@ -1,1 +1,0 @@
-const fs = require('fs'); let content = fs.readFileSync('src/api/workspaces.ts', 'utf8'); content = content.replace(/'OWNER',\s*req\.supabase\s*\);/g, 'OWNER', undefined, req.supabase);); fs.writeFileSync('src/api/workspaces.ts', content);

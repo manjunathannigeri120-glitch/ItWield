@@ -20,7 +20,7 @@ router.get('/opportunities', async (req: any, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -34,7 +34,7 @@ router.post('/opportunities/:oppId/response', async (req: any, res) => {
     const updated = await CustomerGrowthService.recordResponse(supabase, workspaceId, oppId, responseText, classification);
     res.json(updated);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -51,7 +51,7 @@ router.post('/opportunities/:oppId/convert', async (req: any, res) => {
     const updated = await CustomerGrowthService.recordConversion(supabase, workspaceId, oppId, outcome, evidence, valueStr);
     res.json(updated);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
@@ -65,8 +65,9 @@ router.post('/opportunities/:oppId/follow-up', async (req: any, res) => {
     const updated = await CustomerGrowthService.proposeFollowUp(supabase, workspaceId, oppId, reason || 'Automated follow-up sequence');
     res.json(updated);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
   }
 });
 
 export default router;
+
