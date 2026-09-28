@@ -14,7 +14,7 @@ export interface CreateMemoryParams {
   sourceId?: string;
   evidence?: any;
   confidence?: number;
-  verificationStatus?: 'VERIFIED' | 'UNVERIFIED' | 'REJECTED';
+  verificationStatus?: 'VERIFIED' | 'UNVERIFIED' | 'REJECTED' | 'SOURCE_BACKED' | 'INDEPENDENTLY_VERIFIED';
   relatedMissionId?: string;
   relatedIncidentId?: string;
   relatedDecisionId?: string;
@@ -208,4 +208,5 @@ export class CompanyMemoryService {
     return context;
   }
 }
+
 

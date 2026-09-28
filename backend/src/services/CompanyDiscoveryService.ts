@@ -80,10 +80,29 @@ export class CompanyDiscoveryService {
         const discoveries = extracted.discoveries || [];
         let storedCount = 0;
 
-        for (const item of discoveries) {
+                for (const item of discoveries) {
             if (item.evidence_type === 'INSUFFICIENT_DATA') continue;
             
             try {
+                // Deduplication check
+                const { data: existing } = await supabase
+                    .from('company_memory')
+                    .select('id')
+                    .eq('workspace_id', workspaceId)
+                    .eq('category', item.category || 'STRATEGIC_CONTEXT')
+                    .eq('content', item.content)
+                    .limit(1);
+
+                if (existing && existing.length > 0) {
+                    continue; // Skip exact duplicate
+                }
+
+                // Truncate excerpt if too long to prevent storing massive web chunks
+                let safeExcerpt = item.evidence_excerpt || '';
+                if (safeExcerpt.length > 500) {
+                    safeExcerpt = safeExcerpt.substring(0, 500) + '...';
+                }
+
                 await CompanyMemoryService.createMemory({
                     workspaceId,
                     category: item.category || 'STRATEGIC_CONTEXT',
@@ -94,10 +113,10 @@ export class CompanyDiscoveryService {
                     confidence: item.evidence_type === 'KNOWN_FACT' ? 1.0 : 0.5,
                     evidence: {
                         evidence_type: item.evidence_type,
-                        excerpt: item.evidence_excerpt,
+                        excerpt: safeExcerpt,
                         url: url
                     },
-                    verificationStatus: item.evidence_type === 'KNOWN_FACT' ? 'VERIFIED' : 'UNVERIFIED',
+                    verificationStatus: item.evidence_type === 'KNOWN_FACT' ? 'SOURCE_BACKED' : 'UNVERIFIED',
                     createdBy: 'system'
                 }, supabase);
                 storedCount++;
@@ -112,4 +131,6 @@ export class CompanyDiscoveryService {
         }).eq('id', discoveryId);
     }
 }
+
+
 
