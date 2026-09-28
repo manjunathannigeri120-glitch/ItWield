@@ -24,6 +24,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Missions', href: '/missions', icon: Rocket },
     { name: 'CRM', href: '/crm', icon: Users },
     { name: 'Workforce', href: '/agents', icon: Bot },
+    { name: 'Control Layer', href: '/control', icon: GitMerge },
     { name: 'Connections', href: '/connections', icon: GitMerge },
     { name: 'Approvals', href: '/dashboard', icon: Target, disabled: false },
     { name: 'Company Brain', href: '/memory', icon: Database },
@@ -76,3 +77,4 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 }
+

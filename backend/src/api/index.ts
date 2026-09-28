@@ -18,6 +18,7 @@ import goalsRouter from './goals';
 import cooRouter from './coo';
 
 import companyRouter from './company';
+import controlRouter from './control';
 const router = Router();
 router.get('/health', (req, res) => res.json({ status: 'ok', version: '3.19.0' }));
 router.use('/workspaces/:workspaceId/company', companyRouter);
@@ -28,6 +29,7 @@ router.use('/workspaces/:workspaceId/command-center', commandCenterRoutes);
 router.use('/workspaces/:workspaceId/crm', crmRoutes);
 router.use('/workspaces/:workspaceId/goals', goalsRouter);
 router.use('/workspaces/:workspaceId', cooRouter);
+router.use('/workspaces/:workspaceId/control', controlRouter);
 router.use('/workspaces', workspaceRoutes);
 router.use('/agents', agentRoutes);
 router.use('/conversations', conversationRoutes);
@@ -40,6 +42,7 @@ router.use('/ceo', ceoRouter);
 router.use('/scheduler', schedulerRouter);
 
 export default router;
+
 
 
 
