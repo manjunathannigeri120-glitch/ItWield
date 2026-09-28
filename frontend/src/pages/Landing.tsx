@@ -8,11 +8,16 @@ export function Landing() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-center p-6">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 leading-tight">
-          Tell ItWield what you want your business to achieve.
+          AI to operate your business automatically 24/7.
         </h1>
-        <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto mb-10">
-          ItWield's AI CEO, COO, executives and workforce turn business goals into real work, execute within your rules, measure the results and adapt when the plan isn't working.
-        </p>
+        
+        <div className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto mb-10 space-y-4">
+          <p><strong>You set the direction.</strong></p>
+          <p>Your AI executives coordinate the business.<br />
+          AI workers execute authorized work.<br />
+          ItWield verifies what actually happened.<br />
+          You are notified when human attention is required.</p>
+        </div>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link 
@@ -30,10 +35,10 @@ export function Landing() {
         </div>
 
         <div className="mt-16 mb-8 text-sm font-bold text-slate-400 uppercase tracking-widest">
-          Example Outcomes
+          Example Direction
         </div>
         <div className="flex flex-wrap justify-center gap-3 mb-20 max-w-3xl mx-auto">
-          {["Get me 20 customers.", "Get 100 qualified leads.", "Double my revenue.", "Find what's stopping my business from growing."].map((goal, i) => (
+          {["Get me 20 customers.", "What is CAC?", "Pause customer acquisition.", "Find what's stopping my business from growing."].map((goal, i) => (
             <div key={i} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-700 font-medium shadow-sm">
               "{goal}"
             </div>
@@ -43,18 +48,18 @@ export function Landing() {
         <div id="how-it-works" className="grid md:grid-cols-3 gap-8 text-left border-t border-slate-200 pt-16">
           <div>
             <div className="bg-indigo-100 text-indigo-700 w-10 h-10 flex items-center justify-center rounded-lg font-bold mb-4">1</div>
-            <h3 className="font-bold text-slate-900 mb-2 text-lg">Tell ItWield your goal</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">Connect your business data. ItWield builds the plan and AI executives coordinate the work.</p>
+            <h3 className="font-bold text-slate-900 mb-2 text-lg">What you do</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">Set business objectives and provide company context. ItWield handles the execution strategy.</p>
           </div>
           <div>
             <div className="bg-amber-100 text-amber-700 w-10 h-10 flex items-center justify-center rounded-lg font-bold mb-4">2</div>
-            <h3 className="font-bold text-slate-900 mb-2 text-lg">You approve sensitive actions</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">The AI prepares the work but respects your authority. Execute authorized tasks automatically, review the rest.</p>
+            <h3 className="font-bold text-slate-900 mb-2 text-lg">What AI does</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">AI executives plan missions. AI workers perform the work. The COO coordinates operations continuously.</p>
           </div>
           <div>
             <div className="bg-emerald-100 text-emerald-700 w-10 h-10 flex items-center justify-center rounded-lg font-bold mb-4">3</div>
-            <h3 className="font-bold text-slate-900 mb-2 text-lg">Measure real outcomes</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">ItWield tracks actual business metrics, measures the outcome, and adapts when necessary. No fabricated numbers.</p>
+            <h3 className="font-bold text-slate-900 mb-2 text-lg">What is verified</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">Progress is verified against real CRM and backend database records. No fabricated AI outcomes.</p>
           </div>
         </div>
       </div>

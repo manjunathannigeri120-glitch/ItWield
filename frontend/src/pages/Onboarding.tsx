@@ -86,19 +86,19 @@ export function Onboarding() {
             </CardHeader>
             <CardContent className="pt-6 space-y-5 bg-white">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Company Name</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Company Name <span className="text-red-500 font-normal">*</span></label>
                 <Input value={basics.name} onChange={e => setBasics({...basics, name: e.target.value})} placeholder="e.g. Acme Corp" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Website</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Website <span className="text-red-500 font-normal">*</span></label>
                 <Input value={basics.website} onChange={e => setBasics({...basics, website: e.target.value})} placeholder="e.g. https://acmecorp.com" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Industry</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Industry <span className="text-slate-400 font-normal">(Optional)</span></label>
                 <Input value={basics.industry} onChange={e => setBasics({...basics, industry: e.target.value})} placeholder="e.g. B2B SaaS" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Brief Description</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Brief Description <span className="text-slate-400 font-normal">(Optional)</span></label>
                 <textarea 
                   className="w-full border border-slate-300 rounded-md p-3 text-sm focus:border-indigo-500 outline-none h-24"
                   value={basics.short_description} 
@@ -123,15 +123,15 @@ export function Onboarding() {
             </CardHeader>
             <CardContent className="pt-6 space-y-5 bg-white">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Target Customer</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Target Customer <span className="text-slate-400 font-normal">(Optional)</span></label>
                 <Input value={context.target_customer} onChange={e => setContext({...context, target_customer: e.target.value})} placeholder="e.g. Mid-market marketing agencies" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Primary Market / Geography</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Primary Market / Geography <span className="text-slate-400 font-normal">(Optional)</span></label>
                 <Input value={context.primary_market} onChange={e => setContext({...context, primary_market: e.target.value})} placeholder="e.g. United States, English speaking" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Current Goals</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Current Goals <span className="text-slate-400 font-normal">(Optional)</span></label>
                 <textarea 
                   className="w-full border border-slate-300 rounded-md p-3 text-sm focus:border-indigo-500 outline-none h-20"
                   value={context.goals} 
@@ -140,7 +140,7 @@ export function Onboarding() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Biggest Problems / Constraints</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Biggest Problems / Constraints <span className="text-slate-400 font-normal">(Optional)</span></label>
                 <textarea 
                   className="w-full border border-slate-300 rounded-md p-3 text-sm focus:border-indigo-500 outline-none h-20"
                   value={context.biggest_problems} 
@@ -161,4 +161,5 @@ export function Onboarding() {
     </div>
   );
 }
+
 

@@ -8,7 +8,7 @@ import { Loader2, Activity, AlertCircle, ArrowRight, Sparkles, Play } from 'luci
 export default function Dashboard() {
   const navigate = useNavigate();
   const [workspace, setWorkspace] = useState<any>(null);
-  const [ceoBriefingData, setCeoBriefingData] = useState<any>(null);
+  const [ccData, setCcData] = useState<any>(null);
   const [goals, setGoals] = useState<any[]>([]);
   const [operatingState, setOperatingState] = useState<string>('READY');
   const [nextAction, setNextAction] = useState<any>(null);
@@ -41,7 +41,7 @@ export default function Dashboard() {
       ]);
 
       setGoals(goalsRes.data);
-      setCeoBriefingData(ccRes.data.ceoBriefing || { unreadAlerts: [], latestDecisions: [], approvalHistory: [] });
+      setCcData(ccRes.data);
       setOperatingState(opStateRes.data.operating_state);
       setNextAction(nextActionRes.data);
       setIsLoading(false);
@@ -85,9 +85,9 @@ export default function Dashboard() {
 
   if (isLoading) return <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
 
-  const pendingApprovals = ceoBriefingData?.unreadAlerts?.filter((a: any) => a.type === 'APPROVAL_REQUIRED') || [];
-  const importantAlerts = ceoBriefingData?.unreadAlerts?.filter((a: any) => a.severity === 'high' || a.severity === 'critical') || [];
-  const whileAway = ceoBriefingData?.latestDecisions?.slice(0, 5) || [];
+  const pendingApprovals = ccData?.approvals || [];
+  const importantAlerts = ccData?.ownerAttention?.filter((a: any) => a.severity === 'high' || a.severity === 'critical') || [];
+  const whileAway = ccData?.decisionTimeline?.slice(0, 5) || [];
   const activeGoals = goals.filter(g => g.status === 'ACTIVE');
 
   return (
@@ -237,6 +237,34 @@ export default function Dashboard() {
         )}
       </div>
 
+            {/* AI EXECUTIVE VISIBILITY */}
+      {ccData?.executives && ccData.executives.length > 0 && (
+        <div className="space-y-4 pt-6 border-t border-slate-200">
+          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">AI Executive Team</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ccData.executives.map((exec: any, i: number) => (
+              <Card key={i} className="shadow-sm border-slate-200">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm">
+                      {exec.role}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900">{exec.name}</h3>
+                      <p className="text-xs text-slate-500">{exec.focus}</p>
+                    </div>
+                  </div>
+                  <div className="text-sm">
+                    <div className="mb-1"><span className="text-slate-500 font-medium">Latest:</span> <span className="text-slate-700">{exec.latestDecision || 'None'}</span></div>
+                    <div><span className="text-slate-500 font-medium">Blockers:</span> <span className="text-amber-600">{exec.blockers || 'None'}</span></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* MODAL FOR APPROVALS */}
       {selectedApproval && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -267,5 +295,8 @@ export default function Dashboard() {
     </div>
   );
 }
+
+
+
 
 
