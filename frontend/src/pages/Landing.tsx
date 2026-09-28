@@ -20,7 +20,7 @@ export function Landing() {
   const ctaDestination = user ? "/dashboard" : "/login";
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       
       {/* SECTION 1 — HERO */}
       <section className="pt-24 pb-16 md:pt-32 md:pb-24 px-6 text-center max-w-5xl mx-auto">
