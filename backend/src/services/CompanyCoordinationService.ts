@@ -61,6 +61,7 @@ export class CompanyCoordinationService {
 
     const diagnostic = await ceo.diagnose({ objective: 'Determine highest company priority' }, {}, context);
     
+    const { data: approvals } = await supabase.from('approvals').select('*').eq('workspace_id', workspaceId).eq('status', 'PENDING_APPROVAL');
     let currentPriority = 'Monitor operations';
     let companyState = 'ON_TRACK';
     let responsibleExecutive = 'COO';
@@ -70,7 +71,15 @@ export class CompanyCoordinationService {
     let expectedOutcome = 'Continue monitoring.';
 
     // If there is an open dependency, it's a blocker
-    if (openDeps && openDeps.length > 0) {
+    if (approvals && approvals.length > 0) {
+       companyState = 'WAITING_FOR_FOUNDER';
+       currentPriority = 'Review pending approval: ' + approvals[0].action;
+       reason = approvals[0].reason;
+       responsibleExecutive = 'FOUNDER';
+       authority = 'APPROVAL_REQUIRED';
+       founderAttentionRequired = true;
+       expectedOutcome = 'Authorized action to proceed.';
+    } else if (openDeps && openDeps.length > 0) {
        companyState = 'ATTENTION';
        currentPriority = `Resolve ${openDeps[0].blocking_executive} dependency blocking ${openDeps[0].source_executive}`;
        reason = openDeps[0].reason;
@@ -100,3 +109,4 @@ export class CompanyCoordinationService {
     };
   }
 }
+

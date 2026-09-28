@@ -41,6 +41,7 @@ router.get('/', async (req: any, res) => {
 
     // --- 1. COMPANY HEALTH MODEL ---
     let opsHealth = 'HEALTHY';
+    const finHealth = 'NO_DATA';
     let techHealth = 'HEALTHY';
     let bizHealth = 'HEALTHY';
     let missionHealth = 'HEALTHY';
@@ -62,15 +63,19 @@ router.get('/', async (req: any, res) => {
     const custHealth = opportunities.length > 0 ? 'HEALTHY' : 'NO_DATA';
     const workforceHealth = 'HEALTHY';
 
+    const { CompanyCoordinationService } = await import('../services/CompanyCoordinationService');
+    const nextAction = await CompanyCoordinationService.determineCompanyNextAction(supabase, workspaceId);
     const companyStatus = {
-      state: opsHealth === 'DEGRADED' || techHealth === 'DEGRADED' ? 'Needs attention' : 'Operating normally',
-        reason: 'See health metrics',
-        health: {
-        business: bizHealth,
-        customerGrowth: custHealth,
-        missions: missionHealth,
+      state: nextAction.companyState,
+      reason: nextAction.reason,
+      priority: nextAction.currentPriority,
+      nextAction: nextAction.nextAction,
+      authority: nextAction.authority,
+      health: {
         operations: opsHealth,
         technology: techHealth,
+        finance: finHealth,
+        customers: custHealth,
         workforce: workforceHealth
       }
     };
@@ -295,4 +300,6 @@ router.get('/', async (req: any, res) => {
 });
 
 export default router;
+
+
 
