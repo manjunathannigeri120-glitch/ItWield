@@ -713,18 +713,24 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
       return res.status(400).json({ error: 'Approval request has expired.' });
     }
 
-    // 2. Concurrency-safe atomic transition to APPROVED
-    const { data: updated, error: updateErr } = await req.supabase
-      .from('approvals')
-      .update({
+          const updateData: any = {
         status: 'APPROVED',
         resolved_at: new Date().toISOString(),
         resolved_by: userId
-      })
-      .eq('id', approvalId)
-      .eq('status', 'PENDING_APPROVAL')
-      .select()
-      .single();
+      };
+
+      if (req.body && req.body.editedContext) {
+        updateData.context = { ...(approval.context || {}), ...req.body.editedContext };
+      }
+
+      // 2. Concurrency-safe atomic transition to APPROVED
+      const { data: updated, error: updateErr } = await req.supabase
+        .from('approvals')
+        .update(updateData)
+        .eq('id', approvalId)
+        .eq('status', 'PENDING_APPROVAL')
+        .select()
+        .single();
 
     if (updateErr || !updated) {
       return res.status(409).json({ error: 'Conflict: Approval was resolved by another process.' });
