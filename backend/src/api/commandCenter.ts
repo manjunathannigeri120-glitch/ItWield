@@ -129,7 +129,14 @@ router.get('/', async (req: any, res) => {
         latestDecision: opportunities.length > 0 ? 'Evaluating market responses' : 'Prospecting'
       },
       {
-        id: aiCfo?.id, role: 'CFO',
+        id: aiCoo?.id, role: 'COO',
+          name: aiCoo?.name || 'AI COO',
+          focus: opsHealth !== 'HEALTHY' ? 'Coordinating operations' : 'Overseeing workforce',
+          blockers: pendingApprovals.length > 0 ? 'Awaiting Founder Approval' : 'None',
+          latestDecision: 'Task delegation'
+        },
+        {
+          id: aiCfo?.id, role: 'CFO',
         name: 'AI CFO',
         focus: 'Financial data not connected.',
         blockers: 'Disconnected',
@@ -301,6 +308,7 @@ router.get('/', async (req: any, res) => {
 
     const payload = {
       companyStatus,
+        health: companyStatus.health,
       goals: businessGoals || [],
       cooReview,
       executives,
