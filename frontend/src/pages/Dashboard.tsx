@@ -50,7 +50,7 @@ export default function Dashboard() {
 
       const [goalsRes, ccRes, opStateRes, nextActionRes, agentsRes] = await Promise.all([
         api.get(`/workspaces/${ws.id}/goals`).catch(() => ({ data: [] })),
-        api.get(`/command-center/${ws.id}?limit=10`).catch(() => ({ data: null })),
+        api.get(`/workspaces/${ws.id}/command-center?limit=10`).catch(() => ({ data: null })),
         api.get(`/workspaces/${ws.id}/company/operating-state`).catch(() => ({ data: { operating_state: 'READY' } })),
         api.get(`/workspaces/${ws.id}/company/next-action`).catch(() => ({ data: null })),
         api.get(`/agents/workspace/${ws.id}`).catch(() => ({ data: [] }))
