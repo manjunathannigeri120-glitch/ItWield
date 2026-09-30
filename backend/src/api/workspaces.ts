@@ -715,8 +715,9 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
 
           const updateData: any = {
         status: 'APPROVED',
+          ...(userId ? { resolved_by: userId } : {}),
         resolved_at: new Date().toISOString(),
-        resolved_by: userId || undefined
+        
       };
 
       if (req.body && req.body.editedContext) {
@@ -888,6 +889,7 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
       .from('approvals')
       .update({
         status: 'REJECTED',
+        ...(userId ? { resolved_by: userId } : {}),
         resolved_at: new Date().toISOString(),
         resolved_by: userId || undefined,
         resolution_reason: reason || 'Owner rejected request'
