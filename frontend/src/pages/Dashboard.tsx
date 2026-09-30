@@ -357,58 +357,6 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        {/* 5. AI COMPANY COMMAND */}
-        <Card className="border-slate-200 shadow-sm flex flex-col h-[500px]">
-          <CardHeader className="border-b bg-slate-50 py-4">
-            <CardTitle className="text-sm font-bold text-slate-700 uppercase flex flex-col gap-1">
-              <div className="flex items-center gap-2"><MessageSquare className="w-4 h-4" /> AI Company Command</div>
-              <span className="text-xs font-normal text-slate-500 normal-case">Ask your AI company what is happening, what needs attention, or what should happen next.</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
-            {chatHistory.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 space-y-3">
-                <MessageSquare className="w-10 h-10 opacity-20" />
-                <p>Ask your AI Company what they are doing, <br/>or give them a new objective.</p>
-              </div>
-            ) : (
-              chatHistory.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-lg p-3 text-sm ${
-                    msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-800'
-                  }`}>
-                    {msg.role === 'ai' && <div className="font-bold text-xs text-indigo-600 mb-1">Company Command</div>}
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
-                  </div>
-                </div>
-              ))
-            )}
-            {isChatting && (
-              <div className="flex justify-start">
-                <div className="bg-slate-100 text-slate-500 rounded-lg p-3 text-sm flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" /> Company is thinking...
-                </div>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </CardContent>
-          <div className="p-3 border-t bg-slate-50">
-            <form onSubmit={sendChatMessage} className="flex gap-2">
-              <input 
-                type="text" 
-                value={chatInput}
-                onChange={e => setChatInput(e.target.value)}
-                placeholder="e.g. 'What should we do next?'" 
-                className="flex-1 px-4 py-2 border rounded-full text-sm focus:outline-none focus:border-indigo-500 shadow-sm"
-                disabled={isChatting}
-              />
-              <Button type="submit" disabled={!chatInput.trim() || isChatting} className="rounded-full w-10 h-10 p-0 bg-indigo-600 hover:bg-indigo-700">
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </form>
-          </div>
-        </Card>
-
         {/* 6. HEALTH & ACTIVITY */}
         <div className="space-y-8">
           <Card className="border-slate-200 shadow-sm">
