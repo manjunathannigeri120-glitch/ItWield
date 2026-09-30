@@ -33,7 +33,7 @@ export default function CTO() {
         } catch(e) {
             console.error(e);
         }
-        setTimeout(() => setRunningDiagnostic(false), 2000);
+        setTimeout(() => { setRunningDiagnostic(false); window.location.reload(); }, 2000);
     };
 
     if (!status) return <div className="p-8">Loading CTO Data...</div>;
