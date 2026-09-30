@@ -31,28 +31,25 @@ router.post('/:workspaceId/diagnostic', async (req: any, res) => {
     const db = req.supabase;
     
     try {
-        // Since Vercel kills execution immediately after res.json is called, we MUST do everything synchronously.
         const service = getServiceSupabase();
         if(!service) {
             return res.status(500).json({ error: 'Database service unavailable' });
         }
         
-        // Temporarily update status to DIAGNOSING (if frontend polls, it will see this briefly)
+        // Update status to DIAGNOSING
         await service.from('workspaces').update({ cto_status: 'DIAGNOSING' }).eq('id', workspaceId);
         
-        // Await a brief artificial delay to simulate diagnostic thinking
         await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Create a mock incident
+        // Create a mock incident without missing columns
         await service.from('incidents').insert({
             workspace_id: workspaceId,
             type: 'TECHNICAL',
             severity: 'critical',
             status: 'DETECTED',
             title: `Database Connection Timeout`,
-            description: `A critical connection timeout was detected on the main production database cluster.`,
-            source: 'MANUAL_DIAGNOSTIC',
-            evidence: { error: 'Error: Connection Refused', latency: '5000ms' }
+            description: `A critical connection timeout was detected on the main production database cluster. Evidence: Error Connection Refused (Latency: 5000ms)`,
+            source: 'MANUAL_DIAGNOSTIC'
         });
         
         // Reset status to IDLE
