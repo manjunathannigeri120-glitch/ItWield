@@ -229,7 +229,18 @@ router.get('/', async (req: any, res) => {
       reason: e.details?.reason || 'Execution pipeline',
       outcome: e.details?.new_status
     }));
+    
+    tasks.slice(0, 15).forEach((t: any) => decisionTimeline.push({
+        id: t.id,
+        timestamp: t.updated_at || t.created_at,
+        actor: t.assigned_agent || 'WORKFORCE',
+        role: 'Worker',
+        action: 'Executed Task: ' + (t.title || 'Action'),
+        reason: t.description || 'System routine',
+        outcome: t.status
+    }));
     decisionTimeline.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 30);
+
 
     // --- 7. WHILE YOU WERE AWAY ---
     const whileYouWereAway = {
