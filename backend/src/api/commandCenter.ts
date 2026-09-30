@@ -103,31 +103,33 @@ router.get('/', async (req: any, res) => {
     const aiCeo = getExec('AI CEO');
     const aiCto = getExec('AI CTO') || getExec('CTO');
     const aiCmo = getExec('AI CMO') || getExec('CMO');
+    const aiCfo = getExec('AI CFO') || getExec('CFO');
+    const aiCoo = getExec('AI COO') || getExec('COO');
     
     const executives = [
       {
-        role: 'CEO',
+        id: aiCeo?.id, role: 'CEO',
         name: aiCeo?.name || 'AI CEO',
         focus: ceoDecisions[0]?.assessment || 'Monitoring operations',
         blockers: pendingApprovals.length > 0 ? `${pendingApprovals.length} approvals pending` : 'None',
         latestDecision: ceoDecisions[0]?.decision || 'None'
       },
       {
-        role: 'CTO',
+        id: aiCto?.id, role: 'CTO',
         name: aiCto?.name || 'AI CTO',
         focus: techHealth !== 'HEALTHY' ? 'Resolving technology incidents' : 'Maintaining system reliability',
         blockers: techHealth === 'DEGRADED' ? 'Provider availability issues' : 'None',
         latestDecision: 'System optimization'
       },
       {
-        role: 'CMO',
+        id: aiCmo?.id, role: 'CMO',
         name: aiCmo?.name || 'AI CMO',
         focus: 'Customer Acquisition and Growth',
         blockers: 'None',
         latestDecision: opportunities.length > 0 ? 'Evaluating market responses' : 'Prospecting'
       },
       {
-        role: 'CFO',
+        id: aiCfo?.id, role: 'CFO',
         name: 'AI CFO',
         focus: 'Financial data not connected.',
         blockers: 'Disconnected',
