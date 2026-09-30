@@ -19,6 +19,7 @@ import goalsRouter from './goals';
 import cooRouter from './coo';
 
 import companyRouter from './company';
+import chatRouter from './chat';
 import controlRouter from './control';
 import discoveryRouter from './discovery';
 import workforceRouter from './workforce';
@@ -39,6 +40,7 @@ router.use('/workspaces/:workspaceId', cooRouter);
 router.use('/workspaces/:workspaceId/control', controlRouter);
 router.use('/workspaces/:workspaceId/discovery', discoveryRouter);
 router.use('/workspaces', workspaceRoutes);
+router.use('/workspaces/:workspaceId/chat', chatRouter);
 router.use('/agents', agentRoutes);
 router.use('/conversations', conversationRoutes);
 router.use('/knowledge', knowledgeRoutes);
