@@ -120,7 +120,7 @@ router.get('/:id', async (req: AuthRequest, res) => {
 // Chat with agent
 router.post('/:id/chat', async (req: AuthRequest, res) => {
   try {
-    const { id: agentId } = req.params;
+    const agentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const { message, conversationId } = req.body;
 
     if (!message) return res.status(400).json({ error: 'Message is required' });
