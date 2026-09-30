@@ -18,7 +18,7 @@ import { Agents } from '@/pages/Agents';
 import { AgentNew } from '@/pages/AgentNew';
 import { AgentChat } from '@/pages/AgentChat';
 import { Settings } from '@/pages/Settings';
-import { Connections } from '@/pages/Connections';
+import Connections from '@/pages/Connections';
 import { Knowledge } from '@/pages/Knowledge';
 import { Workflows } from '@/pages/Workflows';
 import { WorkflowRuns } from '@/pages/WorkflowRuns';

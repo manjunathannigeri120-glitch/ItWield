@@ -14,7 +14,7 @@ router.get('/', async (req: AuthRequest, res) => {
 
     const { data, error } = await req.supabase
         .from('company_systems')
-        .select('id, workspace_id, system_type, display_name, status, metadata, created_at, updated_at')
+        .select('id, workspace_id, system_type, display_name, status, metadata, capabilities, created_at, updated_at')
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: false });
 
@@ -31,7 +31,7 @@ router.post('/', async (req: AuthRequest, res) => {
     if (!workspaceId) return res.status(400).json({ error: 'Missing x-workspace-id header' });
     if (!req.supabase) return res.json({ success: true, mock: true });
 
-    const { provider, name, credentials, metadata } = req.body;
+    const { provider, name, credentials, metadata, capabilities } = req.body;
     
     if (!provider || typeof provider !== 'string') {
         return res.status(400).json({ error: 'Missing required field: provider' });
@@ -49,12 +49,13 @@ router.post('/', async (req: AuthRequest, res) => {
         .from('company_systems')
         .insert({
             workspace_id: workspaceId,
-            provider,
-            name,
+            system_type: provider,
+            display_name: name,
             connection_id: encryptedCredentials,
-            metadata: metadata || {}
+            metadata: metadata || {},
+            capabilities: capabilities || []
         })
-        .select('id, workspace_id, system_type, display_name, status, metadata, created_at, updated_at')
+        .select('id, workspace_id, system_type, display_name, status, metadata, capabilities, created_at, updated_at')
         .single();
 
     if (error) {
@@ -261,7 +262,7 @@ router.post('/:provider/callback', async (req: AuthRequest, res) => {
             connection_id: encryptedCredentials,
             metadata: {}
         })
-        .select('id, workspace_id, system_type, display_name, status, metadata, created_at, updated_at')
+        .select('id, workspace_id, system_type, display_name, status, metadata, capabilities, created_at, updated_at')
         .single();
 
     if (connError) return res.status(500).json({ error: connError.message });
