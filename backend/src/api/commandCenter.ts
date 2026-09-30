@@ -240,15 +240,27 @@ router.get('/', async (req: any, res) => {
     }));
     
     tasks.slice(0, 15).forEach((t: any) => decisionTimeline.push({
-        id: t.id,
-        timestamp: t.updated_at || t.created_at,
-        actor: t.assigned_agent || 'WORKFORCE',
-        role: 'Worker',
-        action: 'Executed Task: ' + (t.title || 'Action'),
-        reason: t.description || 'System routine',
-        outcome: t.status
-    }));
-    decisionTimeline.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 30);
+          id: t.id,
+          timestamp: t.updated_at || t.created_at,
+          actor: t.assigned_agent || 'WORKFORCE',
+          role: 'Worker',
+          action: (t.status === 'COMPLETED' ? 'Completed Task: ' : (t.status === 'BLOCKED' ? 'Blocked Task: ' : 'Scheduled Task: ')) + (t.title || 'Action'),
+          reason: t.description || 'System routine',
+          outcome: t.status === 'BLOCKED' && t.error ? 'BLOCKED - ' + t.error : t.status
+      }));
+    decisionTimeline.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      
+      const uniqueTimeline = [];
+      const seenSignatures = new Set();
+      for (const item of decisionTimeline) {
+        const sig = item.action + '|' + item.outcome;
+        if (!seenSignatures.has(sig)) {
+          seenSignatures.add(sig);
+          uniqueTimeline.push(item);
+        }
+      }
+      
+      const finalTimeline = uniqueTimeline.slice(0, 30);
 
 
     // --- 7. WHILE YOU WERE AWAY ---
@@ -315,7 +327,7 @@ router.get('/', async (req: any, res) => {
       ownerAttention,
       activeMissions,
       businessOutcomes,
-      decisionTimeline,
+      decisionTimeline: finalTimeline,
       whileYouWereAway,
       companySteering,
       managementItems,
