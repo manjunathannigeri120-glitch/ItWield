@@ -211,6 +211,15 @@ ${agent.system_prompt || ''}
         { role: 'user', content: userMessage }
       ];
 
+            // Save user message to DB
+      if (supabase && userMessage) {
+        await supabase.from('messages').insert({
+          conversation_id: conversationId,
+          role: 'user',
+          content: userMessage
+        });
+      }
+
       const aiProvider = this.getProvider();
       let iterations = 0;
       let finalResponseText = '';
