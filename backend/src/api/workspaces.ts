@@ -690,7 +690,7 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
     if (!req.supabase) return res.status(400).json({ error: 'DB required' });
     const workspaceId = String(req.params.id);
     const approvalId = String(req.params.approvalId);
-    const userId = req.user?.id || 'service_role';
+    const userId = (req.user?.id && req.user.id !== 'mock-user-id' && req.user.id !== 'service_role') ? req.user.id : null;
 
     // 1. Fetch approval
     const { data: approval, error: fetchErr } = await req.supabase
@@ -716,7 +716,7 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
           const updateData: any = {
         status: 'APPROVED',
         resolved_at: new Date().toISOString(),
-        resolved_by: userId
+        resolved_by: userId || undefined
       };
 
       if (req.body && req.body.editedContext) {
@@ -861,7 +861,7 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
     if (!req.supabase) return res.status(400).json({ error: 'DB required' });
     const workspaceId = String(req.params.id);
     const approvalId = String(req.params.approvalId);
-    const userId = req.user?.id || 'service_role';
+    const userId = (req.user?.id && req.user.id !== 'mock-user-id' && req.user.id !== 'service_role') ? req.user.id : null;
     const { reason } = req.body;
 
     const { data: approval, error: fetchErr } = await req.supabase
@@ -889,7 +889,7 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
       .update({
         status: 'REJECTED',
         resolved_at: new Date().toISOString(),
-        resolved_by: userId,
+        resolved_by: userId || undefined,
         resolution_reason: reason || 'Owner rejected request'
       })
       .eq('id', approvalId)
