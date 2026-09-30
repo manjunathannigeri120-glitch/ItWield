@@ -31,48 +31,51 @@ router.post('/:workspaceId/diagnostic', async (req: any, res) => {
     const db = req.supabase;
     
     try {
-        // Update CTO Status
-        await db.from('workspaces').update({ cto_status: 'DIAGNOSING' }).eq('id', workspaceId);
+        // Since Vercel kills execution immediately after res.json is called, we MUST do everything synchronously.
+        const service = getServiceSupabase();
+        if(!service) {
+            return res.status(500).json({ error: 'Database service unavailable' });
+        }
         
-        // Wait briefly
-        setTimeout(async () => {
-            const service = getServiceSupabase();
-            if(!service) return;
-            
-            // Create a mock incident
-            await service.from('incidents').insert({
-                workspace_id: workspaceId,
-                type: 'TECHNICAL',
-                severity: 'high',
-                status: 'DETECTED',
-                title: `Database Connection Timeout`,
-                description: `A critical connection timeout was detected on the main production database cluster.`,
-                source: 'MANUAL_DIAGNOSTIC',
-                evidence: { error: 'Error: Connection Refused', latency: '5000ms' }
-            });
-            
-            await service.from('workspaces').update({ cto_status: 'IDLE' }).eq('id', workspaceId);
-            
-            // Trigger an approval request to demonstrate the CTO asking for permission to rollback
-            await service.from('approvals').insert({
-                 workspace_id: workspaceId,
-                 action: 'PRODUCTION_DEPLOYMENT',
-                 title: 'Rollback Database Migration',
-                 reason: 'The latest database migration is causing connection timeouts. Rollback is required to restore service.',
-                 requested_by_executive: 'CTO',
-                 risk_level: 'critical',
-                 status: 'PENDING_APPROVAL',
-                 context: {
-                     incident: 'Database Connection Timeout',
-                     rollback_target: 'v2.1.0',
-                     estimated_downtime: '0s'
-                 },
-                 expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-            });
+        // Temporarily update status to DIAGNOSING (if frontend polls, it will see this briefly)
+        await service.from('workspaces').update({ cto_status: 'DIAGNOSING' }).eq('id', workspaceId);
+        
+        // Await a brief artificial delay to simulate diagnostic thinking
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Create a mock incident
+        await service.from('incidents').insert({
+            workspace_id: workspaceId,
+            type: 'TECHNICAL',
+            severity: 'critical',
+            status: 'DETECTED',
+            title: `Database Connection Timeout`,
+            description: `A critical connection timeout was detected on the main production database cluster.`,
+            source: 'MANUAL_DIAGNOSTIC',
+            evidence: { error: 'Error: Connection Refused', latency: '5000ms' }
+        });
+        
+        // Reset status to IDLE
+        await service.from('workspaces').update({ cto_status: 'IDLE' }).eq('id', workspaceId);
+        
+        // Trigger an emergency approval request for the CTO
+        await service.from('approvals').insert({
+             workspace_id: workspaceId,
+             action: 'PRODUCTION_DEPLOYMENT',
+             title: 'Rollback Database Migration',
+             reason: 'The latest database migration is causing connection timeouts. Immediate rollback is required to restore service.',
+             requested_by_executive: 'CTO',
+             risk_level: 'critical',
+             status: 'PENDING_APPROVAL',
+             context: {
+                 incident: 'Database Connection Timeout',
+                 rollback_target: 'v2.1.0',
+                 estimated_downtime: '0s'
+             },
+             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        });
 
-        }, 2000);
-
-        res.json({ success: true, message: 'Diagnostic scan started.' });
+        res.json({ success: true, message: 'Diagnostic scan completed and incident generated.' });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
