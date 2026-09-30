@@ -1,142 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { api } from '@/lib/api';
-import { Link, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, Activity, AlertCircle, ArrowRight, Play, Pause, Square, MessageSquare, Target, Zap, Shield, Briefcase } from 'lucide-react';
+const fs = require('fs');
+let file = 'frontend/src/pages/Dashboard.tsx';
+let content = fs.readFileSync(file, 'utf8');
 
-
-export default function Dashboard() {
-  const navigate = useNavigate();
-  
-  const [workspace, setWorkspace] = useState<any>(null);
-  
-  // Data states
-  const [ccData, setCcData] = useState<any>(null);
-  const [goals, setGoals] = useState<any[]>([]);
-  const [operatingState, setOperatingState] = useState<string>('READY');
-  
-  const [agents, setAgents] = useState<any[]>([]);
-  const [_nextAction, setNextAction] = useState<any>(null);
-  
-  const [isLoading, setIsLoading] = useState(true);
-  
-
-  // Chat states
-  const [chatHistory, setChatHistory] = useState<{role: string, text: string}[]>([]);
-  const [chatInput, setChatInput] = useState('');
-  const [isChatting, setIsChatting] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    loadData();
-    const interval = setInterval(loadData, 10000); // 10s poll to keep it light
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatHistory]);
-
-  const loadData = async () => {
-    try {
-      const wsRes = await api.get('/workspaces');
-      const ws = wsRes.data.find((w: any) => w.status === 'operating' || w.status === 'active' || w.status === 'ACTIVE');
-      if (!ws) {
-        setIsLoading(false);
-        return;
-      }
-      setWorkspace(ws);
-
-      const [goalsRes, ccRes, opStateRes, nextActionRes, agentsRes] = await Promise.all([
-        api.get(`/workspaces/${ws.id}/goals`).catch(() => ({ data: [] })),
-        api.get(`/command-center/${ws.id}?limit=10`).catch(() => ({ data: null })),
-        api.get(`/workspaces/${ws.id}/company/operating-state`).catch(() => ({ data: { operating_state: 'READY' } })),
-        api.get(`/workspaces/${ws.id}/company/next-action`).catch(() => ({ data: null })),
-        api.get(`/agents/workspace/${ws.id}`).catch(() => ({ data: [] }))
-      ]);
-
-      setGoals(goalsRes.data);
-      setCcData(ccRes.data);
-      setOperatingState(opStateRes.data.operating_state || ws.status.toUpperCase());
-      setNextAction(nextActionRes.data?.nextAction || nextActionRes.data);
-      setAgents(agentsRes.data || []);
-      setIsLoading(false);
-    } catch (e) {
-      console.error('Failed to load dashboard:', e);
-      setIsLoading(false);
-    }
-  };
-
-  const handleApprove = async (approvalId: string) => {
-    if (!workspace) return;
-    try {
-      await api.post(`/workspaces/${workspace.id}/approvals/${approvalId}/approve`);
-      loadData();
-    } catch(e) {
-      alert("Failed to approve");
-    }
-  };
-
-  const handleControl = async (action: 'pause' | 'resume' | 'stop') => {
-    if (!workspace) return;
-    try {
-      await api.post(`/workspaces/${workspace.id}/control`, { action });
-      loadData();
-    } catch (e) {
-      console.error(`Failed to ${action}:`, e);
-    }
-  };
-
-  const sendChatMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim() || !workspace) return;
-    
-    const userMsg = chatInput;
-    setChatInput('');
-    setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
-    setIsChatting(true);
-    
-    try {
-      // Find the CEO agent to route the message to
-      const ceo = agents.find((a: any) => a.name.includes('CEO'));
-      if (ceo) {
-        const res = await api.post(`/agents/${ceo.id}/chat`, { message: userMsg, conversationId: 'dashboard-main' });
-        setChatHistory(prev => [...prev, { role: 'ai', text: res.data.reply }]);
-      } else {
-        // Fallback if CEO not found
-        setTimeout(() => {
-          setChatHistory(prev => [...prev, { role: 'ai', text: 'CEO agent is currently unavailable to respond.' }]);
-        }, 1000);
-      }
-    } catch (err) {
-      console.error(err);
-      setChatHistory(prev => [...prev, { role: 'ai', text: 'Connection error while contacting AI Company.' }]);
-    } finally {
-      setIsChatting(false);
-    }
-  };
-
-  if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-600" /></div>;
-
-  if (!workspace) return (
-    <div className="flex h-screen items-center justify-center flex-col gap-4 text-slate-500">
-      <AlertCircle className="w-12 h-12" />
-      <p>No active workspace found. Please complete onboarding.</p>
-      <Link to="/onboarding"><Button>Go to Onboarding</Button></Link>
-    </div>
-  );
-
-  const pendingApprovals = ccData?.approvals || [];
-  const importantAlerts = ccData?.ownerAttention?.filter((a: any) => a.severity === 'high' || a.severity === 'critical') || [];
-  const whileAway = ccData?.decisionTimeline?.slice(0, 5) || [];
-  const activeGoals = goals.filter(g => g.status === 'ACTIVE' || g.status === 'active');
-  const primaryGoal = activeGoals[0];
-
-  
-  
-
-  return (
+// The new layout will replace the main grid structure
+const newReturn = `
+    return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
       
       {/* 1. GLOBAL OPERATING STATUS */}
@@ -145,14 +13,14 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Good morning, Founder</h1>
           <div className="flex items-center gap-3 mt-2">
             <span className="text-slate-600">Your AI company is</span>
-            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-              operatingState === 'OPERATING' ? 'bg-emerald-100 text-emerald-700' :
-              operatingState === 'PAUSED' ? 'bg-amber-100 text-amber-700' :
+            <span className={\`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider \${
+              opState === 'OPERATING' ? 'bg-emerald-100 text-emerald-700' :
+              opState === 'PAUSED' ? 'bg-amber-100 text-amber-700' :
               'bg-slate-100 text-slate-600'
-            }`}>
-              {operatingState}
+            }\`}>
+              {opState}
             </span>
-            {ccData?.autonomy?.started_at && operatingState === 'OPERATING' && (
+            {ccData?.autonomy?.started_at && opState === 'OPERATING' && (
               <span className="text-xs text-slate-500 flex items-center gap-1">
                 <Activity className="w-3 h-3 text-emerald-500 animate-pulse" /> Running since {new Date(ccData.autonomy.started_at).toLocaleTimeString()}
               </span>
@@ -160,17 +28,17 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {operatingState !== 'OPERATING' && (
-            <Button onClick={() => handleControl('resume')} className="bg-emerald-600 hover:bg-emerald-700 shadow-sm">
+          {opState !== 'OPERATING' && (
+            <Button onClick={() => setCompanyState('OPERATING')} className="bg-emerald-600 hover:bg-emerald-700 shadow-sm">
               <Play className="w-4 h-4 mr-2" /> Resume
             </Button>
           )}
-          {operatingState === 'OPERATING' && (
-            <Button onClick={() => handleControl('pause')} variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50">
+          {opState === 'OPERATING' && (
+            <Button onClick={() => setCompanyState('PAUSED')} variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50">
               <Pause className="w-4 h-4 mr-2" /> Pause
             </Button>
           )}
-          <Button onClick={() => handleControl('stop')} variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50">
+          <Button onClick={() => setCompanyState('STOPPED')} variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50">
             <Square className="w-4 h-4 mr-2" /> Stop
           </Button>
         </div>
@@ -258,7 +126,7 @@ export default function Dashboard() {
           ) : (
             <div className="text-center py-8">
               <p className="text-slate-500 mb-4">No active business outcomes.</p>
-              <Link to="/missions"><Button variant="outline">Assign an objective</Button></Link>
+              <Button onClick={() => navigate('/missions')} variant="outline">Assign an objective</Button>
             </div>
           )}
         </CardContent>
@@ -310,11 +178,11 @@ export default function Dashboard() {
             };
             return (
               <Card key={exec.role} className="border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full overflow-hidden">
-                <div className={`p-4 ${roleColors[exec.role] || 'bg-slate-800 text-white'}`}>
+                <div className={\`p-4 \${roleColors[exec.role] || 'bg-slate-800 text-white'}\`}>
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-black text-lg tracking-tight">{exec.role}</h3>
-                      <p className="text-xs opacity-80 font-medium">{roleTitles[exec.role] || exec.role}</p>
+                      <p className="text-xs opacity-80 font-medium">{roleTitles[exec.role]}</p>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                       <Briefcase className="w-4 h-4 text-white" />
@@ -328,12 +196,12 @@ export default function Dashboard() {
                     
                     <p className="text-xs font-semibold text-slate-500 uppercase mb-1">Status</p>
                     <div className="flex items-center gap-2 mb-4">
-                      <div className={`w-2 h-2 rounded-full ${
+                      <div className={\`w-2 h-2 rounded-full \${
                         exec.status === 'WORKING' ? 'bg-indigo-500 animate-pulse' :
                         exec.status === 'READY' ? 'bg-emerald-500' :
                         exec.status === 'PAUSED' ? 'bg-amber-500' :
                         exec.status === 'BLOCKED' ? 'bg-rose-500' : 'bg-slate-400'
-                      }`} />
+                      }\`} />
                       <span className="text-sm font-medium capitalize">{exec.status?.toLowerCase() || 'Ready'}</span>
                     </div>
                   </div>
@@ -342,7 +210,7 @@ export default function Dashboard() {
                     variant="outline" 
                     className="w-full mt-4 border-slate-200 text-slate-700 hover:bg-slate-50"
                     onClick={() => {
-                      if (exec.id) navigate(`/agents/${exec.id}/chat`);
+                      if (exec.id) navigate(\`/agents/\${exec.id}/chat\`);
                     }}
                     disabled={!exec.id}
                   >
@@ -373,10 +241,10 @@ export default function Dashboard() {
               </div>
             ) : (
               chatHistory.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-lg p-3 text-sm ${
+                <div key={i} className={\`flex \${msg.role === 'user' ? 'justify-end' : 'justify-start'}\`}>
+                  <div className={\`max-w-[80%] rounded-lg p-3 text-sm \${
                     msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-800'
-                  }`}>
+                  }\`}>
                     {msg.role === 'ai' && <div className="font-bold text-xs text-indigo-600 mb-1">Company Command</div>}
                     <p className="whitespace-pre-wrap">{msg.text}</p>
                   </div>
@@ -422,12 +290,12 @@ export default function Dashboard() {
                 {ccData?.health ? Object.entries(ccData.health).map(([key, status]: any) => (
                   <div key={key} className="flex items-center justify-between text-sm p-2 rounded-lg hover:bg-slate-50">
                     <span className="capitalize text-slate-700 font-medium">{key}</span>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    <span className={\`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider \${
                       status === 'HEALTHY' ? 'bg-emerald-100 text-emerald-700' :
                       status === 'ATTENTION' ? 'bg-amber-100 text-amber-700' :
                       status === 'DEGRADED' ? 'bg-rose-100 text-rose-700' :
                       'bg-slate-100 text-slate-600'
-                    }`}>{status}</span>
+                    }\`}>{status}</span>
                   </div>
                 )) : <p className="text-sm text-slate-500 text-center py-4">Loading health metrics...</p>}
               </div>
@@ -458,3 +326,7 @@ export default function Dashboard() {
     </div>
   );
 }
+`;
+
+content = content.replace(/return \([\s\S]*\}\;/m, newReturn);
+fs.writeFileSync(file, content);

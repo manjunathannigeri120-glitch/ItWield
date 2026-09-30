@@ -1,9 +1,12 @@
-import { useState, useRef, useEffect } from 'react';
+const fs = require('fs');
+let file = 'frontend/src/pages/AgentChat.tsx';
+
+const newContent = `import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Send, User, Loader2, ArrowLeft, } from 'lucide-react';
+import { Briefcase, Send, User, Loader2, ArrowLeft, Activity, Shield, Target } from 'lucide-react';
 
 export function AgentChat() {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +19,7 @@ export function AgentChat() {
   const { data: agent, isLoading: agentLoading } = useQuery({
     queryKey: ['agent', id],
     queryFn: async () => {
-      const res = await api.get(`/agents/${id}`);
+      const res = await api.get(\`/agents/\${id}\`);
       return res.data;
     }
   });
@@ -25,7 +28,7 @@ export function AgentChat() {
     queryKey: ['messages', conversationId],
     queryFn: async () => {
       if (!conversationId) return [];
-      const res = await api.get(`/conversations/${conversationId}/messages`);
+      const res = await api.get(\`/conversations/\${conversationId}/messages\`);
       return res.data;
     },
     enabled: !!conversationId
@@ -33,7 +36,7 @@ export function AgentChat() {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      const res = await api.post(`/agents/${id}/chat`, {
+      const res = await api.post(\`/agents/\${id}/chat\`, {
         message,
         conversationId
       });
@@ -121,7 +124,7 @@ export function AgentChat() {
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="mr-2 text-slate-400 hover:text-slate-700">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-sm ${details.color}`}>
+          <div className={\`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-sm \${details.color}\`}>
             <Briefcase className="w-6 h-6" />
           </div>
           <div>
@@ -143,7 +146,7 @@ export function AgentChat() {
         {messages.length === 0 && !chatMutation.isPending && (
           <div className="max-w-2xl mx-auto mt-10">
             <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm text-center">
-              <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center text-white mb-4 ${details.color}`}>
+              <div className={\`w-16 h-16 mx-auto rounded-full flex items-center justify-center text-white mb-4 \${details.color}\`}>
                 <Briefcase className="w-8 h-8" />
               </div>
               <h2 className="text-lg font-bold text-slate-900 mb-2">How can I help you today?</h2>
@@ -169,18 +172,18 @@ export function AgentChat() {
 
         <div className="max-w-4xl mx-auto space-y-6">
           {messages.map((msg: any) => (
-            <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div key={msg.id} className={\`flex gap-4 \${msg.role === 'user' ? 'justify-end' : 'justify-start'}\`}>
               {msg.role !== 'user' && (
-                <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-white shadow-sm mt-1 ${details.color}`}>
+                <div className={\`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-white shadow-sm mt-1 \${details.color}\`}>
                   <Briefcase className="w-5 h-5" />
                 </div>
               )}
               
-              <div className={`rounded-2xl p-4 max-w-[85%] ${
+              <div className={\`rounded-2xl p-4 max-w-[85%] \${
                 msg.role === 'user' 
                   ? 'bg-slate-900 text-white rounded-tr-none shadow-sm' 
                   : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-sm'
-              }`}>
+              }\`}>
                 {msg.role !== 'user' && <div className="font-bold text-xs text-slate-500 mb-2">{role}</div>}
                 <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
               </div>
@@ -195,7 +198,7 @@ export function AgentChat() {
 
           {chatMutation.isPending && (
             <div className="flex gap-4 justify-start">
-              <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-white shadow-sm mt-1 ${details.color}`}>
+              <div className={\`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-white shadow-sm mt-1 \${details.color}\`}>
                 <Briefcase className="w-5 h-5" />
               </div>
               <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 shadow-sm flex items-center gap-3">
@@ -215,7 +218,7 @@ export function AgentChat() {
             <input 
               value={input} 
               onChange={e => setInput(e.target.value)} 
-              placeholder={`Ask your ${role} about your company...`}
+              placeholder={\`Ask your \${role} about your company...\`}
               disabled={chatMutation.isPending}
               className="w-full pl-6 pr-14 py-4 bg-slate-50 border border-slate-200 rounded-full text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
             />
@@ -236,3 +239,6 @@ export function AgentChat() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(file, newContent);

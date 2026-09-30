@@ -1,20 +1,14 @@
 const fs = require('fs');
+let content = fs.readFileSync('frontend/src/App.tsx', 'utf8');
 
-let path = 'frontend/src/App.tsx';
-let c = fs.readFileSync(path, 'utf8');
-
-c = c.replace(
-  "import { Login } from '@/pages/Login';",
-  "import { Login } from '@/pages/Login';\nimport { Landing } from '@/pages/Landing';\nimport { Pricing } from '@/pages/Pricing';"
+content = content.replace(
+  "import { OAuthCallback } from '@/pages/OAuthCallback';",
+  "import { OAuthCallback } from '@/pages/OAuthCallback';\nimport { Terms } from '@/pages/Terms';\nimport { Privacy } from '@/pages/Privacy';"
 );
 
-c = c.replace(
-  /<Route path="\\/login" element=\{<Login \\/>\} \\/>\n\s*<Route path="\\/" element=\{<Navigate to="\\/dashboard" replace \\/>\} \\/>/,
-  \<Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Login />} />
-          <Route path="/" element={<Landing />} />
-          <Route path="/pricing" element={<Pricing />} />\
+content = content.replace(
+  '<Route path="/pricing" element={<Pricing />} />',
+  '<Route path="/pricing" element={<Pricing />} />\n          <Route path="/terms" element={<Terms />} />\n          <Route path="/privacy" element={<Privacy />} />'
 );
 
-fs.writeFileSync(path, c);
-console.log('patched App.tsx');
+fs.writeFileSync('frontend/src/App.tsx', content);
