@@ -57,29 +57,41 @@ export class WorkforceIntegrityService {
        }
     }
 
-    // 3. Connection Validation
+        // 3. Connection Validation
     const authResult = AuthorizationRegistry.authorize(actionId, permissions);
     const reqConn = authResult.definition?.requiredConnection || capability?.requiredConnection;
     
+    let requiresApproval = authResult.requiresApproval || false;
+    let authReason = authResult.reason;
+
     if (reqConn) {
       if (reqConn === 'web_search') {
         if (!process.env.TAVILY_API_KEY && process.env.NODE_ENV !== 'test') {
           return { valid: false, status: 'CONNECTION_REQUIRED', reason: `Missing ${reqConn} API configuration.`, capability };
         }
       } else {
-        const { data: conn } = await supabase.from('connections').select('status').eq('workspace_id', workspaceId).eq('provider', reqConn).single();
-        if (!conn || conn.status === 'disconnected' || conn.status === 'error') {
+        // Query the new company_systems table!
+        const { data: conn } = await supabase.from('company_systems').select('status, capabilities').eq('workspace_id', workspaceId).eq('system_type', reqConn.toUpperCase()).single();
+        if (!conn || conn.status !== 'CONNECTED') {
           return { valid: false, status: 'CONNECTION_REQUIRED', reason: `Worker needs an active ${reqConn} connection to execute ${actionId}.`, capability };
+        }
+        
+        // Check if the specific capability is authorized
+        const sysCaps = conn.capabilities || [];
+        if (!sysCaps.includes(actionId)) {
+          // If not directly authorized, it needs owner approval
+          requiresApproval = true;
+          authReason = `The ${reqConn} connection does not have the '${actionId}' capability enabled by the Founder. Approval required.`;
         }
       }
     }
 
     // 4. Authorization Validation
-    if (!authResult.authorized) {
-      if (authResult.requiresApproval) {
-        return { valid: false, status: 'AUTHORIZATION_REQUIRED', reason: authResult.reason, capability };
+    if (!authResult.authorized || requiresApproval) {
+      if (requiresApproval) {
+        return { valid: false, status: 'AUTHORIZATION_REQUIRED', reason: authReason, capability };
       }
-      return { valid: false, status: 'PROHIBITED', reason: authResult.reason, capability };
+      return { valid: false, status: 'PROHIBITED', reason: authReason, capability };
     }
 
     return { valid: true, status: 'VALID', reason: 'Worker is fully capable and authorized.', capability };
