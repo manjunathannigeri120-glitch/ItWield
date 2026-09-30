@@ -228,16 +228,16 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div className="bg-slate-50 p-5 rounded-xl border border-slate-100">
                   <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Target</div>
-                  <div className="text-3xl font-black text-slate-900">20</div>
+                  <div className="text-3xl font-black text-slate-900">{primaryGoal.target || 'N/A'}</div>
                 </div>
                 <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 bg-indigo-500 h-full"></div>
                   <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Current Verified</div>
-                  <div className="text-3xl font-black text-indigo-600">3</div>
+                  <div className="text-3xl font-black text-indigo-600">{primaryGoal.current_metric || 0}</div>
                 </div>
                 <div className="bg-slate-50 p-5 rounded-xl border border-slate-100">
                   <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gap</div>
-                  <div className="text-3xl font-black text-rose-600">17</div>
+                  <div className="text-3xl font-black text-rose-600">{primaryGoal.target ? primaryGoal.target - (primaryGoal.current_metric || 0) : 'N/A'}</div>
                 </div>
               </div>
               
