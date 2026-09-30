@@ -10,6 +10,9 @@ import { Login } from '@/pages/Login';
 import { Landing } from '@/pages/Landing';
 import { Pricing } from '@/pages/Pricing';
 import Dashboard from '@/pages/Dashboard';
+import CTO from '@/pages/CTO';
+import CompanyControl from '@/pages/CompanyControl';
+import Approvals from '@/pages/Approvals';
 import { Onboarding } from '@/pages/Onboarding';
 import { Agents } from '@/pages/Agents';
 import { AgentNew } from '@/pages/AgentNew';
@@ -49,7 +52,7 @@ function WorkspaceGuard({ children }: { children: React.ReactNode }) {
       .then(res => {
         if (res.data && res.data.length > 0) {
           // Look for any workspace that is fully operating
-          const operatingWs = res.data.find((w: any) => w.status === 'operating');
+          const operatingWs = res.data.find((w: any) => w.status === 'operating' || w.status === 'active' || w.status === 'ACTIVE');
           if (operatingWs) {
             setStatus('operating');
           } else {
@@ -96,6 +99,9 @@ function App() {
           <Route path="/agents" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Agents /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/agents/new" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><AgentNew /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/agents/:id/chat" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><AgentChat /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
+          <Route path="/cto" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><CTO /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
+          <Route path="/control" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><CompanyControl /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
+          <Route path="/approvals" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Approvals /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/knowledge" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Knowledge /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/workflows" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Workflows /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/workflows/:id/runs" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><WorkflowRuns /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />

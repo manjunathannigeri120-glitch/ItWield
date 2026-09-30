@@ -61,7 +61,6 @@ export class CompanyMemoryService {
         .select('*')
         .eq('workspace_id', params.workspaceId)
         .eq('title', params.title)
-        .neq('freshness_status', 'SUPERSEDED');
 
       let isSuperseded = false;
       let contradictionTargetId: string | null = null;

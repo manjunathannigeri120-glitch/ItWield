@@ -20,13 +20,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { name: 'Command Center', href: '/dashboard', icon: Home },
-    { name: 'Goals', href: '/dashboard', icon: Target },
+    { name: 'Goals', href: '/missions', icon: Target },
     { name: 'Missions', href: '/missions', icon: Rocket },
     { name: 'CRM', href: '/crm', icon: Users },
     { name: 'Workforce', href: '/agents', icon: Bot },
+      { name: 'CTO Operations', href: '/cto', icon: Bot },
     { name: 'Control Layer', href: '/control', icon: GitMerge },
     { name: 'Connections', href: '/connections', icon: GitMerge },
-    { name: 'Approvals', href: '/dashboard', icon: Target, disabled: false },
+    { name: 'Approvals', href: '/approvals', icon: Target, disabled: false },
     { name: 'Company Brain', href: '/memory', icon: Database },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
@@ -77,4 +78,5 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 }
+
 

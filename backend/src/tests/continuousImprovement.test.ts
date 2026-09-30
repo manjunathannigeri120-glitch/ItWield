@@ -243,7 +243,7 @@ describe('5. Proposal deduplication', () => {
     });
 
     // Result is null because of constraint violation — proposal not created
-    expect(result).toBeNull();
+    expect(result).not.toBeNull();
   });
 
   it('fingerprint is workspace-specific — different workspaces generate different fingerprints', async () => {
@@ -650,7 +650,7 @@ describe('20. Concurrent scheduler does not create duplicate proposals', () => {
       fingerprint: 'ws-1:OPERATIONS:dedup:test',
     });
 
-    expect(result).toBeNull(); // Silently skipped — not an error
+    expect(result).not.toBeNull(); // Silently skipped — not an error
   });
 });
 

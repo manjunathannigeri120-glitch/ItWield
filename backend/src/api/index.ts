@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import authRoutes from './auth';
 import agentRoutes from './agents';
 import workspaceRoutes from './workspaces';
 import missionsRoutes from './missions';
@@ -21,6 +22,7 @@ import companyRouter from './company';
 import controlRouter from './control';
 import discoveryRouter from './discovery';
 import workforceRouter from './workforce';
+import ctoRouter from './cto';
 
 const router = Router();
 router.get('/health', (req, res) => res.json({ status: 'ok', version: '3.19.0' }));
@@ -32,6 +34,7 @@ router.use('/workspaces/:workspaceId/command-center', commandCenterRoutes);
 router.use('/workspaces/:workspaceId/crm', crmRoutes);
 router.use('/workspaces/:workspaceId/goals', goalsRouter);
 router.use('/workspaces/:workspaceId/workforce', workforceRouter);
+router.use('/cto', ctoRouter);
 router.use('/workspaces/:workspaceId', cooRouter);
 router.use('/workspaces/:workspaceId/control', controlRouter);
 router.use('/workspaces/:workspaceId/discovery', discoveryRouter);
@@ -45,10 +48,6 @@ router.use('/connections', connectionsRouter);
 router.use('/tasks', tasksRouter);
 router.use('/ceo', ceoRouter);
 router.use('/scheduler', schedulerRouter);
+router.use('/auth', authRoutes);
 
 export default router;
-
-
-
-
-

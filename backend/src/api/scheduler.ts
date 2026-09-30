@@ -4,6 +4,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { calculateNextRunAt } from '../workflows/scheduler';
 import { CEOService } from '../services/CEOService';
 import { AICOOService } from '../services/AICOOService';
+import { CTOService } from '../services/CTOService';
 import { IntelligenceService } from '../services/IntelligenceService';
 
 const router = Router();
@@ -189,6 +190,15 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
       }
     }
 
+    // 7. Continuous CTO Loop
+    if (activeWorkspaces) {
+      for (const w of activeWorkspaces) {
+        console.log(`[Scheduler] Triggering CTOService for workspace ${w.id}`);
+        CTOService.operate(supabase, w.id).catch(console.error);
+        triggeredCount++;
+      }
+    }
+
     return res.status(200).json({ ok: true, triggered: triggeredCount });
   } catch (err: any) {
     console.error('[Scheduler] Tick error:', err);
@@ -197,3 +207,4 @@ router.post('/tick', requireSchedulerAuth, async (req: any, res: any) => {
 });
 
 export const schedulerRouter = router;
+

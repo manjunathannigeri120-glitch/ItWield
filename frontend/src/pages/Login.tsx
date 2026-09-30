@@ -11,26 +11,107 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isSignup, setIsSignup] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  
+  // OTP Reset States
+  const [isVerifyingReset, setIsVerifyingReset] = useState(false);
+  const [otp, setOtp] = useState('');
+  
   const { user } = useAuth();
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      if (import.meta.env.DEV) {
+        // Bypass Supabase SMTP in development due to strict free tier limits
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/dev-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to generate dev OTP');
+        
+        console.log(`[DEV MODE] Your OTP is: ${data.otp}`);
+        setSuccess(`[DEV] Verification code generated (check console). It is: ${data.otp}`);
+        setIsVerifyingReset(true);
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin
+        });
+        if (error) throw error;
+        setSuccess('Verification code sent! Please check your email.');
+        setIsVerifyingReset(true);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to send reset code.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      // 1. Verify the OTP (This securely logs the user in)
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'recovery',
+      });
+      if (verifyError) throw verifyError;
+      
+      setSuccess('Code verified! Logging you in...');
+    } catch (err: any) {
+      setError(err?.message || 'Failed to verify code.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       if (isSignup) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (error) throw error;
-        alert('Check your email for the confirmation link!');
+        if (import.meta.env.DEV) {
+          // Bypass Supabase SMTP for signup in dev mode
+          const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/dev-signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to generate dev signup');
+          
+          setSuccess('[DEV MODE] Account created and automatically confirmed! You can now log in.');
+          setIsSignup(false); // Switch back to sign in
+        } else {
+          const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: window.location.origin
+            }
+          });
+          if (error) throw error;
+          setSuccess('Account created! Please check your email for the confirmation link before logging in.');
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -39,21 +120,97 @@ export function Login() {
         if (error) throw error;
       }
     } catch (err: any) {
-      if (err.message.includes('Failed to fetch') && import.meta.env.VITE_SUPABASE_URL === undefined) {
-        // Fallback for local development without Supabase configured
-        console.warn('Mocking login for local development');
-        localStorage.setItem('sb-mock-session', JSON.stringify({
-          access_token: 'mock-jwt',
-          user: { id: 'mock-user-id', email }
-        }));
-        window.location.href = '/';
+      if (err?.message === 'Email not confirmed') {
+        setError('Please check your email and click the confirmation link before logging in.');
       } else {
-        setError(err.message);
+        setError(err?.message || 'Authentication failed');
       }
     } finally {
       setLoading(false);
     }
   };
+
+  if (isVerifyingReset) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-muted/30">
+        <Card className="w-[400px]">
+          <CardHeader>
+            <CardTitle>Enter Verification Code</CardTitle>
+            <CardDescription>We sent a 6-digit code to {email}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleVerifyReset} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  placeholder="6-digit code"
+                  maxLength={6}
+                  minLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                  required
+                />
+              </div>
+              {error && <div className="text-sm text-destructive">{error}</div>}
+              {success && <div className="text-sm text-green-600 font-medium">{success}</div>}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Verifying...' : 'Verify & Log In'}
+              </Button>
+              <div className="text-center text-sm">
+                <button
+                  type="button"
+                  onClick={() => { setIsVerifyingReset(false); setError(''); setSuccess(''); }}
+                  className="text-primary hover:underline"
+                >
+                  Back
+                </button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isForgotPassword) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-muted/30">
+        <Card className="w-[400px]">
+          <CardHeader>
+            <CardTitle>Reset Password</CardTitle>
+            <CardDescription>Enter your email to receive a reset code.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              {error && <div className="text-sm text-destructive">{error}</div>}
+              {success && <div className="text-sm text-green-600 font-medium">{success}</div>}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Sending...' : 'Send Verification Code'}
+              </Button>
+              <div className="text-center text-sm">
+                <button
+                  type="button"
+                  onClick={() => { setIsForgotPassword(false); setIsVerifyingReset(false); setError(''); setSuccess(''); }}
+                  className="text-primary hover:underline"
+                >
+                  Back to login
+                </button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted/30">
@@ -83,13 +240,27 @@ export function Login() {
               />
             </div>
             {error && <div className="text-sm text-destructive">{error}</div>}
+            {success && <div className="text-sm text-green-600 font-medium">{success}</div>}
+            
+            {!isSignup && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => { setIsForgotPassword(true); setError(''); setSuccess(''); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Loading...' : isSignup ? 'Sign Up' : 'Sign In'}
             </Button>
             <div className="text-center text-sm">
               <button
                 type="button"
-                onClick={() => setIsSignup(!isSignup)}
+                onClick={() => { setIsSignup(!isSignup); setError(''); setSuccess(''); }}
                 className="text-primary hover:underline"
               >
                 {isSignup ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}

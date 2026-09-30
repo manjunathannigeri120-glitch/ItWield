@@ -1,24 +1,31 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
 import { Link, useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Activity, AlertCircle, ArrowRight, Sparkles, Play } from 'lucide-react';
+import { Loader2, Activity, AlertCircle, ArrowRight, Play, Pause, Square, MessageSquare, Target, Zap, Shield, Briefcase } from 'lucide-react';
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  
   const [workspace, setWorkspace] = useState<any>(null);
+  
+  // Data states
   const [ccData, setCcData] = useState<any>(null);
   const [goals, setGoals] = useState<any[]>([]);
   const [operatingState, setOperatingState] = useState<string>('READY');
   const [nextAction, setNextAction] = useState<any>(null);
-  const [commandInput, setCommandInput] = useState('');
+  const [agents, setAgents] = useState<any[]>([]);
+  
   const [isLoading, setIsLoading] = useState(true);
-  const [isOperating, setIsOperating] = useState(false);
+  
 
-  // Approvals
-  const [selectedApproval, setSelectedApproval] = useState<any>(null);
-  const [approvalSubmitting, setApprovalSubmitting] = useState(false);
+  // Chat states
+  const [chatHistory, setChatHistory] = useState<{role: string, text: string}[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatting, setIsChatting] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadData();
@@ -26,24 +33,33 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory]);
+
   const loadData = async () => {
     try {
       const wsRes = await api.get('/workspaces');
-      const ws = wsRes.data.find((w: any) => w.status === 'operating' || w.status === 'ACTIVE');
-      if (!ws) return setIsLoading(false);
+      const ws = wsRes.data.find((w: any) => w.status === 'operating' || w.status === 'active' || w.status === 'ACTIVE');
+      if (!ws) {
+        setIsLoading(false);
+        return;
+      }
       setWorkspace(ws);
 
-      const [goalsRes, ccRes, opStateRes, nextActionRes] = await Promise.all([
-        api.get(`/workspaces/${ws.id}/goals`),
-        api.get(`/command-center/${ws.id}?limit=10`),
-        api.get(`/workspaces/${ws.id}/company/operating-state`),
-        api.get(`/workspaces/${ws.id}/company/next-action`)
+      const [goalsRes, ccRes, opStateRes, nextActionRes, agentsRes] = await Promise.all([
+        api.get(`/workspaces/${ws.id}/goals`).catch(() => ({ data: [] })),
+        api.get(`/command-center/${ws.id}?limit=10`).catch(() => ({ data: null })),
+        api.get(`/workspaces/${ws.id}/company/operating-state`).catch(() => ({ data: { operating_state: 'READY' } })),
+        api.get(`/workspaces/${ws.id}/company/next-action`).catch(() => ({ data: null })),
+        api.get(`/agents/workspace/${ws.id}`).catch(() => ({ data: [] }))
       ]);
 
       setGoals(goalsRes.data);
       setCcData(ccRes.data);
-      setOperatingState(opStateRes.data.operating_state);
-      setNextAction(nextActionRes.data);
+      setOperatingState(opStateRes.data.operating_state || ws.status.toUpperCase());
+      setNextAction(nextActionRes.data?.nextAction || nextActionRes.data);
+      setAgents(agentsRes.data || []);
       setIsLoading(false);
     } catch (e) {
       console.error('Failed to load dashboard:', e);
@@ -51,252 +67,323 @@ export default function Dashboard() {
     }
   };
 
-  const handleApprove = async () => {
-    if (!selectedApproval || !workspace) return;
-    setApprovalSubmitting(true);
+  const handleApprove = async (approvalId: string) => {
+    if (!workspace) return;
     try {
-      await api.post(`/workspaces/${workspace.id}/approvals/${selectedApproval.id}/approve`);
-      setSelectedApproval(null);
+      await api.post(`/workspaces/${workspace.id}/approvals/${approvalId}/approve`);
       loadData();
     } catch(e) {
       alert("Failed to approve");
-    } finally {
-      setApprovalSubmitting(false);
     }
   };
 
-  const handleCommand = () => {
-    if (!commandInput.trim()) return;
-    navigate('/missions', { state: { initialCommand: commandInput } });
-  };
-  
-  const handleRunCoo = async () => {
+  const handleControl = async (action: 'pause' | 'resume' | 'stop') => {
     if (!workspace) return;
-    setIsOperating(true);
     try {
-      await api.post(`/workspaces/${workspace.id}/company/operate`);
+      await api.post(`/workspaces/${workspace.id}/control`, { action });
       loadData();
     } catch (e) {
-      console.error("Failed to run COO:", e);
-    } finally {
-      setIsOperating(false);
+      console.error(`Failed to ${action}:`, e);
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
+  const sendChatMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || !workspace) return;
+    
+    const userMsg = chatInput;
+    setChatInput('');
+    setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
+    setIsChatting(true);
+    
+    try {
+      // Find the CEO agent to route the message to
+      const ceo = agents.find((a: any) => a.name.includes('CEO'));
+      if (ceo) {
+        const res = await api.post(`/agents/${ceo.id}/chat`, { message: userMsg, conversationId: 'dashboard-main' });
+        setChatHistory(prev => [...prev, { role: 'ai', text: res.data.reply }]);
+      } else {
+        // Fallback if CEO not found
+        setTimeout(() => {
+          setChatHistory(prev => [...prev, { role: 'ai', text: 'CEO agent is currently unavailable to respond.' }]);
+        }, 1000);
+      }
+    } catch (err) {
+      console.error(err);
+      setChatHistory(prev => [...prev, { role: 'ai', text: 'Connection error while contacting AI Company.' }]);
+    } finally {
+      setIsChatting(false);
+    }
+  };
+
+  if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-600" /></div>;
+
+  if (!workspace) return (
+    <div className="flex h-screen items-center justify-center flex-col gap-4 text-slate-500">
+      <AlertCircle className="w-12 h-12" />
+      <p>No active workspace found. Please complete onboarding.</p>
+      <Link to="/onboarding"><Button>Go to Onboarding</Button></Link>
+    </div>
+  );
 
   const pendingApprovals = ccData?.approvals || [];
   const importantAlerts = ccData?.ownerAttention?.filter((a: any) => a.severity === 'high' || a.severity === 'critical') || [];
   const whileAway = ccData?.decisionTimeline?.slice(0, 5) || [];
-  const activeGoals = goals.filter(g => g.status === 'ACTIVE');
+  const activeGoals = goals.filter(g => g.status === 'ACTIVE' || g.status === 'active');
+  const primaryGoal = activeGoals[0];
+
+  const execs = agents.filter(a => ['CEO', 'COO', 'CMO', 'CTO', 'CFO'].some(role => a.name.includes(role)));
+  
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 bg-slate-50 min-h-screen">
       
-      {/* HEADER & COMMAND */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* 1. GLOBAL STATUS & CONTROLS */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Founder Control Center</h1>
-          <div className="mt-2 flex items-center gap-3">
-             <div className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider flex items-center ${operatingState === 'OPERATING' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
-                {operatingState === 'OPERATING' ? <><Activity className="w-3 h-3 mr-1 animate-pulse" /> AI COMPANY OPERATING</> : 'AI COMPANY READY'}
-             </div>
-             <Button variant="outline" size="sm" onClick={handleRunCoo} disabled={isOperating || operatingState === 'OPERATING'}>
-               {isOperating || operatingState === 'OPERATING' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
-               Run Operating Cycle
-             </Button>
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Good morning, Founder</h1>
+          <p className="text-slate-500 flex items-center gap-2 mt-1">
+            <span className="relative flex h-3 w-3">
+              {(operatingState === 'OPERATING' || operatingState === 'ACTIVE') && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
+              <span className={`relative inline-flex rounded-full h-3 w-3 ${operatingState === 'PAUSED' ? 'bg-amber-500' : operatingState === 'STOPPED' ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+            </span>
+            Your AI company is <strong>{operatingState}</strong>.
+          </p>
         </div>
-        <div className="w-full md:w-96 flex relative">
-          <input 
-            type="text" 
-            className="w-full pl-4 pr-12 py-3 border-2 border-slate-200 rounded-full text-sm focus:border-indigo-500 outline-none shadow-sm"
-            placeholder="Command your AI company..."
-            value={commandInput}
-            onChange={e => setCommandInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleCommand()}
-          />
-          <button onClick={handleCommand} className="absolute right-2 top-2 bottom-2 bg-indigo-600 text-white rounded-full w-9 h-9 flex items-center justify-center hover:bg-indigo-700 transition-colors">
-            <Sparkles className="w-4 h-4" />
-          </button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => handleControl('pause')} className="text-amber-600 border-amber-200 hover:bg-amber-50">
+            <Pause className="w-4 h-4 mr-2" /> Pause
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleControl('resume')} className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
+            <Play className="w-4 h-4 mr-2" /> Resume
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleControl('stop')} className="text-red-600 border-red-200 hover:bg-red-50">
+            <Square className="w-4 h-4 mr-2" /> Stop
+          </Button>
         </div>
       </div>
 
-      {/* 1. EMERGENCIES / ATTENTION REQUIRED */}
-      {(pendingApprovals.length > 0 || importantAlerts.length > 0) && (
-        <div className="space-y-4">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Attention Required</h2>
-          <div className="grid gap-3">
-            {pendingApprovals.map((pa: any, i: number) => (
-              <Card key={i} className="border-l-4 border-l-amber-500 bg-amber-50">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600" />
-                    <div>
-                      <h3 className="font-bold text-amber-900">{pa.title || 'Action Requires Approval'}</h3>
-                      <p className="text-sm text-amber-700">{pa.message || 'An executive has proposed an action that exceeds their current authority limit.'}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* LEFT COLUMN */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* 2. ACTIVE BUSINESS OUTCOME */}
+          <Card className="border-indigo-100 shadow-md relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-indigo-600"></div>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                <Target className="w-4 h-4" /> Active Business Outcome
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {primaryGoal ? (
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4">{primaryGoal.objective}</h3>
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                      <div className="text-xs font-semibold text-slate-500 uppercase">Target</div>
+                      <div className="text-2xl font-bold text-slate-900 mt-1">20</div>
+                    </div>
+                    <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                      <div className="text-xs font-semibold text-emerald-600 uppercase">Current Verified</div>
+                      <div className="text-2xl font-bold text-emerald-700 mt-1">0</div>
+                    </div>
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                      <div className="text-xs font-semibold text-indigo-600 uppercase">Gap</div>
+                      <div className="text-2xl font-bold text-indigo-700 mt-1">20</div>
                     </div>
                   </div>
-                  <Button variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-100" onClick={() => setSelectedApproval(pa)}>Review</Button>
-                </CardContent>
-              </Card>
-            ))}
-            {importantAlerts.map((ia: any, i: number) => (
-              <Card key={i} className="border-l-4 border-l-red-500 bg-red-50">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-600" />
-                  <div>
-                    <h3 className="font-bold text-red-900">{ia.title || 'System Alert'}</h3>
-                    <p className="text-sm text-red-700">{ia.message}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* NEXT ACTION RECOMMENDATION */}
-      {nextAction && (
-        <Card className="border-indigo-100 bg-indigo-50/50 shadow-sm">
-           <CardContent className="p-5">
-             <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">COO</div>
-                <div>
-                   <h3 className="font-bold text-indigo-900 mb-1">What should we do next?</h3>
-                   <div className="text-indigo-800 font-medium bg-white px-3 py-2 rounded-md border border-indigo-100 mb-3 shadow-sm">
-                     {nextAction.next_action}
-                   </div>
-                   <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><span className="text-slate-500 font-bold uppercase tracking-wider text-xs block mb-1">Why</span><span className="text-slate-700">{nextAction.why}</span></div>
-                      <div><span className="text-slate-500 font-bold uppercase tracking-wider text-xs block mb-1">Authority Needed</span><span className="text-slate-700">{nextAction.authority}</span></div>
-                   </div>
-                </div>
-             </div>
-           </CardContent>
-        </Card>
-      )}
-
-      {/* 2. WHILE YOU WERE AWAY */}
-      {whileAway.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">While you were away</h2>
-          <Card className="shadow-sm border-slate-200">
-            <div className="divide-y divide-slate-100">
-              {whileAway.map((d: any, i: number) => (
-                <div key={i} className="p-4 flex gap-4 hover:bg-slate-50 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0">
-                    {d.agent_id ? d.agent_id.substring(0,2).toUpperCase() : 'AI'}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-sm">{d.event_name.replace(/_/g, ' ')}</h4>
-                    <p className="text-slate-600 text-sm mt-1">{d.conclusion || d.proposed_action}</p>
-                    <div className="text-xs text-slate-400 mt-2">{new Date(d.created_at).toLocaleString()}</div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-800 font-medium text-xs uppercase">{primaryGoal.status}</span>
+                    <Link to={`/goals/${primaryGoal.id}`} className="text-indigo-600 font-medium hover:underline flex items-center">View Details <ArrowRight className="w-4 h-4 ml-1" /></Link>
                   </div>
                 </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* 3. IMPORTANT BUSINESS OUTCOMES */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-end">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Active Business Outcomes</h2>
-          <Link to="/missions" className="text-sm text-indigo-600 font-medium flex items-center hover:underline">View All <ArrowRight className="w-4 h-4 ml-1" /></Link>
-        </div>
-        
-        {activeGoals.length === 0 ? (
-          <Card className="border-dashed shadow-none bg-slate-50">
-            <CardContent className="p-8 text-center text-slate-500">
-              No active business outcomes. Use the command box above to assign an objective.
+              ) : (
+                <div className="text-center py-8">
+                  <Target className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                  <p className="text-slate-500 font-medium">No active business outcomes.</p>
+                  <p className="text-sm text-slate-400 mb-4">Use the chat below to give your company an objective.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeGoals.map(g => (
-              <Link key={g.id} to={`/goals/${g.id}`}>
-                <Card className="hover:border-indigo-300 transition-colors cursor-pointer h-full border-slate-200 shadow-sm">
-                  <CardContent className="p-5 flex flex-col justify-between h-full">
+
+          {/* 3. WHAT SHOULD MY COMPANY DO NEXT? */}
+          {nextAction && (
+            <Card className="border-slate-200 shadow-sm bg-white">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-amber-500" /> What Should My Company Do Next?
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-amber-50 border border-amber-100 p-4 rounded-lg">
+                  <p className="font-medium text-amber-900">{nextAction.currentPriority || 'Continue autonomous operation.'}</p>
+                  {nextAction.reason && <p className="text-sm text-amber-700 mt-1">{nextAction.reason}</p>}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* 4. AI COMPANY CHAT */}
+          <Card className="border-slate-200 shadow-sm flex flex-col h-[500px]">
+            <CardHeader className="border-b bg-slate-50 py-3">
+              <CardTitle className="text-sm font-bold text-slate-700 uppercase flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" /> AI Company Chat
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
+              {chatHistory.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 space-y-3">
+                  <MessageSquare className="w-10 h-10 opacity-20" />
+                  <p>Ask your AI Company what they are doing, <br/>or give them a new objective.</p>
+                </div>
+              ) : (
+                chatHistory.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] rounded-lg p-3 text-sm ${
+                      msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-800'
+                    }`}>
+                      {msg.role === 'ai' && <div className="font-bold text-xs text-indigo-600 mb-1">AI CEO</div>}
+                      <p className="whitespace-pre-wrap">{msg.text}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+              {isChatting && (
+                <div className="flex justify-start">
+                  <div className="bg-slate-100 text-slate-500 rounded-lg p-3 text-sm flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> CEO is thinking...
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </CardContent>
+            <div className="p-3 border-t bg-slate-50">
+              <form onSubmit={sendChatMessage} className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  placeholder="e.g. 'What is happening?', 'Get me 20 customers'" 
+                  className="flex-1 px-4 py-2 border rounded-full text-sm focus:outline-none focus:border-indigo-500 shadow-sm"
+                  disabled={isChatting}
+                />
+                <Button type="submit" disabled={!chatInput.trim() || isChatting} className="rounded-full w-10 h-10 p-0 bg-indigo-600 hover:bg-indigo-700">
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </form>
+            </div>
+          </Card>
+
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="space-y-6">
+          
+          {/* 5. FOUNDER ATTENTION */}
+          {(pendingApprovals.length > 0 || importantAlerts.length > 0) && (
+            <Card className="border-rose-200 shadow-sm bg-rose-50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold text-rose-600 uppercase tracking-wider flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" /> Founder Attention
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {pendingApprovals.map((a: any) => (
+                  <div key={a.id} className="bg-white p-3 rounded border border-rose-100 text-sm">
+                    <p className="font-bold text-slate-900">{a.action}</p>
+                    <p className="text-slate-600 text-xs mt-1">{a.reason}</p>
+                    <Button size="sm" onClick={() => handleApprove(a.id)} className="w-full mt-2 bg-rose-600 hover:bg-rose-700">Approve</Button>
+                  </div>
+                ))}
+                {importantAlerts.map((a: any, i: number) => (
+                  <div key={i} className="bg-white p-3 rounded border border-rose-100 text-sm flex gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                     <div>
-                      <div className="flex justify-between items-start mb-2">
-                        <Activity className="w-5 h-5 text-indigo-500" />
-                        <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded">{g.operating_status || g.status}</span>
+                      <p className="font-bold text-slate-900">{a.title}</p>
+                      <p className="text-slate-600 text-xs mt-1">{a.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* 6. AI EXECUTIVES */}
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                <Briefcase className="w-4 h-4" /> AI Executives
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {execs.length > 0 ? execs.map((exec) => (
+                  <div key={exec.id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg border border-transparent hover:border-slate-100 transition-colors cursor-pointer" onClick={() => navigate(`/agents/${exec.id}/chat`)}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold text-xs">
+                        {exec.name.replace('AI ', '').substring(0, 3)}
                       </div>
-                      <h3 className="font-bold text-slate-900 text-lg">{g.objective}</h3>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">{exec.name}</p>
+                        <p className="text-xs text-slate-500">{exec.status}</p>
+                      </div>
                     </div>
-                    <div className="mt-4 text-sm text-slate-500 border-t border-slate-100 pt-3">
-                      {g.target_metric ? `Target: ${g.target || ''} ${g.target_metric}` : 'Investigation in progress'}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        )}
+                    <ArrowRight className="w-4 h-4 text-slate-300" />
+                  </div>
+                )) : <p className="text-sm text-slate-500 text-center py-2">No executives found.</p>}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 7. COMPANY HEALTH */}
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                <Shield className="w-4 h-4" /> Company Health
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {ccData?.health ? Object.entries(ccData.health).map(([key, status]: any) => (
+                  <div key={key} className="flex items-center justify-between text-sm">
+                    <span className="capitalize text-slate-600 font-medium">{key}</span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      status === 'HEALTHY' ? 'bg-emerald-100 text-emerald-700' :
+                      status === 'ATTENTION' ? 'bg-amber-100 text-amber-700' :
+                      status === 'DEGRADED' ? 'bg-rose-100 text-rose-700' :
+                      'bg-slate-100 text-slate-600'
+                    }`}>{status}</span>
+                  </div>
+                )) : <p className="text-sm text-slate-500 text-center">Loading health metrics...</p>}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 8. LIVE ACTIVITY */}
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                <Activity className="w-4 h-4" /> Live Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 border-l-2 border-slate-100 ml-2 pl-4 py-1">
+                {whileAway.length > 0 ? whileAway.map((d: any, i: number) => (
+                  <div key={i} className="relative text-sm">
+                    <div className="absolute -left-[23px] top-1 w-2.5 h-2.5 rounded-full bg-indigo-400 ring-4 ring-white"></div>
+                    <p className="font-semibold text-slate-900">{d.title}</p>
+                    <p className="text-slate-500 text-xs mt-0.5">{d.description}</p>
+                  </div>
+                )) : <p className="text-sm text-slate-400">No recent activity recorded.</p>}
+              </div>
+            </CardContent>
+          </Card>
+
+        </div>
       </div>
-
-            {/* AI EXECUTIVE VISIBILITY */}
-      {ccData?.executives && ccData.executives.length > 0 && (
-        <div className="space-y-4 pt-6 border-t border-slate-200">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">AI Executive Team</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ccData.executives.map((exec: any, i: number) => (
-              <Card key={i} className="shadow-sm border-slate-200">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm">
-                      {exec.role}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900">{exec.name}</h3>
-                      <p className="text-xs text-slate-500">{exec.focus}</p>
-                    </div>
-                  </div>
-                  <div className="text-sm">
-                    <div className="mb-1"><span className="text-slate-500 font-medium">Latest:</span> <span className="text-slate-700">{exec.latestDecision || 'None'}</span></div>
-                    <div><span className="text-slate-500 font-medium">Blockers:</span> <span className="text-amber-600">{exec.blockers || 'None'}</span></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* MODAL FOR APPROVALS */}
-      {selectedApproval && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
-            <div className="p-6 border-b border-slate-100 bg-slate-50">
-              <h3 className="font-bold text-lg text-slate-900">Review Required</h3>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Action</label>
-                <div className="font-medium">{selectedApproval.title}</div>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Reason</label>
-                <div className="text-sm bg-slate-50 p-3 rounded text-slate-700">{selectedApproval.message || selectedApproval.reason}</div>
-              </div>
-            </div>
-            <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setSelectedApproval(null)} disabled={approvalSubmitting}>Cancel</Button>
-              <Button onClick={handleApprove} disabled={approvalSubmitting} className="bg-indigo-600 hover:bg-indigo-700">
-                {approvalSubmitting ? 'Approving...' : 'Approve & Execute'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
-
-
-
-
-

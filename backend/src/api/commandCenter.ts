@@ -32,7 +32,7 @@ router.get('/', async (req: any, res) => {
     const tasks = tasksRes.data || [];
     const missions = missionsRes.data || [];
     const approvals = approvalsRes.data || [];
-    const pendingApprovals = approvals.filter((a: any) => a.status === 'PENDING');
+    const pendingApprovals = approvals.filter((a: any) => a.status === 'PENDING' || a.status === 'PENDING_APPROVAL');
     const memories = memoryRes.data || [];
     const events = eventsRes.data || [];
     const opportunities = opportunitiesRes.data || [];
@@ -289,7 +289,17 @@ router.get('/', async (req: any, res) => {
       whileYouWereAway,
       companySteering,
       managementItems,
-      workforce, approvals
+      
+    const { data: workflows } = await supabase.from('workflows').select('id, next_run_at').eq('workspace_id', workspaceId).limit(1);
+    const { data: runs } = workflows?.[0] ? await supabase.from('workflow_runs').select('started_at').eq('workflow_id', workflows[0].id).order('started_at', { ascending: false }).limit(1) : { data: null };
+    
+    const autonomy = {
+      last_cycle: runs?.[0]?.started_at || null,
+      next_cycle: workflows?.[0]?.next_run_at || null,
+      status: ws.operating_state === 'OPERATING' ? 'OPERATING' : ws.operating_state
+    };
+
+      workforce, approvals, autonomy
     };
 
     res.json(payload);

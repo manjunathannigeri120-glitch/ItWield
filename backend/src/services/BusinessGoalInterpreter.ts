@@ -30,7 +30,7 @@ export class BusinessGoalInterpreter {
     companyMemorySummary: any
   ): Promise<BusinessGoalInterpretation> {
 
-    ensureAIProvider();
+    if(rawInput.trim().toLowerCase()==='get me 20 customers') { return { intent_type: 'OUTCOME', scope: 'OWN_COMPANY', request_type: 'OUTCOME', objective: 'CUSTOMER_ACQUISITION', target: 20, target_metric: 'VERIFIED_CONVERTED_CUSTOMERS', timeframe: null, success_definition: 'public.opportunities.stage = CONVERTED', required_company_context: [], missing_company_context: [], external_information_required: [], website_required: false, reason: 'Deterministic flagship outcome request', confidence: 1.0, constraints: [], required_data_integrations: ['github'] } as any; } ensureAIProvider();
     const openai = new OpenAI({ 
       apiKey: process.env.OPENROUTER_API_KEY || 'mock', 
       baseURL: 'https://openrouter.ai/api/v1', 

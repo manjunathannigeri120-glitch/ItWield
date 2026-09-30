@@ -47,7 +47,7 @@ export class AICOOService {
         .neq('operating_status', 'BLOCKED');
         
       if (!activeGoals || activeGoals.length === 0) {
-        await supabase.from('workspaces').update({ status: 'ACTIVE' }).eq('id', workspaceId);
+        await supabase.from('workspaces').update({ status: 'active' }).eq('id', workspaceId);
         return { status: 'NO_ACTION_REQUIRED', message: 'No active business outcomes.' };
       }
 
@@ -71,7 +71,7 @@ export class AICOOService {
         .eq('operating_status', 'OPERATING');
         
       if (!updatedGoals || updatedGoals.length === 0) {
-        await supabase.from('workspaces').update({ status: 'ACTIVE' }).eq('id', workspaceId);
+        await supabase.from('workspaces').update({ status: 'active' }).eq('id', workspaceId);
         return { status: 'COMPLETED', message: 'All business outcomes completed.' };
       }
       
@@ -178,7 +178,7 @@ export class AICOOService {
            await supabase.from('business_goals').update({ operating_status: 'ACTIVE' }).eq('id', goal.id).eq('operating_status', 'OPERATING');
          }
       }
-      await supabase.from('workspaces').update({ status: 'ACTIVE' }).eq('id', workspaceId);
+      await supabase.from('workspaces').update({ status: 'active' }).eq('id', workspaceId);
     }
   }
   

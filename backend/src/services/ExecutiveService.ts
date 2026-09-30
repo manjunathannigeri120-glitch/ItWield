@@ -59,7 +59,7 @@ Output JSON matching:
         let analysisObj;
         try {
             const completion = await openai.chat.completions.create({
-                model: 'openrouter/free',
+                model: process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini',
                 messages: [{ role: 'system', content: systemPrompt }],
                 response_format: { type: 'json_object' }
             });

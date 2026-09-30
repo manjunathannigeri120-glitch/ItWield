@@ -144,19 +144,11 @@ export function Memory() {
                     value={addForm.memory_type}
                     onChange={e => setAddForm({...addForm, memory_type: e.target.value})}
                   >
-                    <option value="STRATEGIC_CONTEXT">Strategic Context</option>
-                    <option value="CUSTOMER_CONTEXT">Customer Context</option>
-                    <option value="MARKET_CONTEXT">Market Context</option>
-                    <option value="FINANCIAL_CONTEXT">Financial Context</option>
-                    <option value="TECHNICAL_CONTEXT">Technical Context</option>
-                    <option value="OPERATIONAL_CONTEXT">Operational Context</option>
-                    <option value="DECISION">Decision</option>
-                    <option value="LESSON">Lesson</option>
-                    <option value="FAILURE">Failure</option>
-                    <option value="RULE">Business Rule</option>
-                    <option value="FACT">Company Fact</option>
-                    <option value="PREFERENCE">Preference</option>
-                  </select>
+                    <option value="FACT">Fact</option>
+                      <option value="RULE">Rule</option>
+                      <option value="PREFERENCE">Preference</option>
+                      <option value="DECISION">Decision</option>
+                    </select>
                 </div>
                 <div className="w-2/3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>

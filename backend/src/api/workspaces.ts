@@ -129,7 +129,7 @@ router.post('/:id/analyze-company', async (req: AuthRequest, res) => {
         sourceId: 'onboarding_goal',
         importance: 'high',
         createdBy: req.user?.id || 'SYSTEM'
-      }, req.supabase).catch((e: any) => console.error('[Workspaces] Failed to create onboarding goal memory:', e));
+      }, require('@supabase/supabase-js').createClient(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)).catch((e: any) => console.error('[Workspaces] Failed to create onboarding goal memory:', e));
     }
 
     // Handle competitors
@@ -197,12 +197,8 @@ router.post('/:id/activate', async (req: AuthRequest, res) => {
     }
 
     // 1. Mark as operating
-    const { error: updateErr } = await req.supabase
-      .from('workspaces')
-      .update({ status: 'operating' })
-      .eq('id', workspaceId);
-
-    if (updateErr) throw updateErr;
+    const { error: wsUpdateErr } = await req.supabase.from('workspaces').update({ status: 'operating' }).eq('id', workspaceId);
+    if (wsUpdateErr) throw wsUpdateErr;
 
     // 2. Inject V2 Executive Layer + Workers (idempotent via ignoring errors or checking first)
     const { data: existingAgents } = await req.supabase.from('agents').select('name').eq('workspace_id', workspaceId as string);
@@ -219,6 +215,7 @@ router.post('/:id/activate', async (req: AuthRequest, res) => {
     };
 
     const ceoId = await insertAgent('AI CEO', 'Company-wide orchestration', ['delegate', 'report', 'orchestrate']);
+    const cooId = await insertAgent('AI COO', 'Company operations and coordination', ['orchestrate_execution', 'manage_dependencies'], ceoId);
     const ctoId = await insertAgent('AI CTO', 'Technical operations', ['monitor_health', 'engineering'], ceoId);
     const cmoId = await insertAgent('AI CMO', 'Competitive intelligence', ['market_signals'], ceoId);
     const cfoId = await insertAgent('AI CFO', 'Financial monitoring', ['financial_alerts'], ceoId);

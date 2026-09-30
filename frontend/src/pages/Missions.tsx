@@ -22,7 +22,7 @@ export function Missions() {
 
   useEffect(() => {
     api.get('/workspaces').then(res => {
-      const ws = res.data.find((w: any) => w.status === 'operating' || w.status === 'ACTIVE');
+      const ws = res.data.find((w: any) => w.status === 'operating' || w.status === 'active' || w.status === 'ACTIVE');
       if (ws) {
         setWorkspace(ws);
         if (location.state?.initialCommand) {
@@ -177,7 +177,7 @@ export function Missions() {
                         <span className="font-semibold uppercase text-xs">{g.status}</span>
                         {g.target_metric && (
                           <>
-                            <span>•</span>
+                            <span>ï¿½</span>
                             <span>Target: {g.target || 'Auto'} {g.target_metric}</span>
                           </>
                         )}

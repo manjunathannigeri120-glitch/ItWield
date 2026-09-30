@@ -5,12 +5,19 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Building2, Target, Globe } from 'lucide-react';
 import { api } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 export function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSignOut = async () => {
+    localStorage.removeItem('sb-mock-session');
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
 
   // Step 1: Basics
   const [basics, setBasics] = useState({
@@ -107,8 +114,11 @@ export function Onboarding() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="bg-slate-50 border-t border-slate-100 rounded-b-xl py-4 flex justify-end">
-              <Button onClick={handleCreateBasics} className="bg-indigo-600 hover:bg-indigo-700">
+            <CardFooter className="bg-slate-50 border-t border-slate-100 rounded-b-xl py-4 flex justify-between">
+              <Button variant="ghost" onClick={handleSignOut} className="text-slate-500 hover:text-slate-700">
+                &lt;- Back to Login
+              </Button>
+              <Button onClick={handleCreateBasics} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                 Continue Setup -&gt;
               </Button>
             </CardFooter>
