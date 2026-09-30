@@ -81,7 +81,7 @@ export default function Dashboard() {
   const handleControl = async (action: 'pause' | 'resume' | 'stop') => {
     if (!workspace) return;
     try {
-      await api.post(`/workspaces/${workspace.id}/control`, { action });
+      const stateMap = { pause: "PAUSED", resume: "OPERATING", stop: "STOPPED" }; await api.post(`/workspaces/${workspace.id}/control/state`, { state: stateMap[action] });
       loadData();
     } catch (e) {
       console.error(`Failed to ${action}:`, e);
@@ -152,9 +152,9 @@ export default function Dashboard() {
             }`}>
               {operatingState}
             </span>
-            {ccData?.autonomy?.started_at && operatingState === 'OPERATING' && (
+            {ccData?.autonomy?.last_cycle && operatingState === 'OPERATING' && (
               <span className="text-xs text-slate-500 flex items-center gap-1">
-                <Activity className="w-3 h-3 text-emerald-500 animate-pulse" /> Running since {new Date(ccData.autonomy.started_at).toLocaleTimeString()}
+                <Activity className="w-3 h-3 text-emerald-500 animate-pulse" /> Running since {new Date(ccData.autonomy.last_cycle).toLocaleTimeString()}
               </span>
             )}
           </div>
@@ -445,8 +445,8 @@ export default function Dashboard() {
                 {whileAway.length > 0 ? whileAway.map((d: any, i: number) => (
                   <div key={i} className="relative text-sm">
                     <div className="absolute -left-[23px] top-1 w-2.5 h-2.5 rounded-full bg-indigo-400 ring-4 ring-white"></div>
-                    <p className="font-semibold text-slate-900">{d.title}</p>
-                    <p className="text-slate-500 text-xs mt-1">{d.description}</p>
+                    <p className="font-semibold text-slate-900">{d.action || d.reason}</p>
+                    <p className="text-slate-500 text-xs mt-1">{d.outcome}</p>
                   </div>
                 )) : <p className="text-sm text-slate-400 text-center py-4">No recent activity recorded.</p>}
               </div>

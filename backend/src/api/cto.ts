@@ -10,7 +10,7 @@ router.get('/:workspaceId', async (req: any, res) => {
     
     try {
         const { data: workspace } = await db.from('workspaces').select('cto_status, cto_locked_until').eq('id', workspaceId).single();
-        const { data: incidents } = await db.from('incidents').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }).limit(20);
+        let incidents = []; try { const res = await db.from('incidents').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }).limit(20); incidents = res.data || []; } catch(e) {}
 
         res.json({
             workspace,

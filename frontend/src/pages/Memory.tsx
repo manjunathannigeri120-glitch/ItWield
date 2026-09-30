@@ -54,7 +54,7 @@ export function Memory() {
       await api.post('/workspaces/' + workspace.id + '/memory', {
         title: addForm.memory_type + ' added manually',
         content: addForm.content,
-        category: addForm.memory_type
+        memory_type: addForm.memory_type
       });
       setShowAdd(false);
       setAddForm({ memory_type: 'RULE', content: '' });

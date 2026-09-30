@@ -9,7 +9,7 @@ const router = Router({ mergeParams: true });
 router.get('/state', requireAuth, async (req: AuthRequest, res) => {
     try {
         const { data: ws, error } = await getServiceSupabase()!.from('workspaces').select('operating_state').eq('id', (req.params.workspaceId as string)).single();
-        if (error) throw error;
+        if (error) { if (error.message.includes("relation")) return res.json({ systems: [] }); throw error; }
         res.json({ operating_state: ws.operating_state });
     } catch (err: any) {
         res.status(500).json({ error: err.message });
@@ -34,7 +34,7 @@ router.post('/state', requireAuth, async (req: AuthRequest, res) => {
 router.get('/systems', requireAuth, async (req: AuthRequest, res) => {
     try {
         const { data: systems, error } = await getServiceSupabase()!.from('company_systems').select('*').eq('workspace_id', (req.params.workspaceId as string));
-        if (error) throw error;
+        if (error) { if (error.message.includes("relation")) return res.json({ auditLogs: [] }); throw error; }
         res.json({ systems });
     } catch (err: any) {
         res.status(500).json({ error: err.message });
@@ -50,7 +50,7 @@ router.get('/audit', requireAuth, async (req: AuthRequest, res) => {
             .eq('workspace_id', (req.params.workspaceId as string))
             .order('created_at', { ascending: false })
             .limit(100);
-        if (error) throw error;
+        if (error) { if (error.message.includes("relation")) return res.json({ approvals: [] }); throw error; }
         res.json({ auditLogs });
     } catch (err: any) {
         res.status(500).json({ error: err.message });
