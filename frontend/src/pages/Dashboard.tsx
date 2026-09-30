@@ -3,7 +3,7 @@ import { api } from '@/lib/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Activity, AlertCircle, ArrowRight, Play, Pause, Square, MessageSquare, Target, Zap, Shield, Briefcase } from 'lucide-react';
+import { Loader2, Activity, AlertCircle, Play, Pause, Square, MessageSquare, Target, Zap, Shield, Briefcase } from 'lucide-react';
 
 
 export default function Dashboard() {
