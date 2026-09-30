@@ -108,35 +108,35 @@ router.get('/', async (req: any, res) => {
     
     const executives = [
       {
-        id: aiCeo?.id, role: 'CEO',
+        id: aiCeo?.id || "ceo", role: 'CEO',
         name: aiCeo?.name || 'AI CEO',
         focus: ceoDecisions[0]?.assessment || 'Monitoring operations',
         blockers: pendingApprovals.length > 0 ? `${pendingApprovals.length} approvals pending` : 'None',
         latestDecision: ceoDecisions[0]?.decision || 'None'
       },
       {
-        id: aiCto?.id, role: 'CTO',
+        id: aiCto?.id || "cto", role: 'CTO',
         name: aiCto?.name || 'AI CTO',
         focus: techHealth !== 'HEALTHY' ? 'Resolving technology incidents' : 'Maintaining system reliability',
         blockers: techHealth === 'DEGRADED' ? 'Provider availability issues' : 'None',
         latestDecision: 'System optimization'
       },
       {
-        id: aiCmo?.id, role: 'CMO',
+        id: aiCmo?.id || "cmo", role: 'CMO',
         name: aiCmo?.name || 'AI CMO',
         focus: 'Customer Acquisition and Growth',
         blockers: 'None',
         latestDecision: opportunities.length > 0 ? 'Evaluating market responses' : 'Prospecting'
       },
       {
-        id: aiCoo?.id, role: 'COO',
+        id: aiCoo?.id || "coo", role: 'COO',
           name: aiCoo?.name || 'AI COO',
           focus: opsHealth !== 'HEALTHY' ? 'Coordinating operations' : 'Overseeing workforce',
           blockers: pendingApprovals.length > 0 ? 'Awaiting Founder Approval' : 'None',
           latestDecision: 'Task delegation'
         },
         {
-          id: aiCfo?.id, role: 'CFO',
+          id: aiCfo?.id || "cfo", role: 'CFO',
         name: 'AI CFO',
         focus: 'Financial data not connected.',
         blockers: 'Disconnected',

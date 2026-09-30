@@ -102,7 +102,7 @@ export default function Dashboard() {
       const ceo = agents.find((a: any) => a.name.includes('CEO'));
       if (ceo) {
         const res = await api.post(`/agents/${ceo.id}/chat`, { message: userMsg, conversationId: 'dashboard-main' });
-        setChatHistory(prev => [...prev, { role: 'ai', text: res.data.reply }]);
+        setChatHistory(prev => [...prev, { role: 'ai', text: res.data.response || res.data.reply || "No response received." }]);
       } else {
         // Fallback if CEO not found
         setTimeout(() => {
