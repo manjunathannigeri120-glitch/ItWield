@@ -117,6 +117,23 @@ export default function Dashboard() {
     }
   };
 
+  const handleChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || !workspace) return;
+    
+    const userMsg = chatInput;
+    setChatInput('');
+    setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
+    
+    try {
+      const res = await api.post(`/workspaces/${workspace.id}/chat`, { message: userMsg });
+      setChatHistory(prev => [...prev, { role: 'system', text: res.data.reply }]);
+      loadData(); // refresh goals
+    } catch(err: any) {
+      setChatHistory(prev => [...prev, { role: 'system', text: "I'm sorry, I encountered an error communicating with the executive team." }]);
+    }
+  };
+
   if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-600" /></div>;
 
   if (!workspace) return (
