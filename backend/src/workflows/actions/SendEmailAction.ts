@@ -11,23 +11,24 @@ export class SendEmailAction implements Action {
     if (!text && !html) throw new Error('Missing required email fields (text or html must be provided)');
     if (!context.workspaceId || !context.supabase) throw new Error('Missing workspace context for execution');
 
-    // 1. Fetch RESEND connection from company_systems
-    const { data: system, error: sysErr } = await context.supabase
+    // 1. Fetch Email connection from company_systems
+    const { data: systems, error: sysErr } = await context.supabase
        .from('company_systems')
        .select('*')
        .eq('workspace_id', context.workspaceId)
-       .eq('system_type', 'RESEND')
-       .eq('status', 'CONNECTED')
-       .single();
+       .in('system_type', ['RESEND', 'BREVO'])
+       .eq('status', 'CONNECTED');
 
-    if (sysErr || !system) {
-       return { success: false, error: { message: 'Resend connection is not configured for this workspace.' } };
+    if (sysErr || !systems || systems.length === 0) {
+       return { success: false, error: { message: 'No active email connection (Resend or Brevo) configured for this workspace.' } };
     }
+
+    const system = systems[0];
 
     // 2. Validate Capability
     const capabilities = system.capabilities || [];
     if (!capabilities.includes('SEND_EMAILS')) {
-       return { success: false, error: { message: 'The Resend connection does not have the SEND_EMAILS capability enabled by the founder.' } };
+       return { success: false, error: { message: `The ${system.system_type} connection does not have the SEND_EMAILS capability enabled by the founder.` } };
     }
 
     // 3. Decrypt credentials
@@ -35,42 +36,56 @@ export class SendEmailAction implements Action {
     try {
        credentials = decryptObject(system.connection_id);
     } catch (e) {
-       return { success: false, error: { message: 'Failed to decrypt Resend credentials.' } };
+       return { success: false, error: { message: `Failed to decrypt ${system.system_type} credentials.` } };
     }
 
     const apiKey = credentials.apiKey;
     if (!apiKey) {
-      return { success: false, error: { message: 'Resend API key is missing from connection.' } };
+      return { success: false, error: { message: `${system.system_type} API key is missing from connection.` } };
     }
 
+    const senderEmail = credentials.fromEmail || process.env.FROM_EMAIL || 'onboarding@example.com';
+    const senderName = credentials.fromName || 'Acme Corp';
+
+    const toArray = typeof to === 'string' ? to.split(',').map(e => e.trim()) : to;
+    
     try {
-      const payload: any = {
-        from: credentials.fromEmail || process.env.RESEND_FROM_EMAIL || 'Acme <onboarding@resend.dev>',
-        to,
-        subject,
-        text,
-        html,
-        cc,
-        bcc,
-        reply_to: replyTo
-      };
+      if (system.system_type === 'RESEND') {
+          const payload: any = {
+            from: `${senderName} <${senderEmail}>`,
+            to: toArray,
+            subject, text, html, cc, bcc, reply_to: replyTo
+          };
+          Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
 
-      // Strip empty fields
-      Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+          const response = await axios.post('https://api.resend.com/emails', payload, {
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
+          });
+          return { success: true, sent: true, provider: 'RESEND', messageId: response.data?.id };
+      } else if (system.system_type === 'BREVO') {
+          const payload: any = {
+            sender: { name: senderName, email: senderEmail },
+            to: toArray.map((e: string) => ({ email: e })),
+            subject: subject
+          };
+          if (html) payload.htmlContent = html;
+          if (text) payload.textContent = text;
+          if (replyTo) payload.replyTo = { email: replyTo };
+          
+          if (cc) {
+              const ccArray = typeof cc === 'string' ? cc.split(',').map(e => e.trim()) : cc;
+              payload.cc = ccArray.map((e: string) => ({ email: e }));
+          }
+          if (bcc) {
+              const bccArray = typeof bcc === 'string' ? bcc.split(',').map(e => e.trim()) : bcc;
+              payload.bcc = bccArray.map((e: string) => ({ email: e }));
+          }
 
-      const response = await axios.post('https://api.resend.com/emails', payload, {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      return {
-        success: true,
-        sent: true,
-        messageId: response.data?.id,
-        recipientCount: (typeof to === 'string' ? to.split(',').length : (to?.length || 1))
-      };
+          const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
+            headers: { 'api-key': apiKey, 'Content-Type': 'application/json', 'accept': 'application/json' }
+          });
+          return { success: true, sent: true, provider: 'BREVO', messageId: response.data?.messageId };
+      }
     } catch (error: any) {
       return {
         success: false,
