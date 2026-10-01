@@ -38,7 +38,7 @@ export function LandingCore() {
             {/* ItWield */}
             <div className="bg-indigo-900/10 border border-indigo-500/30 p-8 rounded-[32px] shadow-xl shadow-indigo-900/20 relative">
               <h3 className="text-xl font-bold text-[#111827] mb-6 border-b border-indigo-500/30 pb-4">ITWIELD</h3>
-              <div className="space-y-2 text-center text-xs font-bold tracking-widest text-indigo-200">
+              <div className="space-y-2 text-center text-xs font-bold tracking-widest text-[#111827]">
                 <div className="bg-indigo-600/20 border border-indigo-500/30 p-2.5 rounded-lg text-[#111827]">Objective</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#0057FF]" />
                 <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Understand</div>
@@ -49,13 +49,13 @@ export function LandingCore() {
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#0057FF]" />
                 <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Execute</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#0057FF]" />
-                <div className="bg-indigo-600/20 border border-indigo-500/30 p-2.5 rounded-lg text-emerald-300">Verify</div>
+                <div className="bg-indigo-600/20 border border-indigo-500/30 p-2.5 rounded-lg text-emerald-700">Verify</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#0057FF]" />
                 <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Learn</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#0057FF]" />
                 <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Replan</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#0057FF]" />
-                <div className="bg-indigo-600 border border-indigo-500 p-2.5 rounded-lg text-[#111827] shadow-lg">Operate</div>
+                <div className="bg-[#0057FF] border border-[#004DE6] p-2.5 rounded-lg text-white font-bold shadow-lg">Operate</div>
               </div>
             </div>
           </div>
@@ -123,8 +123,8 @@ export function LandingCore() {
             <ArrowRight className="w-6 h-6 text-[#4B5563] my-4 rotate-90" />
 
             {/* Verify */}
-            <div className="bg-emerald-900/20 p-4 rounded-xl border border-emerald-500/20 w-full text-center">
-              <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-1">VERIFY</h3>
+            <div className="bg-emerald-100 p-4 rounded-xl border border-emerald-200 w-full text-center">
+              <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-widest mb-1">VERIFY</h3>
               <p className="text-sm text-[#4B5563]">Business data confirms results.</p>
             </div>
 
@@ -489,7 +489,7 @@ export function LandingCore() {
                 <p className="text-sm text-[#4B5563]">Customers and growth.</p>
               </div>
               <div className="bg-white shadow-sm border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[32px] p-6 flex flex-col items-center text-center shadow-xl">
-                <div className="w-12 h-12 bg-slate-700 text-[#374151] rounded-xl flex items-center justify-center mb-4"><Terminal className="w-6 h-6" /></div>
+                <div className="w-12 h-12 bg-slate-700 text-white rounded-xl flex items-center justify-center mb-4"><Terminal className="w-6 h-6" /></div>
                 <h3 className="text-xl font-bold text-[#111827] mb-2">CTO</h3>
                 <p className="text-sm text-[#4B5563]">Technology and systems.</p>
               </div>
@@ -508,7 +508,7 @@ export function LandingCore() {
 
             <div className="w-0.5 h-6 bg-slate-700 mb-6" />
 
-            <div className="bg-[#111827] border border-slate-100 px-8 py-3 rounded-full text-[#4B5563] font-bold tracking-widest uppercase text-sm z-10">
+            <div className="bg-[#111827] border border-slate-100 px-8 py-3 rounded-full text-white font-bold tracking-widest uppercase text-sm z-10">
               Authorized Systems
             </div>
 

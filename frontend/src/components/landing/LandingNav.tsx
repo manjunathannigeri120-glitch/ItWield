@@ -42,7 +42,7 @@ export function LandingNav() {
                       { icon: Briefcase, color: "text-[#0057FF]", bg: "bg-indigo-600/10", title: "CEO", desc: "Company strategy and priorities." },
                       { icon: Settings, color: "text-blue-400", bg: "bg-blue-500/10", title: "COO", desc: "Operations and coordination." },
                       { icon: TrendingUp, color: "text-rose-400", bg: "bg-rose-500/10", title: "CMO", desc: "Customers and growth." },
-                      { icon: Terminal, color: "text-[#4B5563]", bg: "bg-slate-700/50", title: "CTO", desc: "Technology and systems." },
+                      { icon: Terminal, color: "text-white", bg: "bg-slate-700", title: "CTO", desc: "Technology and systems." },
                       { icon: PieChart, color: "text-emerald-400", bg: "bg-emerald-500/10", title: "CFO", desc: "Financial health and cost context." },
                     ].map((item, i) => (
                       <a href="#executive-team" key={i} className="flex items-start gap-4 p-2 -m-2 rounded-xl hover:bg-slate-50 transition-colors">
@@ -134,7 +134,7 @@ export function LandingNav() {
                   <span className="text-sm font-medium text-[#4B5563]">Approvals</span>
                   <span className="text-sm font-medium text-[#4B5563]">Verification</span>
                 </div>
-                <a href="#enterprise" className="block w-full text-center bg-[#0057FF] hover:bg-[#004DE6] hover:text-white text-[#111827] text-sm font-bold py-2 rounded-lg transition-colors">Explore Enterprise</a>
+                <a href="#enterprise" className="block w-full text-center bg-[#0057FF] hover:bg-[#004DE6] hover:text-white text-white text-sm font-bold py-2 rounded-lg transition-colors">Explore Enterprise</a>
               </div>
             </div>
           </div>
