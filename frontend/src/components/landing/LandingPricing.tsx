@@ -71,7 +71,7 @@ export function LandingPricing() {
               <span className="text-4xl font-extrabold text-white">$199 aria-hidden="true">?</span>
               <span className="text-sm text-slate-400">/ month aria-hidden="true">?</span>
             </div>
-            <p className="text-xs text-slate-400 mb-6 min-h-[40px]">For teams operating AI across more serious workloads.</p>
+            <p className="text-xs text-slate-400 mb-6 min-h-[40px]">For growing teams with high-volume automation needs.</p>
             <Link to={ctaDest} className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Professional</Link>
             <ul className="space-y-3 text-sm text-slate-300 mt-auto">
               <li className="flex gap-2"><Check className="w-4 h-4 text-indigo-400 shrink-0" /> Unlimited workspaces</li>
@@ -257,7 +257,7 @@ export function LandingPricing() {
             ))}
           </div>
           <Link to={ctaDest} className="inline-flex items-center justify-center font-bold h-12 bg-white text-slate-900 px-8 rounded-full hover:bg-slate-200 transition-colors">
-            Contact / Start Free
+            Start Free
           </Link>
         </div>
       </section>

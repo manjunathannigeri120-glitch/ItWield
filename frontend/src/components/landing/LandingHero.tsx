@@ -25,7 +25,7 @@ export function LandingHero() {
               </h1>
               <p className="text-xl text-slate-400 mb-10 leading-relaxed font-medium">
                 Give ItWield a business objective.<br className="hidden md:block"/>
-                Your AI executives understand your company, coordinate AI workers, execute authorized actions, verify results, and keep your company moving.
+                Your AI executives understand your company, coordinate AI workers, execute authorized actions, verify results, and ensure continuous business operation.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -41,67 +41,29 @@ export function LandingHero() {
               </div>
             </div>
 
-            {/* Right: Product UI Preview */}
-            <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-3xl blur opacity-20" />
+            
+            {/* Right: Integrated Hero Visual */}
+            <div className="relative w-full h-full min-h-[400px] lg:min-h-[600px] flex items-center justify-center">
+              {/* Decorative background glow matching the premium enterprise aesthetic */}
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 rounded-[3rem] blur-3xl" />
               
-              <div className="relative bg-[#0F172A] border border-slate-700 rounded-2xl p-6 shadow-2xl flex flex-col h-full">
-                
-                <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> AI COMPANY OPERATING
-                  </div>
-                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">
-                    Illustrative Product Preview
-                  </div>
-                </div>
+              <div className="relative w-full max-w-lg aspect-square">
+                {/* Outer gradient mask to blend edges naturally into the #0F172A / #0B1121 background */}
+                <div className="absolute inset-0 z-10 pointer-events-none" style={{ background: 'radial-gradient(circle, transparent 40%, #0F172A 70%)' }}></div>
+                <div className="absolute inset-0 z-10 pointer-events-none" style={{ background: 'linear-gradient(to right, #0F172A 0%, transparent 20%, transparent 80%, #0F172A 100%)' }}></div>
+                <div className="absolute inset-0 z-10 pointer-events-none" style={{ background: 'linear-gradient(to bottom, #0F172A 0%, transparent 20%, transparent 80%, #0F172A 100%)' }}></div>
 
-                <div className="mb-6 grid grid-cols-2 gap-4">
-                  <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-700/50">
-                    <p className="text-xs text-slate-400 font-bold mb-1">Active Objective</p>
-                    <p className="text-sm text-white font-medium">Get me 20 new customers</p>
-                  </div>
-                  <div className="bg-[#1E293B] p-4 rounded-xl border border-emerald-500/20 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-emerald-500/5" />
-                    <p className="text-xs text-emerald-400 uppercase tracking-wider font-bold mb-1 relative z-10">Progress</p>
-                    <p className="text-sm text-emerald-400 font-medium relative z-10">7 / 20 VERIFIED</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 mb-6">
-                  {[
-                    { role: "CEO", status: "Strategy aligned", icon: Briefcase, color: "text-indigo-400" },
-                    { role: "COO", status: "Operations coordinated", icon: Settings, color: "text-blue-400" },
-                    { role: "CMO", status: "Customer acquisition", icon: TrendingUp, color: "text-rose-400" },
-                    { role: "CTO", status: "No technical blockers", icon: Terminal, color: "text-slate-300" },
-                    { role: "CFO", status: "Monitoring financial context", icon: PieChart, color: "text-emerald-400" }
-                  ].map((exec, i) => (
-                    <div key={i} className="flex justify-between items-center bg-slate-800/30 p-2.5 rounded-full border border-slate-700/30">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-6 h-6 rounded flex items-center justify-center bg-slate-800 ${exec.color}`}><exec.icon className="w-3.5 h-3.5" /></div>
-                        <span className="text-sm font-bold text-slate-300">{exec.role} aria-hidden="true">?</span>
-                      </div>
-                      <span className="text-xs text-slate-400">{exec.status} aria-hidden="true">?</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 flex items-center justify-between mb-6">
-                  <span className="text-xs font-bold text-slate-400">Founder Attention aria-hidden="true">?</span>
-                  <span className="text-xs text-slate-400 font-medium bg-slate-800 px-2 py-1 rounded">None required aria-hidden="true">?</span>
-                </div>
-
-                <div className="flex justify-center gap-4 mt-auto">
-                  <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center border border-amber-500/20 cursor-pointer hover:bg-amber-500/20"><Pause className="w-4 h-4 fill-current" /></div>
-                  <div className="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center border border-emerald-500/20 cursor-pointer hover:bg-emerald-500/20"><Play className="w-4 h-4 fill-current" /></div>
-                  <div className="w-10 h-10 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center border border-rose-500/20 cursor-pointer hover:bg-rose-500/20"><Square className="w-4 h-4 fill-current" /></div>
-                </div>
-
+                <img 
+                  src="/images/hero-visual.jpg" 
+                  alt="Autonomous AI Company Operations" 
+                  className="absolute inset-0 w-full h-full object-cover rounded-full mix-blend-screen opacity-90"
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* Trust Strip */}
       <section className="py-16 bg-[#0B1121] border-y border-slate-800 px-6">

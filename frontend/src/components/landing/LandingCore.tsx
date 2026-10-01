@@ -70,7 +70,7 @@ export function LandingCore() {
       <section className="py-24 bg-[#0B1121] border-y border-slate-800 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">Give your AI company an outcome.</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">Give your AI company an objective.</h2>
           </div>
 
           <div className="flex flex-col items-center max-w-xl mx-auto">
