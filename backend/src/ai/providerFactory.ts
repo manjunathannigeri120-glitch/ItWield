@@ -49,6 +49,7 @@ export class ProviderFactory implements AIProvider {
   ): Promise<GenerateResult> {
     const MAX_RETRIES = 3;
     let attempt = 0;
+    let lastError: any = null;
 
     while (attempt <= MAX_RETRIES) {
       try {
@@ -62,6 +63,7 @@ export class ProviderFactory implements AIProvider {
         result.fallbackUsed = false;
         return result;
       } catch (error: any) {
+        lastError = error;
         const status = error?.status;
         const msg = (error?.message || '').toLowerCase();
         
@@ -117,7 +119,7 @@ export class ProviderFactory implements AIProvider {
       }
     }
 
-    throw new Error('OpenRouter API failed and no fallback provider is configured or available.');
+    throw new Error(`AI Provider failed: ${lastError?.message || 'Check your API Key balance'}`);
   }
 
   static getInstance(): ProviderFactory {
