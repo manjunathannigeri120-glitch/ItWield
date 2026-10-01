@@ -41,7 +41,7 @@ export default function Approvals() {
         }
       }
       setApprovals(prev => prev.filter(a => a.id !== approvalId));
-      await api.post(`/workspaces/${currentWorkspace.id}/approvals/${approvalId}/approve`, payload);
+      await api.post(`/workspaces/${currentWorkspace.id}/approvals/${approvalId}/approve`, payload); alert('Approval successfully executed!');
       setEditingId(null);
       loadApprovals();
     } catch (e) {
@@ -52,7 +52,7 @@ export default function Approvals() {
   const handleReject = async (approvalId: string) => {
     try {
       setApprovals(prev => prev.filter(a => a.id !== approvalId));
-      await api.post(`/workspaces/${currentWorkspace.id}/approvals/${approvalId}/reject`);
+      await api.post(`/workspaces/${currentWorkspace.id}/approvals/${approvalId}/reject`); alert('Request successfully rejected.');
       setEditingId(null);
       loadApprovals();
     } catch (e) {

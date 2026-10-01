@@ -396,7 +396,7 @@ router.get('/:id/brain', async (req: AuthRequest, res) => {
     res.json(brain);
   } catch (error: any) {
     console.error('Brain Error:', error);
-    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('REJECT/APPROVE ERROR:', error); res.status(500).json({ error: error.message });
   }
 });
 
@@ -950,7 +950,7 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
         status: 'REJECTED',
         ...(userId ? { resolved_by: userId } : {}),
         resolved_at: new Date().toISOString(),
-        resolved_by: userId || undefined,
+        
         resolution_reason: reason || 'Owner rejected request'
       })
       .eq('id', approvalId)
