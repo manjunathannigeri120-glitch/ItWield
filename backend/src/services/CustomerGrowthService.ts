@@ -106,7 +106,7 @@ export class CustomerGrowthService {
     // Create an approval record
     await supabase.from('approvals').insert({
       workspace_id: workspaceId,
-      action_type: 'EXTERNAL_COMMUNICATION',
+      action: 'EXTERNAL_COMMUNICATION',
       title: `Approve Follow-up: ${opp.company_name}`,
       reason: reason,
       risk_level: 'high',

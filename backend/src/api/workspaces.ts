@@ -799,8 +799,8 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
 
     const supabase = req.supabase!;
     // Custom execution for EXTERNAL_COMMUNICATION (CRM Outreach)
-    if (updated.action === 'EXTERNAL_COMMUNICATION' && updated.payload && updated.payload.opportunity_id) {
-       const oppId = updated.payload.opportunity_id;
+    if (updated.action === 'EXTERNAL_COMMUNICATION' && updated.payload && (updated.payload.opportunity_id || updated.payload.oppId)) {
+       const oppId = updated.payload.opportunity_id || updated.payload.oppId;
        const { data: opp } = await supabase.from('opportunities').select('*').eq('id', oppId).single();
        if (opp && opp.outreach_draft) {
           const { SendEmailAction } = require('../workflows/actions/SendEmailAction');
