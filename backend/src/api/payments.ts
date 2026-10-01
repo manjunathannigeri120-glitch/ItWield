@@ -12,9 +12,9 @@ const razorpay = new Razorpay({
 });
 
 const PLANS: Record<string, { amount: number; credits: number; name: string }> = {
-  solo: { amount: 4900, credits: 5000, name: 'Solo Builder' },
-  professional: { amount: 19900, credits: 10000, name: 'Professional' },
-  business: { amount: 29900, credits: 20000, name: 'Business' }
+  solo: { amount: 400000, credits: 5000, name: 'Solo Builder' },
+  professional: { amount: 1600000, credits: 10000, name: 'Professional' },
+  business: { amount: 2500000, credits: 20000, name: 'Business' }
 };
 
 router.post('/create-order', async (req: any, res: any) => {
@@ -34,7 +34,7 @@ router.post('/create-order', async (req: any, res: any) => {
 
     const options = {
       amount: amount, 
-      currency: "USD", // Adjust to INR if your live account only supports INR
+      currency: "INR", // Adjust to INR if your live account only supports INR
       receipt: "receipt_" + Math.random().toString(36).substring(7),
       notes: {
         workspaceId: workspaceId,
