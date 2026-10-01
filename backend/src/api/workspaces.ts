@@ -47,7 +47,15 @@ router.post('/', async (req: AuthRequest, res) => {
       return res.json(mockWorkspace);
     }
 
-    const { data, error } = await req.supabase
+    
+      // Ensure user has a profile to satisfy foreign key constraints
+      if (req.user?.id) {
+        try {
+          await req.supabase.from('profiles').upsert({ id: req.user.id, email: req.user.email || '' }, { onConflict: 'id' });
+        } catch (e) { console.error('Profile upsert failed:', e); }
+      }
+
+      const { data, error } = await req.supabase
       .from('workspaces')
       .insert({
         owner_id: req.user?.id,
