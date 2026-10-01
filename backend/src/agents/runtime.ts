@@ -358,7 +358,7 @@ ${agent.system_prompt || ''}
         await this.logEvent(supabase, runId, 'agent_failed', durationMs, undefined, { error: error.message });
       }
 
-      throw new Error('Agent execution failed');
+      throw new Error(error.message || 'Agent execution failed');
     }
   }
 }
