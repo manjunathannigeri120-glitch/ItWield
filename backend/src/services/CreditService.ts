@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export class CreditService {
-    static readonly INITIAL_CREDITS = 200;
+    static readonly INITIAL_CREDITS = 150;
 
     static async getCredits(supabase: SupabaseClient, workspaceId: string): Promise<number> {
         const { data, error } = await supabase
