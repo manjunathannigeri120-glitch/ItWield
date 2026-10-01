@@ -1,3 +1,4 @@
+import { LogoIcon } from '@/components/ui/LogoIcon';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';

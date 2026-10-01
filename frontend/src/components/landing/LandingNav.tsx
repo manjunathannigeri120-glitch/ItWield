@@ -1,3 +1,4 @@
+import { LogoIcon } from '@/components/ui/LogoIcon';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,10 +20,8 @@ export function LandingNav() {
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-slate-100 py-3' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2 z-50">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Terminal className="w-4 h-4 text-[#111827]" />
-          </div>
-          <span className="text-xl font-bold text-[#111827] tracking-tight">ItWield</span>
+          <LogoIcon className="w-8 h-8" />
+          <span className="text-2xl font-black text-[#111827] tracking-tighter uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>ITWIELD</span>
         </Link>
 
         {/* Desktop Nav */}
