@@ -1,3 +1,4 @@
+import { OpenAI } from 'openai';
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { z } from 'zod';
@@ -54,6 +55,30 @@ router.post('/', async (req: AuthRequest, res) => {
           await req.supabase.from('profiles').upsert({ id: req.user.id, email: req.user.email || '' }, { onConflict: 'id' });
         } catch (e) { console.error('Profile upsert failed:', e); }
       }
+
+      
+      // --- GIBBERISH / QUALITY VALIDATOR ---
+      if (req.body.operational_context && req.body.operational_context.trim().length > 0) {
+        try {
+          const openai = new OpenAI({ 
+            apiKey: process.env.OPENROUTER_API_KEY || 'mock', 
+            baseURL: 'https://openrouter.ai/api/v1',
+            defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173', 'X-Title': 'ItWield Validator' }
+          });
+          const model = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
+          const validationPrompt = `Analyze the following business description. Is it random gibberish/keyboard mashing, or a somewhat coherent description (even if very short)? Reply with ONLY a JSON object: {"is_valid": true/false, "reason": "..."} \n\nDescription: ${req.body.operational_context}`;
+          
+          const response = await openai.chat.completions.create({ model, messages: [{ role: 'user', content: validationPrompt }], response_format: { type: 'json_object' } });
+          const text = response.choices[0].message.content?.trim() || '{}';
+          const result = JSON.parse(text);
+          if (!result.is_valid) {
+             return res.status(400).json({ error: 'Please provide a real description of your business. The AI executives cannot operate on random text.' });
+          }
+        } catch (e) {
+          console.error('Gibberish validation failed (skipping):', e);
+        }
+      }
+      // -------------------------------------
 
       const { data, error } = await req.supabase
       .from('workspaces')

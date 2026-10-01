@@ -1,3 +1,4 @@
+import { CreditService } from '../services/CreditService';
 import { AIProvider, ToolCall, Message } from '../ai/provider';
 import { MockProvider } from '../ai/mockProvider';
 import { OpenAIProvider } from '../ai/openaiProvider';
@@ -231,6 +232,17 @@ ${agent.system_prompt || ''}
         iterations++;
         await this.logEvent(supabase, runId, 'model_called', undefined, undefined, { iteration: iterations });
         
+        
+        // --- COMPUTE CREDIT ENGINE DEDUCTION ---
+        // Deduct 1 compute credit per reasoning cycle
+        if (supabase) {
+          const creditCheck = await CreditService.deductCredits(supabase, agent.workspace_id, 1);
+          if (!creditCheck.allowed) {
+             return "SYSTEM HALT: Insufficient compute credits. Your workspace has 0 AI credits remaining. Please upgrade your plan to resume autonomous operations.";
+          }
+        }
+        // ---------------------------------------
+
         const result = await aiProvider.generateText(contextMessages, agent.model, agent.temperature, toolDefinitions);
         
         if (result.usage) {
