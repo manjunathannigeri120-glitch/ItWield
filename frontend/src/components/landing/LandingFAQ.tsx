@@ -59,7 +59,7 @@ export function LandingFAQ() {
   ];
 
   return (
-    <div className="bg-[#0F172A]">
+    <div className="bg-[#F9F8F6]">
       
       {/* FAQ */}
       <section id="faq" className="scroll-mt-24 py-24 px-6 border-b border-slate-200">
@@ -75,15 +75,15 @@ export function LandingFAQ() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="py-32 px-6 bg-[#0B1121] text-center border-b border-slate-200 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none" />
+      <section className="py-32 px-6 bg-[#F9F8F6] text-center border-b border-slate-200 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#3B3690]/10 rounded-full blur-[100px] pointer-events-none" />
         
         <div className="max-w-3xl mx-auto relative z-10">
           <h2 className="text-4xl md:text-6xl font-extrabold text-[#111827] mb-6 tracking-tight">Give your company a direction.</h2>
           <p className="text-xl md:text-2xl text-[#4B5563] mb-10">Let your AI company handle the operating work.</p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10">
-            <Link to={ctaDest} className="inline-flex items-center justify-center font-bold h-14 bg-indigo-600 text-[#111827] hover:bg-indigo-600 px-10 text-lg rounded-full shadow-xl shadow-indigo-900/20 transition-all w-full sm:w-auto">
+            <Link to={ctaDest} className="inline-flex items-center justify-center font-bold h-14 bg-[#3B3690] text-white hover:bg-[#2d296e] hover:bg-[#3B3690] px-10 text-lg rounded-full shadow-xl shadow-indigo-900/20 transition-all w-full sm:w-auto">
               Start Building Your AI Company
             </Link>
             <a href="#how-it-works" className="inline-flex items-center justify-center font-semibold h-14 border border-slate-300 text-[#111827] px-8 text-lg rounded-full bg-white shadow-sm border border-slate-200 hover:bg-white shadow-sm border border-slate-200 transition-all w-full sm:w-auto">
@@ -102,15 +102,15 @@ export function LandingFAQ() {
       </section>
 
       {/* FOOTER */}
-      <footer className="pt-24 pb-12 px-6 bg-[#0F172A]">
+      <footer className="pt-24 pb-12 px-6 bg-[#F9F8F6]">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
             
             <div className="col-span-2">
               <Link to="/" className="flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                  <Terminal className="w-4 h-4 text-[#111827]" />
-                </div>
+                <div className="w-8 h-8 rounded-full bg-[#3B3690] flex items-center justify-center">
+                  <Terminal className="w-4 h-4 text-white" />
+                  </div>
                 <span className="text-xl font-bold text-[#111827] tracking-tight">ItWield</span>
               </Link>
               <p className="text-[#4B5563] text-sm max-w-sm">
@@ -121,34 +121,34 @@ export function LandingFAQ() {
             <div>
               <h3 className="text-[#111827] font-bold mb-4">Product</h3>
               <ul className="space-y-3 text-sm text-[#4B5563]">
-                <li><a href="#executive-team" className="hover:text-indigo-400 transition-colors">AI Executives</a></li>
-                <li><a href="#company-brain" className="hover:text-indigo-400 transition-colors">Company Brain</a></li>
-                <li><a href="#business-outcome" className="hover:text-indigo-400 transition-colors">Business Outcomes</a></li>
-                <li><a href="#executive-team" className="hover:text-indigo-400 transition-colors">AI Workforce</a></li>
-                <li><a href="#control-center" className="hover:text-indigo-400 transition-colors">Founder Control Center</a></li>
-                <li><a href="#connections" className="hover:text-indigo-400 transition-colors">Connections</a></li>
-                <li><a href="#pricing" className="hover:text-indigo-400 transition-colors">Pricing</a></li>
+                <li><a href="#executive-team" className="hover:text-[#3B3690] transition-colors">AI Executives</a></li>
+                <li><a href="#company-brain" className="hover:text-[#3B3690] transition-colors">Company Brain</a></li>
+                <li><a href="#business-outcome" className="hover:text-[#3B3690] transition-colors">Business Outcomes</a></li>
+                <li><a href="#executive-team" className="hover:text-[#3B3690] transition-colors">AI Workforce</a></li>
+                <li><a href="#control-center" className="hover:text-[#3B3690] transition-colors">Founder Control Center</a></li>
+                <li><a href="#connections" className="hover:text-[#3B3690] transition-colors">Connections</a></li>
+                <li><a href="#pricing" className="hover:text-[#3B3690] transition-colors">Pricing</a></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-[#111827] font-bold mb-4">SOLUTIONS</h4>
               <ul className="space-y-3 text-sm text-[#4B5563]">
-                <li><a href="#" className="hover:text-indigo-400 transition-colors">Customer Growth</a></li>
-                <li><a href="#" className="hover:text-indigo-400 transition-colors">Operations</a></li>
-                <li><a href="#" className="hover:text-indigo-400 transition-colors">Technology</a></li>
-                <li><a href="#" className="hover:text-indigo-400 transition-colors">Finance</a></li>
-                <li><a href="#" className="hover:text-indigo-400 transition-colors">Business Goals</a></li>
+                <li><a href="#" className="hover:text-[#3B3690] transition-colors">Customer Growth</a></li>
+                <li><a href="#" className="hover:text-[#3B3690] transition-colors">Operations</a></li>
+                <li><a href="#" className="hover:text-[#3B3690] transition-colors">Technology</a></li>
+                <li><a href="#" className="hover:text-[#3B3690] transition-colors">Finance</a></li>
+                <li><a href="#" className="hover:text-[#3B3690] transition-colors">Business Goals</a></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-[#111827] font-bold mb-4">RESOURCES</h4>
               <ul className="space-y-3 text-sm text-[#4B5563]">
-                <li><a href="#how-it-works" className="hover:text-indigo-400 transition-colors">How It Works</a></li>
-                <li><a href="#trust" className="hover:text-indigo-400 transition-colors">Trust & Security</a></li>
-                <li><a href="#faq" className="hover:text-indigo-400 transition-colors">FAQ</a></li>
-                <li><a href="#pricing" className="hover:text-indigo-400 transition-colors">Pricing</a></li>
+                <li><a href="#how-it-works" className="hover:text-[#3B3690] transition-colors">How It Works</a></li>
+                <li><a href="#trust" className="hover:text-[#3B3690] transition-colors">Trust & Security</a></li>
+                <li><a href="#faq" className="hover:text-[#3B3690] transition-colors">FAQ</a></li>
+                <li><a href="#pricing" className="hover:text-[#3B3690] transition-colors">Pricing</a></li>
               </ul>
             </div>
 
@@ -172,7 +172,7 @@ function FAQItem({ question, answer }: { question: string, answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
-    <div className="border border-slate-300 rounded-2xl bg-[#1E293B] overflow-hidden transition-colors hover:border-slate-600">
+    <div className="border border-slate-300 rounded-2xl bg-white shadow-sm overflow-hidden transition-colors hover:border-slate-600">
       <button 
         className="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none"
         onClick={() => setIsOpen(!isOpen)}

@@ -2,7 +2,7 @@ import { Lock, FileText, Pause, Target, Building2, Briefcase, Users, Activity, G
 
 export function LandingTrust() {
   return (
-    <div className="bg-[#0F172A]">
+    <div className="bg-[#F9F8F6]">
       
       {/* SECURITY / TRUST SECTION */}
       <section id="trust" className="scroll-mt-24 py-24 px-6 border-b border-slate-200">
@@ -13,33 +13,33 @@ export function LandingTrust() {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-[#1E293B] border border-slate-300 p-8 rounded-2xl">
-              <Lock className="w-8 h-8 text-indigo-400 mb-4" />
+            <div className="bg-white shadow-sm border border-slate-300 p-8 rounded-2xl">
+              <Lock className="w-8 h-8 text-[#3B3690] mb-4" />
               <h3 className="text-lg font-bold text-[#111827] mb-2">TENANT ISOLATION</h3>
               <p className="text-[#4B5563] text-sm">Company data remains scoped to its workspace.</p>
             </div>
-            <div className="bg-[#1E293B] border border-slate-300 p-8 rounded-2xl">
-              <Activity className="w-8 h-8 text-indigo-400 mb-4" />
+            <div className="bg-white shadow-sm border border-slate-300 p-8 rounded-2xl">
+              <Activity className="w-8 h-8 text-[#3B3690] mb-4" />
               <h3 className="text-lg font-bold text-[#111827] mb-2">AUTHORIZED CAPABILITIES</h3>
               <p className="text-[#4B5563] text-sm">AI actions are constrained by available capabilities.</p>
             </div>
-            <div className="bg-[#1E293B] border border-slate-300 p-8 rounded-2xl">
-              <Target className="w-8 h-8 text-indigo-400 mb-4" />
+            <div className="bg-white shadow-sm border border-slate-300 p-8 rounded-2xl">
+              <Target className="w-8 h-8 text-[#3B3690] mb-4" />
               <h3 className="text-lg font-bold text-[#111827] mb-2">RISK CONTROLS</h3>
               <p className="text-[#4B5563] text-sm">Higher-risk actions can require approval.</p>
             </div>
-            <div className="bg-[#1E293B] border border-slate-300 p-8 rounded-2xl">
-              <FileText className="w-8 h-8 text-indigo-400 mb-4" />
+            <div className="bg-white shadow-sm border border-slate-300 p-8 rounded-2xl">
+              <FileText className="w-8 h-8 text-[#3B3690] mb-4" />
               <h3 className="text-lg font-bold text-[#111827] mb-2">AUDIT TRAIL</h3>
               <p className="text-[#4B5563] text-sm">Important actions are recorded.</p>
             </div>
-            <div className="bg-[#1E293B] border border-slate-300 p-8 rounded-2xl">
-              <Lock className="w-8 h-8 text-indigo-400 mb-4" />
+            <div className="bg-white shadow-sm border border-slate-300 p-8 rounded-2xl">
+              <Lock className="w-8 h-8 text-[#3B3690] mb-4" />
               <h3 className="text-lg font-bold text-[#111827] mb-2">PROMPT INJECTION DEFENSE</h3>
               <p className="text-[#4B5563] text-sm">Instructions from untrusted content cannot override server-side controls.</p>
             </div>
-            <div className="bg-[#1E293B] border border-slate-300 p-8 rounded-2xl">
-              <Pause className="w-8 h-8 text-indigo-400 mb-4" />
+            <div className="bg-white shadow-sm border border-slate-300 p-8 rounded-2xl">
+              <Pause className="w-8 h-8 text-[#3B3690] mb-4" />
               <h3 className="text-lg font-bold text-[#111827] mb-2">FOUNDER CONTROL</h3>
               <p className="text-[#4B5563] text-sm">PAUSE / RESUME / STOP remain available.</p>
             </div>
@@ -48,11 +48,11 @@ export function LandingTrust() {
       </section>
 
       {/* LIVE ACTIVITY / OBSERVABILITY */}
-      <section id="activity" className="scroll-mt-24 py-24 px-6 border-b border-slate-200 bg-[#0B1121]">
+      <section id="activity" className="scroll-mt-24 py-24 px-6 border-b border-slate-200 bg-[#F9F8F6]">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-[#111827] mb-12 tracking-tight">See what your AI company is doing.</h2>
           
-          <div className="bg-[#1E293B] border border-slate-300 rounded-2xl p-6 shadow-2xl text-left max-w-2xl mx-auto relative overflow-hidden">
+          <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 shadow-2xl text-left max-w-2xl mx-auto relative overflow-hidden">
             <div className="absolute top-4 right-6 text-[10px] uppercase tracking-widest text-[#4B5563]">Illustrative Activity Feed</div>
             <div className="space-y-6 mt-6">
               {[
@@ -60,7 +60,7 @@ export function LandingTrust() {
                 { time: "10:42:14", role: "COO", action: "Dependency checked", color: "text-blue-400" },
                 { time: "10:42:09", role: "CTO", action: "No technical blockers detected", color: "text-[#374151]" },
                 { time: "10:42:03", role: "CFO", action: "Financial context reviewed", color: "text-emerald-700" },
-                { time: "10:41:58", role: "CEO", action: "Strategic priority confirmed", color: "text-indigo-400" },
+                { time: "10:41:58", role: "CEO", action: "Strategic priority confirmed", color: "text-[#3B3690]" },
               ].map((log, i) => (
                 <div key={i} className="flex gap-4 items-start">
                   <div className="text-xs text-[#4B5563] font-mono w-20 shrink-0 pt-0.5">{log.time}</div>
@@ -84,7 +84,7 @@ export function LandingTrust() {
           <div className="flex flex-wrap justify-center items-center gap-4 text-sm font-bold tracking-widest text-[#374151] uppercase">
             <div className="bg-white shadow-sm border border-slate-200 border border-slate-300 px-4 py-2 rounded-lg">Founder leaves</div>
             <span className="text-[#4B5563]">→</span>
-            <div className="bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 px-4 py-2 rounded-lg">AI company operates</div>
+            <div className="bg-indigo-600/10 border border-indigo-500/20 text-[#3B3690] px-4 py-2 rounded-lg">AI company operates</div>
             <span className="text-[#4B5563]">→</span>
             <div className="bg-white shadow-sm border border-slate-200 border border-slate-300 px-4 py-2 rounded-lg">Progress monitored</div>
             <span className="text-[#4B5563]">→</span>
@@ -100,26 +100,26 @@ export function LandingTrust() {
       </section>
 
       {/* WHO ITWIELD IS FOR */}
-      <section className="py-24 px-6 border-b border-slate-200 bg-[#0B1121]">
+      <section className="py-24 px-6 border-b border-slate-200 bg-[#F9F8F6]">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-[#1E293B] border border-slate-300 p-8 rounded-2xl">
-              <Briefcase className="w-8 h-8 text-indigo-400 mb-4" />
+            <div className="bg-white shadow-sm border border-slate-300 p-8 rounded-2xl">
+              <Briefcase className="w-8 h-8 text-[#3B3690] mb-4" />
               <h3 className="text-lg font-bold text-[#111827] mb-2">FOUNDERS</h3>
               <p className="text-[#4B5563] text-sm">Set direction and let AI handle operating work.</p>
             </div>
-            <div className="bg-[#1E293B] border border-slate-300 p-8 rounded-2xl">
-              <Building2 className="w-8 h-8 text-indigo-400 mb-4" />
+            <div className="bg-white shadow-sm border border-slate-300 p-8 rounded-2xl">
+              <Building2 className="w-8 h-8 text-[#3B3690] mb-4" />
               <h3 className="text-lg font-bold text-[#111827] mb-2">STARTUPS</h3>
               <p className="text-[#4B5563] text-sm">Build an AI operating layer without hiring a large operations team.</p>
             </div>
-            <div className="bg-[#1E293B] border border-slate-300 p-8 rounded-2xl">
-              <Activity className="w-8 h-8 text-indigo-400 mb-4" />
+            <div className="bg-white shadow-sm border border-slate-300 p-8 rounded-2xl">
+              <Activity className="w-8 h-8 text-[#3B3690] mb-4" />
               <h3 className="text-lg font-bold text-[#111827] mb-2">GROWING COMPANIES</h3>
               <p className="text-[#4B5563] text-sm">Coordinate customer, technical, operational, and financial work.</p>
             </div>
-            <div className="bg-[#1E293B] border border-slate-300 p-8 rounded-2xl">
-              <Users className="w-8 h-8 text-indigo-400 mb-4" />
+            <div className="bg-white shadow-sm border border-slate-300 p-8 rounded-2xl">
+              <Users className="w-8 h-8 text-[#3B3690] mb-4" />
               <h3 className="text-lg font-bold text-[#111827] mb-2">TEAMS</h3>
               <p className="text-[#4B5563] text-sm">Give specialized AI workers clearly defined responsibilities.</p>
             </div>
@@ -133,19 +133,19 @@ export function LandingTrust() {
           <h2 className="text-3xl font-bold text-[#111827] mb-10 tracking-tight">Connect the systems your AI company is authorized to operate.</h2>
           <div className="flex flex-wrap justify-center gap-8">
             <div className="flex flex-col items-center">
-              <div className="w-16 h-16 bg-[#1E293B] border border-slate-300 rounded-2xl flex items-center justify-center mb-3 text-[#111827]">
+              <div className="w-16 h-16 bg-white shadow-sm border border-slate-300 rounded-2xl flex items-center justify-center mb-3 text-[#111827]">
                 <GitBranch className="w-8 h-8" />
               </div>
               <span className="text-sm font-bold text-[#374151]">GitHub</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-16 h-16 bg-[#1E293B] border border-slate-300 rounded-2xl flex items-center justify-center mb-3 text-[#111827]">
+              <div className="w-16 h-16 bg-white shadow-sm border border-slate-300 rounded-2xl flex items-center justify-center mb-3 text-[#111827]">
                 <Cloud className="w-8 h-8" />
               </div>
               <span className="text-sm font-bold text-[#374151]">Vercel</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-16 h-16 bg-[#1E293B] border border-slate-300 rounded-2xl flex items-center justify-center mb-3 text-emerald-700">
+              <div className="w-16 h-16 bg-white shadow-sm border border-slate-300 rounded-2xl flex items-center justify-center mb-3 text-emerald-700">
                 <Database className="w-8 h-8" />
               </div>
               <span className="text-sm font-bold text-[#374151]">Supabase</span>

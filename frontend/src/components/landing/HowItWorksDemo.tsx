@@ -147,10 +147,10 @@ export function HowItWorksDemo() {
               </div>
               
               <div className="hidden md:flex flex-col items-center animate-pulse">
-                <ArrowRight className="w-8 h-8 text-indigo-400" />
+                <ArrowRight className="w-8 h-8 text-[#3B3690]" />
               </div>
               <div className="md:hidden flex flex-col items-center animate-pulse">
-                <ArrowRight className="w-8 h-8 text-indigo-400 rotate-90" />
+                <ArrowRight className="w-8 h-8 text-[#3B3690] rotate-90" />
               </div>
 
               <div className="bg-indigo-600 text-[#111827] p-6 rounded-2xl shadow-md flex-1 w-full">

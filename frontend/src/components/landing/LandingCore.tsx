@@ -7,7 +7,7 @@ export function LandingCore() {
   return (
     <>
       {/* THE PROBLEM WITH TODAY'S AI */}
-      <section className="py-24 px-6 bg-[#0F172A]">
+      <section className="py-24 px-6 bg-[#F9F8F6]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-[#111827] mb-4 tracking-tight">AI can answer questions.</h2>
@@ -16,7 +16,7 @@ export function LandingCore() {
           
           <div className="grid md:grid-cols-3 gap-8">
             {/* Chatbot */}
-            <div className="bg-[#1E293B] border border-slate-200 p-8 rounded-3xl opacity-60">
+            <div className="bg-white shadow-sm border border-slate-200 p-8 rounded-3xl opacity-60">
               <h3 className="text-xl font-bold text-[#374151] mb-6 border-b border-slate-300 pb-4">CHATBOT</h3>
               <div className="space-y-4 text-center text-sm font-bold tracking-widest text-[#4B5563]">
                 <div className="bg-white shadow-sm border border-slate-200 p-4 rounded-xl">Ask</div>
@@ -26,7 +26,7 @@ export function LandingCore() {
             </div>
             
             {/* Automation */}
-            <div className="bg-[#1E293B] border border-slate-200 p-8 rounded-3xl opacity-60">
+            <div className="bg-white shadow-sm border border-slate-200 p-8 rounded-3xl opacity-60">
               <h3 className="text-xl font-bold text-[#374151] mb-6 border-b border-slate-300 pb-4">AUTOMATION</h3>
               <div className="space-y-4 text-center text-sm font-bold tracking-widest text-[#4B5563]">
                 <div className="bg-white shadow-sm border border-slate-200 p-4 rounded-xl">Trigger</div>
@@ -40,21 +40,21 @@ export function LandingCore() {
               <h3 className="text-xl font-bold text-[#111827] mb-6 border-b border-indigo-500/30 pb-4">ITWIELD</h3>
               <div className="space-y-2 text-center text-xs font-bold tracking-widest text-indigo-200">
                 <div className="bg-indigo-600/20 border border-indigo-500/30 p-2.5 rounded-lg text-[#111827]">Objective</div>
-                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
+                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#3B3690]" />
                 <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Understand</div>
-                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
+                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#3B3690]" />
                 <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Decide</div>
-                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
+                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#3B3690]" />
                 <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Delegate</div>
-                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
+                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#3B3690]" />
                 <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Execute</div>
-                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
+                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#3B3690]" />
                 <div className="bg-indigo-600/20 border border-indigo-500/30 p-2.5 rounded-lg text-emerald-300">Verify</div>
-                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
+                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#3B3690]" />
                 <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Learn</div>
-                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
+                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#3B3690]" />
                 <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Replan</div>
-                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
+                <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-[#3B3690]" />
                 <div className="bg-indigo-600 border border-indigo-500 p-2.5 rounded-lg text-[#111827] shadow-lg">Operate</div>
               </div>
             </div>
@@ -67,7 +67,7 @@ export function LandingCore() {
       </section>
 
       {/* FOUNDER OBJECTIVE EXPERIENCE */}
-      <section className="py-24 bg-[#0B1121] border-y border-slate-200 px-6">
+      <section className="py-24 bg-[#F9F8F6] border-y border-slate-200 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-[#111827] tracking-tight">Give your AI company an objective.</h2>
@@ -84,14 +84,14 @@ export function LandingCore() {
             
             {/* Understand */}
             <div className="bg-[#F9F8F6] p-4 rounded-xl border border-slate-200 w-full text-center">
-              <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">UNDERSTAND</h3>
+              <h3 className="text-xs font-bold text-[#3B3690] uppercase tracking-widest mb-1">UNDERSTAND</h3>
               <p className="text-sm text-[#4B5563]">Company Brain retrieves context.</p>
             </div>
 
             <ArrowRight className="w-6 h-6 text-[#4B5563] my-4 rotate-90" />
 
             {/* CEO */}
-            <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-300 w-full text-center">
+            <div className="bg-white shadow-sm p-4 rounded-xl border border-slate-300 w-full text-center">
               <h3 className="text-xs font-bold text-[#374151] uppercase tracking-widest mb-1">CEO</h3>
               <p className="text-sm text-[#4B5563]">Sets strategic priority.</p>
             </div>
@@ -99,7 +99,7 @@ export function LandingCore() {
             <ArrowRight className="w-6 h-6 text-[#4B5563] my-4 rotate-90" />
 
             {/* COO */}
-            <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-300 w-full text-center">
+            <div className="bg-white shadow-sm p-4 rounded-xl border border-slate-300 w-full text-center">
               <h3 className="text-xs font-bold text-[#374151] uppercase tracking-widest mb-1">COO</h3>
               <p className="text-sm text-[#4B5563]">Coordinates execution.</p>
             </div>
@@ -107,7 +107,7 @@ export function LandingCore() {
             <ArrowRight className="w-6 h-6 text-[#4B5563] my-4 rotate-90" />
 
             {/* CMO */}
-            <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-300 w-full text-center">
+            <div className="bg-white shadow-sm p-4 rounded-xl border border-slate-300 w-full text-center">
               <h3 className="text-xs font-bold text-[#374151] uppercase tracking-widest mb-1">CMO</h3>
               <p className="text-sm text-[#4B5563]">Owns customer acquisition.</p>
             </div>
@@ -132,7 +132,7 @@ export function LandingCore() {
 
             {/* Replan */}
             <div className="bg-[#F9F8F6] p-4 rounded-xl border border-slate-200 w-full text-center">
-              <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">REPLAN</h3>
+              <h3 className="text-xs font-bold text-[#3B3690] uppercase tracking-widest mb-1">REPLAN</h3>
               <p className="text-sm text-[#4B5563]">Determine what should happen next.</p>
             </div>
 
@@ -141,7 +141,7 @@ export function LandingCore() {
       </section>
 
       {/* HOW ITWIELD WORKS - INTERACTIVE 6-STEP PANEL (DARK MODE) */}
-      <section id="how-it-works" className="scroll-mt-24 py-24 bg-[#0F172A] px-6">
+      <section id="how-it-works" className="scroll-mt-24 py-24 bg-[#F9F8F6] px-6">
         <div className="max-w-5xl mx-auto">
           
           <div className="text-center mb-16">
@@ -152,7 +152,7 @@ export function LandingCore() {
           </div>
 
           {/* Top Tabs */}
-          <div className="flex items-center justify-between bg-[#1E293B] rounded-full p-2 mb-12 shadow-sm border border-slate-300 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="flex items-center justify-between bg-white shadow-sm rounded-full p-2 mb-12 shadow-sm border border-slate-300 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <div className="flex items-center space-x-1 min-w-max px-2">
               {['Command', 'Understand', 'Plan', 'Execute', 'Verify', 'Operate'].map((step, idx) => (
                 <button 
@@ -162,12 +162,12 @@ export function LandingCore() {
                     activeStep === idx 
                       ? 'bg-indigo-600 text-[#111827]' 
                       : activeStep > idx 
-                        ? 'text-indigo-400 hover:bg-white shadow-sm border border-slate-200' 
+                        ? 'text-[#3B3690] hover:bg-white shadow-sm border border-slate-200' 
                         : 'text-[#4B5563] hover:bg-white shadow-sm border border-slate-200'
                   }`}
                 >
                   <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] mr-2 ${
-                    activeStep === idx ? 'bg-white/20' : activeStep > idx ? 'bg-indigo-600/20 text-indigo-400' : 'bg-white shadow-sm border border-slate-200 text-[#4B5563]'
+                    activeStep === idx ? 'bg-white/20' : activeStep > idx ? 'bg-indigo-600/20 text-[#3B3690]' : 'bg-white shadow-sm border border-slate-200 text-[#4B5563]'
                   }`}>
                     {activeStep > idx ? <Check className="w-3 h-3" /> : (idx + 1)}
                   </span>
@@ -177,13 +177,13 @@ export function LandingCore() {
             </div>
             
             <div className="hidden md:flex items-center space-x-2 px-4 border-l border-slate-300 ml-4">
-              <button onClick={() => setActiveStep(Math.max(0, activeStep - 1))} className="p-2 text-[#4B5563] hover:text-indigo-400 transition-colors"><ChevronLeft className="w-5 h-5" /></button>
-              <button onClick={() => setActiveStep(Math.min(5, activeStep + 1))} className="p-2 text-[#4B5563] hover:text-indigo-400 transition-colors"><ChevronRight className="w-5 h-5" /></button>
+              <button onClick={() => setActiveStep(Math.max(0, activeStep - 1))} className="p-2 text-[#4B5563] hover:text-[#3B3690] transition-colors"><ChevronLeft className="w-5 h-5" /></button>
+              <button onClick={() => setActiveStep(Math.min(5, activeStep + 1))} className="p-2 text-[#4B5563] hover:text-[#3B3690] transition-colors"><ChevronRight className="w-5 h-5" /></button>
             </div>
           </div>
           
           {/* Content Area */}
-          <div className="bg-[#1E293B] rounded-[2.5rem] p-8 md:p-16 shadow-2xl shadow-black/40 border border-slate-300 min-h-[550px] flex flex-col justify-center items-center">
+          <div className="bg-white shadow-sm rounded-[2.5rem] p-8 md:p-16 shadow-2xl shadow-black/40 border border-slate-300 min-h-[550px] flex flex-col justify-center items-center">
             
             {/* STEP 0: COMMAND */}
             {activeStep === 0 && (
@@ -192,7 +192,7 @@ export function LandingCore() {
                 
                 <div className="bg-[#F9F8F6] border border-slate-300 rounded-2xl p-8 mb-8 shadow-sm text-left">
                   <div className="flex items-center text-lg font-bold text-[#111827] mb-8">
-                    <span className="bg-indigo-600/20 text-indigo-400 px-3 py-1 rounded-lg text-sm mr-4 border border-indigo-500/30">You</span>
+                    <span className="bg-indigo-600/20 text-[#3B3690] px-3 py-1 rounded-lg text-sm mr-4 border border-indigo-500/30">You</span>
                     "Get me 20 new customers."
                   </div>
                   
@@ -209,7 +209,7 @@ export function LandingCore() {
                   <span className="bg-white shadow-sm border border-slate-200 text-[#374151] px-4 py-2 rounded-full text-sm font-medium border border-slate-300">"Pause customer acquisition."</span>
                 </div>
                 
-                <button onClick={() => setActiveStep(1)} className="inline-flex items-center justify-center h-10 px-6 rounded-full bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20 font-bold transition-colors mx-auto">
+                <button onClick={() => setActiveStep(1)} className="inline-flex items-center justify-center h-10 px-6 rounded-full bg-indigo-600/10 text-[#3B3690] hover:bg-indigo-600/20 font-bold transition-colors mx-auto">
                   Next <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
@@ -223,7 +223,7 @@ export function LandingCore() {
                 
                 <div className="flex flex-col md:flex-row items-center justify-center gap-6">
                   <div className="bg-[#F9F8F6] border-2 border-slate-300 rounded-2xl p-6 flex-1 w-full text-left shadow-sm">
-                    <div className="flex items-center text-indigo-400 font-bold text-sm tracking-widest uppercase mb-6">
+                    <div className="flex items-center text-[#3B3690] font-bold text-sm tracking-widest uppercase mb-6">
                       <Database className="w-5 h-5 mr-2" /> COMPANY BRAIN
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -254,7 +254,7 @@ export function LandingCore() {
                 <p className="text-lg text-[#4B5563] mb-12">The appropriate executives coordinate around the objective.</p>
                 
                 <div className="flex flex-col items-center relative">
-                  <div className="bg-slate-950 text-[#111827] font-bold px-8 py-3 rounded-full mb-6 relative z-10 shadow-lg tracking-widest text-sm border border-slate-200">
+                  <div className="bg-[#F9F8F6] text-[#111827] font-bold px-8 py-3 rounded-full mb-6 relative z-10 shadow-lg tracking-widest text-sm border border-slate-200">
                     OBJECTIVE
                   </div>
                   
@@ -292,7 +292,7 @@ export function LandingCore() {
                       
                       <div className="border-2 border-indigo-500 bg-[#F9F8F6] rounded-xl p-4 text-center relative flex flex-col items-center shadow-lg shadow-indigo-900/50 scale-105 z-10">
                         <div className="absolute -top-4 right-[-10px] bg-indigo-600 text-[#111827] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Active</div>
-                        <h4 className="font-bold text-indigo-400">CMO</h4>
+                        <h4 className="font-bold text-[#3B3690]">CMO</h4>
                         <p className="text-xs text-[#4B5563]">Customers & growth</p>
                       </div>
                       
@@ -316,7 +316,7 @@ export function LandingCore() {
                 </div>
                 
                 <div className="bg-[#F9F8F6]/50 border border-slate-200 rounded-3xl p-8 shadow-xl flex flex-col items-center">
-                  <div className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-bold px-6 py-2 rounded-lg mb-6 text-sm">
+                  <div className="bg-indigo-600/20 text-[#3B3690] border border-indigo-500/30 font-bold px-6 py-2 rounded-lg mb-6 text-sm">
                     CMO WORK ASSIGNMENTS
                   </div>
                   
@@ -337,7 +337,7 @@ export function LandingCore() {
                     </div>
                   </div>
                   
-                  <div className="bg-slate-950 border border-slate-200 w-full rounded-xl p-6 text-left font-mono text-sm space-y-3 shadow-inner text-emerald-700">
+                  <div className="bg-[#F9F8F6] border border-slate-200 w-full rounded-xl p-6 text-left font-mono text-sm space-y-3 shadow-inner text-emerald-700">
                     <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-700" /> Market research completed</div>
                     <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-700" /> Prospects identified</div>
                     <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-700" /> Opportunities processed</div>
@@ -357,7 +357,7 @@ export function LandingCore() {
                 
                 <div className="bg-[#F9F8F6] border border-slate-300 rounded-3xl p-8 shadow-xl max-w-2xl mx-auto text-left relative">
                   <div className="flex justify-between items-center mb-10 border-b border-slate-200 pb-4">
-                    <div className="flex items-center text-indigo-400 font-bold tracking-widest uppercase text-sm">
+                    <div className="flex items-center text-[#3B3690] font-bold tracking-widest uppercase text-sm">
                       <Activity className="w-5 h-5 mr-2" /> OUTCOME VERIFICATION
                     </div>
                     <span className="bg-white shadow-sm border border-slate-200 text-[#4B5563] border border-slate-300 text-[10px] px-2 py-1 rounded font-medium">Demo data</span>
@@ -369,7 +369,7 @@ export function LandingCore() {
                       <div className="text-5xl font-extrabold text-[#111827]">20</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-medium text-indigo-400 mb-1">Verified Customers</div>
+                      <div className="text-sm font-medium text-[#3B3690] mb-1">Verified Customers</div>
                       <div className="text-5xl font-extrabold text-indigo-500">7</div>
                     </div>
                   </div>
@@ -409,10 +409,10 @@ export function LandingCore() {
                       <span className="font-bold text-[#111827] tracking-widest uppercase text-sm">OPERATE</span>
                     </div>
                     
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1E293B] px-3 py-1 rounded text-xs font-bold text-[#4B5563]">Evaluate</div>
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-[#1E293B] px-3 py-1 rounded text-xs font-bold text-[#4B5563]">Verify</div>
-                    <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 bg-[#1E293B] px-3 py-1 rounded text-xs font-bold text-[#4B5563]">Execute</div>
-                    <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 bg-[#1E293B] px-3 py-1 rounded text-xs font-bold text-[#4B5563]">Replan</div>
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white shadow-sm px-3 py-1 rounded text-xs font-bold text-[#4B5563]">Evaluate</div>
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-white shadow-sm px-3 py-1 rounded text-xs font-bold text-[#4B5563]">Verify</div>
+                    <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 bg-white shadow-sm px-3 py-1 rounded text-xs font-bold text-[#4B5563]">Execute</div>
+                    <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 bg-white shadow-sm px-3 py-1 rounded text-xs font-bold text-[#4B5563]">Replan</div>
                   </div>
                   
                   {/* Legend */}
@@ -444,7 +444,7 @@ export function LandingCore() {
       </section>
 
       {/* AI EXECUTIVE TEAM */}
-      <section id="executive-team" className="py-24 bg-[#0B1121] border-t border-slate-200 px-6">
+      <section id="executive-team" className="py-24 bg-[#F9F8F6] border-t border-slate-200 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-[#111827] mb-4 tracking-tight">Meet your AI executive team.</h2>
@@ -460,8 +460,8 @@ export function LandingCore() {
             <div className="w-0.5 h-6 bg-slate-700 mb-6" />
 
             {/* CEO */}
-            <div className="w-full max-w-2xl bg-[#1E293B] border border-slate-300 rounded-2xl p-6 mb-6 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 shadow-xl relative z-10">
-              <div className="w-14 h-14 bg-indigo-600/20 text-indigo-400 rounded-xl flex items-center justify-center shrink-0"><Briefcase className="w-7 h-7" /></div>
+            <div className="w-full max-w-2xl bg-white shadow-sm border border-slate-300 rounded-2xl p-6 mb-6 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 shadow-xl relative z-10">
+              <div className="w-14 h-14 bg-indigo-600/20 text-[#3B3690] rounded-xl flex items-center justify-center shrink-0"><Briefcase className="w-7 h-7" /></div>
               <div>
                 <h3 className="text-2xl font-bold text-[#111827] mb-1">CEO</h3>
                 <p className="text-[#4B5563]">Company strategy and priorities.</p>
@@ -471,7 +471,7 @@ export function LandingCore() {
             <div className="w-0.5 h-6 bg-slate-700 mb-6" />
 
             {/* COO */}
-            <div className="w-full max-w-2xl bg-[#1E293B] border border-slate-300 rounded-2xl p-6 mb-6 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 shadow-xl relative z-10">
+            <div className="w-full max-w-2xl bg-white shadow-sm border border-slate-300 rounded-2xl p-6 mb-6 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 shadow-xl relative z-10">
               <div className="w-14 h-14 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center shrink-0"><Settings className="w-7 h-7" /></div>
               <div>
                 <h3 className="text-2xl font-bold text-[#111827] mb-1">COO</h3>
@@ -483,17 +483,17 @@ export function LandingCore() {
 
             {/* Specialists */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-4xl mb-6 relative z-10">
-              <div className="bg-[#1E293B] border border-slate-300 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl">
+              <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl">
                 <div className="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center mb-4"><TrendingUp className="w-6 h-6" /></div>
                 <h3 className="text-xl font-bold text-[#111827] mb-2">CMO</h3>
                 <p className="text-sm text-[#4B5563]">Customers and growth.</p>
               </div>
-              <div className="bg-[#1E293B] border border-slate-300 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl">
+              <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl">
                 <div className="w-12 h-12 bg-slate-700 text-[#374151] rounded-xl flex items-center justify-center mb-4"><Terminal className="w-6 h-6" /></div>
                 <h3 className="text-xl font-bold text-[#111827] mb-2">CTO</h3>
                 <p className="text-sm text-[#4B5563]">Technology and systems.</p>
               </div>
-              <div className="bg-[#1E293B] border border-slate-300 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl">
+              <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl">
                 <div className="w-12 h-12 bg-emerald-500/20 text-emerald-700 rounded-xl flex items-center justify-center mb-4"><PieChart className="w-6 h-6" /></div>
                 <h3 className="text-xl font-bold text-[#111827] mb-2">CFO</h3>
                 <p className="text-sm text-[#4B5563]">Financial health and cost context.</p>

@@ -28,7 +28,7 @@ export function Landing() {
   }, [location.hash]);
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-slate-300 font-sans antialiased selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[#F9F8F6] text-[#4B5563] font-sans antialiased selection:bg-[#3B3690]/30">
       <LandingNav />
       <main>
         <LandingHero />

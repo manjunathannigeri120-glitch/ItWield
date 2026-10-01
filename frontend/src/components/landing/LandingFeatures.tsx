@@ -2,7 +2,7 @@ import { Database, RefreshCcw, Check, Briefcase, Settings, TrendingUp, Terminal,
 
 export function LandingFeatures() {
   return (
-    <div className="bg-[#0F172A] overflow-hidden">
+    <div className="bg-[#F9F8F6] overflow-hidden">
       
       {/* FEATURE 1 - COMPANY BRAIN */}
       <section id="company-brain" className="scroll-mt-24 py-24 px-6 border-t border-slate-200">
@@ -14,7 +14,7 @@ export function LandingFeatures() {
             </p>
           </div>
           <div className="lg:w-1/2 w-full">
-            <div className="bg-[#1E293B] border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
+            <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-400/20 px-3 py-1 rounded-full w-max mb-6">
                 <Database className="w-3 h-3" /> COMPANY BRAIN
               </div>
@@ -39,10 +39,10 @@ export function LandingFeatures() {
       </section>
 
       {/* FEATURE 2 - BUSINESS OUTCOME ENGINE */}
-      <section id="business-outcome" className="scroll-mt-24 py-24 px-6 border-t border-slate-200 bg-[#0B1121]">
+      <section id="business-outcome" className="scroll-mt-24 py-24 px-6 border-t border-slate-200 bg-[#F9F8F6]">
         <div className="max-w-6xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-16">
           <div className="lg:w-1/2 w-full">
-            <div className="bg-[#1E293B] border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
+            <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
               <div className="text-[10px] text-[#4B5563] uppercase tracking-widest font-mono absolute top-6 right-6">Illustrative Product Preview</div>
               <h3 className="text-base font-bold text-[#111827] mb-6">Customer Acquisition</h3>
               
@@ -107,7 +107,7 @@ export function LandingFeatures() {
             </div>
           </div>
           <div className="lg:w-1/2 w-full">
-            <div className="bg-[#1E293B] border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
+            <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
               <div className="space-y-3">
                 <div className="flex justify-between items-center border-b border-slate-300 pb-3">
                   <span className="text-sm font-medium text-[#374151]">Company Status</span>
@@ -136,7 +136,7 @@ export function LandingFeatures() {
       </section>
 
       {/* FEATURE 4 - REAL EXECUTION */}
-      <section className="py-24 px-6 border-t border-slate-200 bg-[#0B1121]">
+      <section className="py-24 px-6 border-t border-slate-200 bg-[#F9F8F6]">
         <div className="max-w-6xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-16">
           <div className="lg:w-1/2 w-full">
             <div className="bg-[#F9F8F6] border border-slate-200 rounded-2xl p-8 shadow-xl">
@@ -144,7 +144,7 @@ export function LandingFeatures() {
                 {['Objective', 'Authorized capability', 'Worker', 'Connected system', 'External action', 'Verification', 'Evidence'].map((step, i) => (
                   <div key={i} className="flex items-center gap-4">
                     <div className="w-6 h-6 rounded-full bg-indigo-600/20 flex items-center justify-center shrink-0">
-                      <Check className="w-3 h-3 text-indigo-400" />
+                      <Check className="w-3 h-3 text-[#3B3690]" />
                     </div>
                     <span className="text-sm font-medium text-[#374151]">{step}</span>
                   </div>
@@ -171,7 +171,7 @@ export function LandingFeatures() {
             </p>
           </div>
           <div className="lg:w-1/2 w-full">
-            <div className="bg-[#1E293B] border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
+            <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
               <div className="text-[10px] text-[#4B5563] uppercase tracking-widest font-mono absolute top-6 right-6">Illustrative Demo Data</div>
               
               <div className="space-y-6 mt-8">
@@ -196,7 +196,7 @@ export function LandingFeatures() {
       </section>
 
       {/* FEATURE 6 - FAILURE RECOVERY */}
-      <section className="py-24 px-6 border-t border-slate-200 bg-[#0B1121]">
+      <section className="py-24 px-6 border-t border-slate-200 bg-[#F9F8F6]">
         <div className="max-w-6xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-16">
           <div className="lg:w-1/2 w-full">
             <div className="bg-[#F9F8F6] border border-slate-200 rounded-2xl p-8 shadow-xl">
@@ -242,7 +242,7 @@ export function LandingFeatures() {
               <div className="absolute inset-0 rounded-full border-2 border-slate-200 border-dashed" />
               <div className="absolute inset-0 rounded-full border-2 border-indigo-500 border-t-transparent animate-[spin_10s_linear_infinite]" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <RefreshCcw className="w-10 h-10 text-indigo-400" />
+                <RefreshCcw className="w-10 h-10 text-[#3B3690]" />
               </div>
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white shadow-sm border border-slate-200 px-3 py-1 rounded text-xs font-bold text-[#374151]">MONITOR</div>
               <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 bg-white shadow-sm border border-slate-200 px-3 py-1 rounded text-xs font-bold text-[#374151]">EXECUTE</div>
