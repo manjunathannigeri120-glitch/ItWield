@@ -742,6 +742,7 @@ export default router;
 import { AuthorizationRegistry } from '../services/AuthorizationRegistry';
 import { CompanyMemoryService } from '../services/CompanyMemoryService';
 import { ContinuousImprovementService } from '../services/ContinuousImprovementService';
+import { CreditService } from '../services/CreditService';
 
 
 router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) => {
