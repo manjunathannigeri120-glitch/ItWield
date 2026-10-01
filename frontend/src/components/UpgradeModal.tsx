@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 
 export function UpgradeModal() {
   const [isOpen, setIsOpen] = useState(false);
