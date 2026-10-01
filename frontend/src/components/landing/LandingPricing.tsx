@@ -50,7 +50,7 @@ export function LandingPricing() {
               <span className="text-sm text-[#4B5563]">/ month</span>
             </div>
             <p className="text-xs text-[#4B5563] mb-6 min-h-[40px]">Builders shipping real workloads.</p>
-            <Link to={ctaDest} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-600 text-[#111827] text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Solo</Link>
+            <Link to={ctaDest} className="w-full py-2.5 bg-[#0057FF] hover:bg-[#004DE6] text-white shadow-md text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Solo</Link>
             <ul className="space-y-3 text-sm text-[#374151] mt-auto">
               <li className="flex gap-2"><Check className="w-4 h-4 text-[#0057FF] shrink-0" /> Unlimited workspaces</li>
               <li className="flex gap-2"><Check className="w-4 h-4 text-[#0057FF] shrink-0" /> Up to 25 AI workers</li>
@@ -88,15 +88,15 @@ export function LandingPricing() {
           </div>
 
           {/* BUSINESS */}
-          <div className="bg-white shadow-sm border-2 border-indigo-500/30 rounded-[32px] p-6 flex flex-col relative hover:border-indigo-400 transition-colors">
-            <div className="absolute top-0 right-6 -translate-y-1/2 bg-slate-700 text-[#111827] text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Popular</div>
+          <div className="bg-white shadow-sm border-2 border-indigo-500/50 rounded-[32px] p-6 flex flex-col relative shadow-xl shadow-indigo-900/20 hover:border-indigo-400 transition-colors lg:-mt-4 lg:mb-4">
+            <div className="absolute top-0 right-6 -translate-y-1/2 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Popular</div>
             <h3 className="text-lg font-bold text-[#111827] mb-2">BUSINESS</h3>
             <div className="flex items-baseline gap-1 mb-2">
               <span className="text-4xl font-extrabold text-[#111827]">$299</span>
               <span className="text-sm text-[#4B5563]">/ month</span>
             </div>
             <p className="text-xs text-[#4B5563] mb-6 min-h-[40px]">For larger operating workloads.</p>
-            <Link to={ctaDest} className="w-full py-2.5 bg-white shadow-sm border border-slate-100 hover:bg-slate-700 text-[#111827] text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Business</Link>
+            <Link to={ctaDest} className="w-full py-2.5 bg-[#0057FF] shadow-sm border border-[#0057FF] hover:bg-[#004DE6] text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Business</Link>
             <ul className="space-y-3 text-sm text-[#374151] mt-auto">
               <li className="flex gap-2"><Check className="w-4 h-4 text-[#0057FF] shrink-0" /> Unlimited workspaces</li>
               <li className="flex gap-2"><Check className="w-4 h-4 text-[#0057FF] shrink-0" /> Unlimited AI workers</li>
