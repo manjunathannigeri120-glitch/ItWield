@@ -2,10 +2,10 @@ import { Database, RefreshCcw, Check, Briefcase, Settings, TrendingUp, Terminal,
 
 export function LandingFeatures() {
   return (
-    <div className="bg-[#F9F8F6] overflow-hidden">
+    <div className="bg-[#F4F7FF] overflow-hidden">
       
       {/* FEATURE 1 - COMPANY BRAIN */}
-      <section id="company-brain" className="scroll-mt-24 py-24 px-6 border-t border-slate-200">
+      <section id="company-brain" className="scroll-mt-24 py-24 px-6 border-t border-slate-100">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-16">
           <div className="lg:w-1/2">
             <h2 className="text-3xl md:text-4xl font-bold text-[#111827] mb-6 tracking-tight">Your AI company remembers how your business works.</h2>
@@ -14,20 +14,20 @@ export function LandingFeatures() {
             </p>
           </div>
           <div className="lg:w-1/2 w-full">
-            <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
+            <div className="bg-white shadow-sm border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[32px] p-6 shadow-2xl relative">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-400/20 px-3 py-1 rounded-full w-max mb-6">
                 <Database className="w-3 h-3" /> COMPANY BRAIN
               </div>
               <div className="flex flex-wrap gap-2 mb-8">
                 {['Goals', 'Decisions', 'Products', 'Customers', 'Markets', 'Strategy', 'Lessons', 'Failures', 'Technical context', 'Operational context'].map((tag, i) => (
-                  <span key={i} className="text-xs text-[#374151] bg-white shadow-sm border border-slate-200 px-3 py-1.5 rounded-lg border border-slate-300">{tag}</span>
+                  <span key={i} className="text-xs text-[#374151] bg-white shadow-sm border border-slate-100 px-3 py-1.5 rounded-lg border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">{tag}</span>
                 ))}
               </div>
-              <div className="border-t border-slate-300 pt-6">
+              <div className="border-t border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] pt-6">
                 <p className="text-xs font-bold text-[#4B5563] uppercase tracking-widest mb-4">Retrieving Context</p>
                 <div className="flex gap-2 justify-center">
                   {[Briefcase, Settings, TrendingUp, Terminal, PieChart].map((Icon, i) => (
-                    <div key={i} className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-200 border border-slate-600 flex items-center justify-center text-[#4B5563]">
+                    <div key={i} className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 border border-slate-600 flex items-center justify-center text-[#4B5563]">
                       <Icon className="w-5 h-5" />
                     </div>
                   ))}
@@ -39,15 +39,15 @@ export function LandingFeatures() {
       </section>
 
       {/* FEATURE 2 - BUSINESS OUTCOME ENGINE */}
-      <section id="business-outcome" className="scroll-mt-24 py-24 px-6 border-t border-slate-200 bg-[#F9F8F6]">
+      <section id="business-outcome" className="scroll-mt-24 py-24 px-6 border-t border-slate-100 bg-[#F4F7FF]">
         <div className="max-w-6xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-16">
           <div className="lg:w-1/2 w-full">
-            <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
+            <div className="bg-white shadow-sm border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[32px] p-6 shadow-2xl relative">
               <div className="text-[10px] text-[#4B5563] uppercase tracking-widest font-mono absolute top-6 right-6">Illustrative Product Preview</div>
               <h3 className="text-base font-bold text-[#111827] mb-6">Customer Acquisition</h3>
               
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-white shadow-sm border border-slate-200 p-4 rounded-xl border border-slate-300/50">
+                <div className="bg-white shadow-sm border border-slate-100 p-4 rounded-xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]/50">
                   <p className="text-xs text-[#4B5563] font-bold uppercase mb-1">Target</p>
                   <p className="text-2xl text-[#111827] font-medium">20 <span className="text-sm text-[#4B5563]">customers</span></p>
                 </div>
@@ -57,7 +57,7 @@ export function LandingFeatures() {
                 </div>
               </div>
               
-              <div className="flex justify-between items-center bg-white shadow-sm border border-slate-200 p-4 rounded-xl border border-slate-300/50 mb-6">
+              <div className="flex justify-between items-center bg-white shadow-sm border border-slate-100 p-4 rounded-xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]/50 mb-6">
                 <div>
                   <p className="text-xs text-[#4B5563] font-bold uppercase mb-1">Gap</p>
                   <p className="text-lg text-[#111827] font-medium">13</p>
@@ -84,7 +84,7 @@ export function LandingFeatures() {
       </section>
 
       {/* FEATURE 3 - FOUNDER CONTROL CENTER */}
-      <section id="control-center" className="scroll-mt-24 py-24 px-6 border-t border-slate-200">
+      <section id="control-center" className="scroll-mt-24 py-24 px-6 border-t border-slate-100">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-16">
           <div className="lg:w-1/2">
             <h2 className="text-3xl md:text-4xl font-bold text-[#111827] mb-6 tracking-tight">Know what your AI company is doing.</h2>
@@ -107,21 +107,21 @@ export function LandingFeatures() {
             </div>
           </div>
           <div className="lg:w-1/2 w-full">
-            <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
+            <div className="bg-white shadow-sm border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[32px] p-6 shadow-2xl relative">
               <div className="space-y-3">
-                <div className="flex justify-between items-center border-b border-slate-300 pb-3">
+                <div className="flex justify-between items-center border-b border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] pb-3">
                   <span className="text-sm font-medium text-[#374151]">Company Status</span>
                   <span className="text-xs font-bold text-emerald-700 bg-emerald-400/10 px-2 py-1 rounded uppercase">Operating</span>
                 </div>
-                <div className="flex justify-between items-center border-b border-slate-300 pb-3">
+                <div className="flex justify-between items-center border-b border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] pb-3">
                   <span className="text-sm font-medium text-[#374151]">Active Objective</span>
                   <span className="text-sm text-[#4B5563] truncate max-w-[200px]">Get me 20 new customers</span>
                 </div>
-                <div className="flex justify-between items-center border-b border-slate-300 pb-3">
+                <div className="flex justify-between items-center border-b border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] pb-3">
                   <span className="text-sm font-medium text-[#374151]">Blocked Work</span>
                   <span className="text-sm text-[#4B5563]">0 tasks</span>
                 </div>
-                <div className="flex justify-between items-center border-b border-slate-300 pb-3">
+                <div className="flex justify-between items-center border-b border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] pb-3">
                   <span className="text-sm font-medium text-[#374151]">Pending Approvals</span>
                   <span className="text-xs font-bold text-amber-400 bg-amber-400/10 px-2 py-1 rounded uppercase">1 Required</span>
                 </div>
@@ -136,15 +136,15 @@ export function LandingFeatures() {
       </section>
 
       {/* FEATURE 4 - REAL EXECUTION */}
-      <section className="py-24 px-6 border-t border-slate-200 bg-[#F9F8F6]">
+      <section className="py-24 px-6 border-t border-slate-100 bg-[#F4F7FF]">
         <div className="max-w-6xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-16">
           <div className="lg:w-1/2 w-full">
-            <div className="bg-[#F9F8F6] border border-slate-200 rounded-2xl p-8 shadow-xl">
+            <div className="bg-[#F4F7FF] border border-slate-100 rounded-[32px] p-8 shadow-xl">
               <div className="space-y-4">
                 {['Objective', 'Authorized capability', 'Worker', 'Connected system', 'External action', 'Verification', 'Evidence'].map((step, i) => (
                   <div key={i} className="flex items-center gap-4">
                     <div className="w-6 h-6 rounded-full bg-indigo-600/20 flex items-center justify-center shrink-0">
-                      <Check className="w-3 h-3 text-[#3B3690]" />
+                      <Check className="w-3 h-3 text-[#0057FF]" />
                     </div>
                     <span className="text-sm font-medium text-[#374151]">{step}</span>
                   </div>
@@ -162,7 +162,7 @@ export function LandingFeatures() {
       </section>
 
       {/* FEATURE 5 - VERIFICATION */}
-      <section id="verification" className="scroll-mt-24 py-24 px-6 border-t border-slate-200">
+      <section id="verification" className="scroll-mt-24 py-24 px-6 border-t border-slate-100">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-16">
           <div className="lg:w-1/2">
             <h2 className="text-3xl md:text-4xl font-bold text-[#111827] mb-6 tracking-tight">AI saying "done" isn't proof.</h2>
@@ -171,7 +171,7 @@ export function LandingFeatures() {
             </p>
           </div>
           <div className="lg:w-1/2 w-full">
-            <div className="bg-white shadow-sm border border-slate-300 rounded-2xl p-6 shadow-2xl relative">
+            <div className="bg-white shadow-sm border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[32px] p-6 shadow-2xl relative">
               <div className="text-[10px] text-[#4B5563] uppercase tracking-widest font-mono absolute top-6 right-6">Illustrative Demo Data</div>
               
               <div className="space-y-6 mt-8">
@@ -196,10 +196,10 @@ export function LandingFeatures() {
       </section>
 
       {/* FEATURE 6 - FAILURE RECOVERY */}
-      <section className="py-24 px-6 border-t border-slate-200 bg-[#F9F8F6]">
+      <section className="py-24 px-6 border-t border-slate-100 bg-[#F4F7FF]">
         <div className="max-w-6xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-16">
           <div className="lg:w-1/2 w-full">
-            <div className="bg-[#F9F8F6] border border-slate-200 rounded-2xl p-8 shadow-xl">
+            <div className="bg-[#F4F7FF] border border-slate-100 rounded-[32px] p-8 shadow-xl">
               <div className="flex flex-col items-center text-center">
                 <div className="bg-rose-500/10 text-rose-400 px-4 py-2 rounded-lg text-sm font-bold border border-rose-500/20 mb-3">PROBLEM DETECTED</div>
                 <div className="w-px h-6 bg-slate-700 mb-3" />
@@ -229,7 +229,7 @@ export function LandingFeatures() {
       </section>
 
       {/* FEATURE 7 - CONTINUOUS OPERATION */}
-      <section className="py-24 px-6 border-y border-slate-200">
+      <section className="py-24 px-6 border-y border-slate-100">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-16">
           <div className="lg:w-1/2">
             <h2 className="text-3xl md:text-4xl font-bold text-[#111827] mb-6 tracking-tight">The work doesn't stop after one task.</h2>
@@ -239,15 +239,15 @@ export function LandingFeatures() {
           </div>
           <div className="lg:w-1/2 w-full flex justify-center">
             <div className="relative w-64 h-64">
-              <div className="absolute inset-0 rounded-full border-2 border-slate-200 border-dashed" />
+              <div className="absolute inset-0 rounded-full border-2 border-slate-100 border-dashed" />
               <div className="absolute inset-0 rounded-full border-2 border-indigo-500 border-t-transparent animate-[spin_10s_linear_infinite]" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <RefreshCcw className="w-10 h-10 text-[#3B3690]" />
+                <RefreshCcw className="w-10 h-10 text-[#0057FF]" />
               </div>
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white shadow-sm border border-slate-200 px-3 py-1 rounded text-xs font-bold text-[#374151]">MONITOR</div>
-              <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 bg-white shadow-sm border border-slate-200 px-3 py-1 rounded text-xs font-bold text-[#374151]">EXECUTE</div>
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-white shadow-sm border border-slate-200 px-3 py-1 rounded text-xs font-bold text-[#374151]">LEARN</div>
-              <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 bg-white shadow-sm border border-slate-200 px-3 py-1 rounded text-xs font-bold text-[#374151]">PLAN</div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white shadow-sm border border-slate-100 px-3 py-1 rounded text-xs font-bold text-[#374151]">MONITOR</div>
+              <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 bg-white shadow-sm border border-slate-100 px-3 py-1 rounded text-xs font-bold text-[#374151]">EXECUTE</div>
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-white shadow-sm border border-slate-100 px-3 py-1 rounded text-xs font-bold text-[#374151]">LEARN</div>
+              <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 bg-white shadow-sm border border-slate-100 px-3 py-1 rounded text-xs font-bold text-[#374151]">PLAN</div>
             </div>
           </div>
         </div>

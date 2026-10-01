@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingHero } from '@/components/landing/LandingHero';
 import { LandingCore } from '@/components/landing/LandingCore';
+import { LandingFeatures } from '@/components/landing/LandingFeatures';
+import { LandingTrust } from '@/components/landing/LandingTrust';
 import { LandingPricing } from '@/components/landing/LandingPricing';
 import { LandingFAQ } from '@/components/landing/LandingFAQ';
 
@@ -26,11 +28,13 @@ export function Landing() {
   }, [location.hash]);
 
   return (
-    <div className="min-h-screen bg-white font-sans antialiased selection:bg-blue-500/30">
+    <div className="min-h-screen bg-white text-[#4B5563] font-sans antialiased selection:bg-[#3B3690]/30">
       <LandingNav />
       <main>
         <LandingHero />
         <LandingCore />
+        <LandingFeatures />
+        <LandingTrust />
         <LandingPricing />
         <LandingFAQ />
       </main>
