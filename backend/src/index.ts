@@ -102,6 +102,7 @@ import { GenerateBusinessReportAction } from './workflows/actions/GenerateBusine
 import { CompetitorAnalysisAction } from './workflows/actions/CompetitorAnalysisAction';
 import { GithubGetRepositoryActivityAction } from './workflows/actions/GithubGetRepositoryActivityAction';
 import { SlackReadChannelAction } from './workflows/actions/SlackReadChannelAction';
+import { GitHubPullRequestAction } from './workflows/actions/GitHubPullRequestAction';
 
 ActionRegistry.register(new WebResearchAction());
 ActionRegistry.register(new LeadResearchAction());
@@ -109,6 +110,7 @@ ActionRegistry.register(new CompetitorResearchAction());
 ActionRegistry.register(new GenerateBusinessReportAction());
 ActionRegistry.register(new CompetitorAnalysisAction());
 ActionRegistry.register(new GithubGetRepositoryActivityAction());
+ActionRegistry.register(new GitHubPullRequestAction());
 ActionRegistry.register(new SlackReadChannelAction());
 
 
