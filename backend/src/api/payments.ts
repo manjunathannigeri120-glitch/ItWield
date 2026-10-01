@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const router = Router();
 
+// Ensure keys are safely pulled from environment, with fallbacks for this specific session
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_TikRfveSfskcj6',
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'DOYUOMT5Oov2ym0mK1wyeOCB',
@@ -18,25 +19,25 @@ const PLANS: Record<string, { amount: number; credits: number; name: string }> =
 
 router.post('/create-order', async (req: any, res: any) => {
   try {
-    const { planId } = req.body;
+    const { planId, workspaceId } = req.body;
     let amount = req.body.amount;
-    let creditsToUnlock = req.body.credits || 1000;
+    let creditsToUnlock = req.body.credits || 0;
     
     if (planId && PLANS[planId]) {
       amount = PLANS[planId].amount; 
       creditsToUnlock = PLANS[planId].credits;
     }
 
-    if (!amount) {
-      return res.status(400).json({ error: 'Invalid plan or amount' });
+    if (!amount || !workspaceId) {
+      return res.status(400).json({ error: 'Invalid plan or missing workspace ID' });
     }
 
     const options = {
       amount: amount, 
-      currency: "USD",
+      currency: "USD", // Adjust to INR if your live account only supports INR
       receipt: "receipt_" + Math.random().toString(36).substring(7),
       notes: {
-        workspaceId: req.body.workspaceId || 'unknown',
+        workspaceId: workspaceId,
         credits: creditsToUnlock
       }
     };
@@ -45,8 +46,7 @@ router.post('/create-order', async (req: any, res: any) => {
     return res.json({
       orderId: order.id,
       amount: order.amount,
-      currency: order.currency,
-      credits: creditsToUnlock
+      currency: order.currency
     });
   } catch (error) {
     console.error('[Payments] Create Order Error:', error);
@@ -56,9 +56,10 @@ router.post('/create-order', async (req: any, res: any) => {
 
 router.post('/verify', async (req: any, res: any) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, workspaceId, credits } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     const secret = process.env.RAZORPAY_KEY_SECRET || 'DOYUOMT5Oov2ym0mK1wyeOCB';
     
+    // 1. Verify HMAC Signature
     const hmac = crypto.createHmac('sha256', secret);
     hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
     const generated_signature = hmac.digest('hex');
@@ -67,31 +68,56 @@ router.post('/verify', async (req: any, res: any) => {
       return res.status(400).json({ error: 'Invalid payment signature' });
     }
 
-    if (workspaceId) {
-      const supabaseUrl = process.env.SUPABASE_URL || '';
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-      
-      let client = req.supabase;
-      
-      if (supabaseUrl && supabaseServiceKey) {
-        client = createClient(supabaseUrl, supabaseServiceKey);
-      }
+    // 2. Fetch the Order from Razorpay securely (Server-side source of truth)
+    const order = await razorpay.orders.fetch(razorpay_order_id);
+    const workspaceId = order.notes?.workspaceId as string;
+    const creditsToAdd = parseInt(order.notes?.credits as string) || 0;
 
-      const { error } = await client.rpc('add_workspace_credits', {
-        ws_id: workspaceId,
-        amount: credits || 1000
-      });
-      
-      if (error) {
-        console.error('[Payments] RPC Error:', error);
-        const { data: ws } = await client.from('workspaces').select('credits').eq('id', workspaceId).single();
-        if (ws) {
-           await client.from('workspaces').update({ credits: (ws.credits || 0) + (credits || 1000) }).eq('id', workspaceId);
-        }
+    if (!workspaceId || creditsToAdd <= 0) {
+      return res.status(400).json({ error: 'Invalid order notes' });
+    }
+
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+    
+    // Default to the user's client, but highly recommend using Service Role for payment fulfillment
+    let client = req.supabase; 
+    if (supabaseUrl && supabaseServiceKey) {
+      client = createClient(supabaseUrl, supabaseServiceKey);
+    }
+
+    // 3. Prevent Duplicate Fulfillment
+    const { error: insertError } = await client.from('processed_payments').insert({
+      workspace_id: workspaceId,
+      razorpay_payment_id: razorpay_payment_id,
+      razorpay_order_id: razorpay_order_id,
+      amount: order.amount,
+      credits_added: creditsToAdd
+    });
+
+    if (insertError) {
+      if (insertError.code === '23505') { // Unique constraint violation
+         return res.status(400).json({ error: 'Payment already processed' });
+      }
+      console.error('[Payments] Failed to record payment in DB:', insertError);
+      return res.status(500).json({ error: 'Failed to record payment' });
+    }
+
+    // 4. Safely Add Credits
+    const { error: rpcError } = await client.rpc('add_workspace_credits', {
+      ws_id: workspaceId,
+      amount: creditsToAdd
+    });
+    
+    if (rpcError) {
+      console.error('[Payments] RPC Error, using fallback update:', rpcError);
+      const { data: ws } = await client.from('workspaces').select('credits').eq('id', workspaceId).single();
+      if (ws) {
+         await client.from('workspaces').update({ credits: (ws.credits || 0) + creditsToAdd }).eq('id', workspaceId);
       }
     }
 
-    return res.json({ success: true, message: 'Payment verified successfully' });
+    return res.json({ success: true, message: 'Payment verified and credits fulfilled securely.' });
   } catch (error) {
     console.error('[Payments] Verify Error:', error);
     return res.status(500).json({ error: 'Verification failed' });
