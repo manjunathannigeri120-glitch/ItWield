@@ -39,7 +39,7 @@ export function UpgradeModal() {
 
       // 2. Open Razorpay Checkout
       const options = {
-        key: "rzp_live_TikRfveSfskcj6", 
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, 
         amount: amount,
         currency: currency,
         name: "ItWield AI",

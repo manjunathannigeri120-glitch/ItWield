@@ -7,8 +7,8 @@ const router = Router();
 
 // Ensure keys are safely pulled from environment, with fallbacks for this specific session
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_TikRfveSfskcj6',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'DOYUOMT5Oov2ym0mK1wyeOCB',
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 const PLANS: Record<string, { amount: number; credits: number; name: string }> = {
@@ -57,7 +57,7 @@ router.post('/create-order', async (req: any, res: any) => {
 router.post('/verify', async (req: any, res: any) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-    const secret = process.env.RAZORPAY_KEY_SECRET || 'DOYUOMT5Oov2ym0mK1wyeOCB';
+    const secret = process.env.RAZORPAY_KEY_SECRET;
     
     // 1. Verify HMAC Signature
     const hmac = crypto.createHmac('sha256', secret);
