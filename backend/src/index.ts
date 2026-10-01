@@ -16,17 +16,25 @@ const port = process.env.PORT || 3000;
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 // In production, restrict to explicit allowed origin(s).
 // In development, allow localhost:5173 by default.
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:3000'];
+const rawOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : ['http://localhost:5173', 'http://localhost:3000'];
+  
+  // Automatically support www. and non-www variants to prevent CORS errors
+  const allowedOrigins = new Set(rawOrigins);
+  for (const origin of rawOrigins) {
+    if (origin.startsWith('https://itwield.com')) allowedOrigins.add('https://www.itwield.com');
+    if (origin.startsWith('https://www.itwield.com')) allowedOrigins.add('https://itwield.com');
+  }
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. server-to-server, health checks, curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error(`CORS policy: origin ${origin} not allowed`));
-  },
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.has(origin)) return callback(null, true);
+      
+      // Do not throw a synchronous 500 error for bad CORS! Let it cleanly fail CORS.
+      return callback(null, false);
+    },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-workspace-id', 'x-request-id']
