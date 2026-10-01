@@ -111,7 +111,7 @@ export class CustomerGrowthService {
       reason: reason,
       risk_level: 'high',
       payload: { oppId, draft },
-      status: 'PENDING',
+      status: 'PENDING_APPROVAL',
       requested_by: 'Customer Growth Engine'
     });
 
