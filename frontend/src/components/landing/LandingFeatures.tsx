@@ -15,16 +15,16 @@ export function LandingFeatures() {
           </div>
           <div className="lg:w-1/2 w-full">
             <div className="bg-[#1E293B] border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 px-3 py-1 rounded-full w-max mb-6">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-300 bg-indigo-400/10 border border-indigo-400/20 px-3 py-1 rounded-full w-max mb-6">
                 <Database className="w-3 h-3" /> COMPANY BRAIN
               </div>
               <div className="flex flex-wrap gap-2 mb-8">
                 {['Goals', 'Decisions', 'Products', 'Customers', 'Markets', 'Strategy', 'Lessons', 'Failures', 'Technical context', 'Operational context'].map((tag, i) => (
-                  <span key={i} className="text-xs text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">{tag}</span>
+                  <span key={i} className="text-xs text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">{tag} aria-hidden="true">?</span>
                 ))}
               </div>
               <div className="border-t border-slate-700 pt-6">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Retrieving Context</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Retrieving Context</p>
                 <div className="flex gap-2 justify-center">
                   {[Briefcase, Settings, TrendingUp, Terminal, PieChart].map((Icon, i) => (
                     <div key={i} className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-600 flex items-center justify-center text-slate-400">
@@ -43,33 +43,33 @@ export function LandingFeatures() {
         <div className="max-w-6xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-16">
           <div className="lg:w-1/2 w-full">
             <div className="bg-[#1E293B] border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
-              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-mono absolute top-6 right-6">Illustrative Product Preview</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-widest font-mono absolute top-6 right-6">Illustrative Product Preview</div>
               <h3 className="text-base font-bold text-white mb-6">Customer Acquisition</h3>
               
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                  <p className="text-xs text-slate-500 font-bold uppercase mb-1">Target</p>
-                  <p className="text-2xl text-white font-medium">20 <span className="text-sm text-slate-400">customers</span></p>
+                  <p className="text-xs text-slate-400 font-bold uppercase mb-1">Target</p>
+                  <p className="text-2xl text-white font-medium">20 <span className="text-sm text-slate-400">customers aria-hidden="true">?</span></p>
                 </div>
                 <div className="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20">
-                  <p className="text-xs text-emerald-500/70 font-bold uppercase mb-1">Current</p>
-                  <p className="text-2xl text-emerald-400 font-medium">7 <span className="text-sm text-emerald-500/50">verified</span></p>
+                  <p className="text-xs text-emerald-400 font-bold uppercase mb-1">Current</p>
+                  <p className="text-2xl text-emerald-400 font-medium">7 <span className="text-sm text-emerald-400">verified aria-hidden="true">?</span></p>
                 </div>
               </div>
               
               <div className="flex justify-between items-center bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 mb-6">
                 <div>
-                  <p className="text-xs text-slate-500 font-bold uppercase mb-1">Gap</p>
+                  <p className="text-xs text-slate-400 font-bold uppercase mb-1">Gap</p>
                   <p className="text-lg text-white font-medium">13</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-slate-500 font-bold uppercase mb-1">Status</p>
+                  <p className="text-xs text-slate-400 font-bold uppercase mb-1">Status</p>
                   <div className="text-xs font-bold uppercase tracking-wider text-blue-400 bg-blue-400/10 border border-blue-400/20 px-2 py-1 rounded">Operating</div>
                 </div>
               </div>
 
-              <div className="bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20">
-                <p className="text-xs text-indigo-400 font-bold uppercase mb-1">Next Action</p>
+              <div className="bg-indigo-600/10 p-4 rounded-xl border border-indigo-500/20">
+                <p className="text-xs text-indigo-300 font-bold uppercase mb-1">Next Action</p>
                 <p className="text-sm text-indigo-200">Continue customer acquisition</p>
               </div>
             </div>
@@ -94,15 +94,15 @@ export function LandingFeatures() {
             <div className="flex justify-start gap-4 mt-8">
               <div className="flex flex-col items-center">
                 <div className="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center border border-amber-500/30 mb-2"><Pause className="w-5 h-5 fill-current" /></div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Pause</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Pause aria-hidden="true">?</span>
               </div>
               <div className="flex flex-col items-center">
-                <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/30 mb-2"><Play className="w-5 h-5 fill-current" /></div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Resume</span>
+                <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center border border-emerald-500/30 mb-2"><Play className="w-5 h-5 fill-current" /></div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Resume aria-hidden="true">?</span>
               </div>
               <div className="flex flex-col items-center">
                 <div className="w-12 h-12 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center border border-rose-500/30 mb-2"><Square className="w-5 h-5 fill-current" /></div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Stop</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Stop aria-hidden="true">?</span>
               </div>
             </div>
           </div>
@@ -110,24 +110,24 @@ export function LandingFeatures() {
             <div className="bg-[#1E293B] border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
               <div className="space-y-3">
                 <div className="flex justify-between items-center border-b border-slate-700 pb-3">
-                  <span className="text-sm font-medium text-slate-300">Company Status</span>
-                  <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded uppercase">Operating</span>
+                  <span className="text-sm font-medium text-slate-300">Company Status aria-hidden="true">?</span>
+                  <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded uppercase">Operating aria-hidden="true">?</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-slate-700 pb-3">
-                  <span className="text-sm font-medium text-slate-300">Active Objective</span>
-                  <span className="text-sm text-slate-400 truncate max-w-[200px]">Get me 20 new customers</span>
+                  <span className="text-sm font-medium text-slate-300">Active Objective aria-hidden="true">?</span>
+                  <span className="text-sm text-slate-400 truncate max-w-[200px]">Get me 20 new customers aria-hidden="true">?</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-slate-700 pb-3">
-                  <span className="text-sm font-medium text-slate-300">Blocked Work</span>
-                  <span className="text-sm text-slate-400">0 tasks</span>
+                  <span className="text-sm font-medium text-slate-300">Blocked Work aria-hidden="true">?</span>
+                  <span className="text-sm text-slate-400">0 tasks aria-hidden="true">?</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-slate-700 pb-3">
-                  <span className="text-sm font-medium text-slate-300">Pending Approvals</span>
-                  <span className="text-xs font-bold text-amber-400 bg-amber-400/10 px-2 py-1 rounded uppercase">1 Required</span>
+                  <span className="text-sm font-medium text-slate-300">Pending Approvals aria-hidden="true">?</span>
+                  <span className="text-xs font-bold text-amber-400 bg-amber-400/10 px-2 py-1 rounded uppercase">1 Required aria-hidden="true">?</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-slate-300">Recent Activity</span>
-                  <span className="text-sm text-slate-400">CEO updated strategy</span>
+                  <span className="text-sm font-medium text-slate-300">Recent Activity aria-hidden="true">?</span>
+                  <span className="text-sm text-slate-400">CEO updated strategy aria-hidden="true">?</span>
                 </div>
               </div>
             </div>
@@ -143,10 +143,10 @@ export function LandingFeatures() {
               <div className="space-y-4">
                 {['Objective', 'Authorized capability', 'Worker', 'Connected system', 'External action', 'Verification', 'Evidence'].map((step, i) => (
                   <div key={i} className="flex items-center gap-4">
-                    <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-indigo-600/20 flex items-center justify-center shrink-0">
                       <Check className="w-3 h-3 text-indigo-400" />
                     </div>
-                    <span className="text-sm font-medium text-slate-300">{step}</span>
+                    <span className="text-sm font-medium text-slate-300">{step} aria-hidden="true">?</span>
                   </div>
                 ))}
               </div>
@@ -172,11 +172,11 @@ export function LandingFeatures() {
           </div>
           <div className="lg:w-1/2 w-full">
             <div className="bg-[#1E293B] border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
-              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-mono absolute top-6 right-6">Illustrative Demo Data</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-widest font-mono absolute top-6 right-6">Illustrative Demo Data</div>
               
               <div className="space-y-6 mt-8">
                 <div>
-                  <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">PLANNED</div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">PLANNED</div>
                   <div className="text-xl text-white">20 customers</div>
                 </div>
                 <div className="w-full h-px bg-slate-700" />
@@ -186,7 +186,7 @@ export function LandingFeatures() {
                 </div>
                 <div className="w-full h-px bg-slate-700" />
                 <div>
-                  <div className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-1">VERIFIED</div>
+                  <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1">VERIFIED</div>
                   <div className="text-xl text-emerald-400">7 customers confirmed</div>
                 </div>
               </div>
@@ -213,7 +213,7 @@ export function LandingFeatures() {
                 <div className="w-px h-6 bg-slate-700 mb-3" />
                 <div className="flex gap-4">
                   <div className="bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-lg text-sm font-bold border border-emerald-500/20">RESOLVED</div>
-                  <div className="text-slate-500 flex items-center text-sm">OR</div>
+                  <div className="text-slate-400 flex items-center text-sm">OR</div>
                   <div className="bg-amber-500/10 text-amber-400 px-4 py-2 rounded-lg text-sm font-bold border border-amber-500/20">ESCALATE TO FOUNDER</div>
                 </div>
               </div>

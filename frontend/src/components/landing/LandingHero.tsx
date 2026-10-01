@@ -17,7 +17,7 @@ export function LandingHero() {
             
             {/* Left */}
             <div className="text-left">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-bold tracking-widest uppercase mb-8 border border-indigo-500/20">
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-600/10 text-indigo-400 text-xs font-bold tracking-widest uppercase mb-8 border border-indigo-500/20">
                 AI Business Operating System
               </div>
               <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-8 leading-[1.1]">
@@ -36,8 +36,8 @@ export function LandingHero() {
                   See How It Works
                 </a>
               </div>
-              <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-500" /> No complicated workflow setup. You set the direction. ItWield handles the operating work.
+              <div className="text-sm font-medium text-slate-400 flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-400" /> No complicated workflow setup. You set the direction. ItWield handles the operating work.
               </div>
             </div>
 
@@ -51,7 +51,7 @@ export function LandingHero() {
                   <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> AI COMPANY OPERATING
                   </div>
-                  <div className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
+                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">
                     Illustrative Product Preview
                   </div>
                 </div>
@@ -63,7 +63,7 @@ export function LandingHero() {
                   </div>
                   <div className="bg-[#1E293B] p-4 rounded-xl border border-emerald-500/20 relative overflow-hidden">
                     <div className="absolute inset-0 bg-emerald-500/5" />
-                    <p className="text-xs text-emerald-500/70 uppercase tracking-wider font-bold mb-1 relative z-10">Progress</p>
+                    <p className="text-xs text-emerald-400 uppercase tracking-wider font-bold mb-1 relative z-10">Progress</p>
                     <p className="text-sm text-emerald-400 font-medium relative z-10">7 / 20 VERIFIED</p>
                   </div>
                 </div>
@@ -79,21 +79,21 @@ export function LandingHero() {
                     <div key={i} className="flex justify-between items-center bg-slate-800/30 p-2.5 rounded-full border border-slate-700/30">
                       <div className="flex items-center gap-3">
                         <div className={`w-6 h-6 rounded flex items-center justify-center bg-slate-800 ${exec.color}`}><exec.icon className="w-3.5 h-3.5" /></div>
-                        <span className="text-sm font-bold text-slate-300">{exec.role}</span>
+                        <span className="text-sm font-bold text-slate-300">{exec.role} aria-hidden="true">?</span>
                       </div>
-                      <span className="text-xs text-slate-400">{exec.status}</span>
+                      <span className="text-xs text-slate-400">{exec.status} aria-hidden="true">?</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 flex items-center justify-between mb-6">
-                  <span className="text-xs font-bold text-slate-400">Founder Attention</span>
-                  <span className="text-xs text-slate-400 font-medium bg-slate-800 px-2 py-1 rounded">None required</span>
+                  <span className="text-xs font-bold text-slate-400">Founder Attention aria-hidden="true">?</span>
+                  <span className="text-xs text-slate-400 font-medium bg-slate-800 px-2 py-1 rounded">None required aria-hidden="true">?</span>
                 </div>
 
                 <div className="flex justify-center gap-4 mt-auto">
                   <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center border border-amber-500/20 cursor-pointer hover:bg-amber-500/20"><Pause className="w-4 h-4 fill-current" /></div>
-                  <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-500/20 cursor-pointer hover:bg-emerald-500/20"><Play className="w-4 h-4 fill-current" /></div>
+                  <div className="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center border border-emerald-500/20 cursor-pointer hover:bg-emerald-500/20"><Play className="w-4 h-4 fill-current" /></div>
                   <div className="w-10 h-10 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center border border-rose-500/20 cursor-pointer hover:bg-rose-500/20"><Square className="w-4 h-4 fill-current" /></div>
                 </div>
 

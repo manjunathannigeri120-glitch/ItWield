@@ -53,7 +53,7 @@ export function LandingTrust() {
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-12 tracking-tight">See what your AI company is doing.</h2>
           
           <div className="bg-[#1E293B] border border-slate-700 rounded-2xl p-6 shadow-2xl text-left max-w-2xl mx-auto relative overflow-hidden">
-            <div className="absolute top-4 right-6 text-[10px] uppercase tracking-widest text-slate-500">Illustrative Activity Feed</div>
+            <div className="absolute top-4 right-6 text-[10px] uppercase tracking-widest text-slate-400">Illustrative Activity Feed</div>
             <div className="space-y-6 mt-6">
               {[
                 { time: "10:42:18", role: "CMO", action: "Customer acquisition task started", color: "text-rose-400" },
@@ -63,10 +63,10 @@ export function LandingTrust() {
                 { time: "10:41:58", role: "CEO", action: "Strategic priority confirmed", color: "text-indigo-400" },
               ].map((log, i) => (
                 <div key={i} className="flex gap-4 items-start">
-                  <div className="text-xs text-slate-500 font-mono w-20 shrink-0 pt-0.5">{log.time}</div>
+                  <div className="text-xs text-slate-400 font-mono w-20 shrink-0 pt-0.5">{log.time}</div>
                   <div>
-                    <span className={`text-xs font-bold uppercase tracking-widest mr-2 ${log.color}`}>{log.role}</span>
-                    <span className="text-sm text-slate-300">{log.action}</span>
+                    <span className={`text-xs font-bold uppercase tracking-widest mr-2 ${log.color}`}>{log.role} aria-hidden="true">?</span>
+                    <span className="text-sm text-slate-300">{log.action} aria-hidden="true">?</span>
                   </div>
                 </div>
               ))}
@@ -83,17 +83,17 @@ export function LandingTrust() {
 
           <div className="flex flex-wrap justify-center items-center gap-4 text-sm font-bold tracking-widest text-slate-300 uppercase">
             <div className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg">Founder leaves</div>
-            <span className="text-slate-600">→</span>
-            <div className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-4 py-2 rounded-lg">AI company operates</div>
-            <span className="text-slate-600">→</span>
+            <span className="text-slate-400">→ aria-hidden="true">?</span>
+            <div className="bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 px-4 py-2 rounded-lg">AI company operates</div>
+            <span className="text-slate-400">→ aria-hidden="true">?</span>
             <div className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg">Progress monitored</div>
-            <span className="text-slate-600">→</span>
+            <span className="text-slate-400">→ aria-hidden="true">?</span>
             <div className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg">Problems detected</div>
-            <span className="text-slate-600">→</span>
+            <span className="text-slate-400">→ aria-hidden="true">?</span>
             <div className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg">Safe actions executed</div>
-            <span className="text-slate-600">→</span>
+            <span className="text-slate-400">→ aria-hidden="true">?</span>
             <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg">Results verified</div>
-            <span className="text-slate-600">→</span>
+            <span className="text-slate-400">→ aria-hidden="true">?</span>
             <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-4 py-2 rounded-lg">Founder notified when attention is required</div>
           </div>
         </div>
@@ -136,19 +136,19 @@ export function LandingTrust() {
               <div className="w-16 h-16 bg-[#1E293B] border border-slate-700 rounded-2xl flex items-center justify-center mb-3 text-white">
                 <GitBranch className="w-8 h-8" />
               </div>
-              <span className="text-sm font-bold text-slate-300">GitHub</span>
+              <span className="text-sm font-bold text-slate-300">GitHub aria-hidden="true">?</span>
             </div>
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 bg-[#1E293B] border border-slate-700 rounded-2xl flex items-center justify-center mb-3 text-white">
                 <Cloud className="w-8 h-8" />
               </div>
-              <span className="text-sm font-bold text-slate-300">Vercel</span>
+              <span className="text-sm font-bold text-slate-300">Vercel aria-hidden="true">?</span>
             </div>
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 bg-[#1E293B] border border-slate-700 rounded-2xl flex items-center justify-center mb-3 text-emerald-400">
                 <Database className="w-8 h-8" />
               </div>
-              <span className="text-sm font-bold text-slate-300">Supabase</span>
+              <span className="text-sm font-bold text-slate-300">Supabase aria-hidden="true">?</span>
             </div>
           </div>
         </div>

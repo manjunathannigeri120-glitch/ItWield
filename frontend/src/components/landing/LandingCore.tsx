@@ -18,7 +18,7 @@ export function LandingCore() {
             {/* Chatbot */}
             <div className="bg-[#1E293B] border border-slate-800 p-8 rounded-3xl opacity-60">
               <h3 className="text-xl font-bold text-slate-300 mb-6 border-b border-slate-700 pb-4">CHATBOT</h3>
-              <div className="space-y-4 text-center text-sm font-bold tracking-widest text-slate-500">
+              <div className="space-y-4 text-center text-sm font-bold tracking-widest text-slate-400">
                 <div className="bg-slate-800/50 p-4 rounded-xl">Ask</div>
                 <ArrowRight className="w-5 h-5 mx-auto rotate-90 opacity-50" />
                 <div className="bg-slate-800/50 p-4 rounded-xl">Answer</div>
@@ -28,7 +28,7 @@ export function LandingCore() {
             {/* Automation */}
             <div className="bg-[#1E293B] border border-slate-800 p-8 rounded-3xl opacity-60">
               <h3 className="text-xl font-bold text-slate-300 mb-6 border-b border-slate-700 pb-4">AUTOMATION</h3>
-              <div className="space-y-4 text-center text-sm font-bold tracking-widest text-slate-500">
+              <div className="space-y-4 text-center text-sm font-bold tracking-widest text-slate-400">
                 <div className="bg-slate-800/50 p-4 rounded-xl">Trigger</div>
                 <ArrowRight className="w-5 h-5 mx-auto rotate-90 opacity-50" />
                 <div className="bg-slate-800/50 p-4 rounded-xl">Action</div>
@@ -39,21 +39,21 @@ export function LandingCore() {
             <div className="bg-indigo-900/10 border border-indigo-500/30 p-8 rounded-3xl shadow-xl shadow-indigo-900/20 relative">
               <h3 className="text-xl font-bold text-white mb-6 border-b border-indigo-500/30 pb-4">ITWIELD</h3>
               <div className="space-y-2 text-center text-xs font-bold tracking-widest text-indigo-200">
-                <div className="bg-indigo-500/20 border border-indigo-500/30 p-2.5 rounded-lg text-white">Objective</div>
+                <div className="bg-indigo-600/20 border border-indigo-500/30 p-2.5 rounded-lg text-white">Objective</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
-                <div className="bg-indigo-500/10 border border-indigo-500/20 p-2.5 rounded-lg">Understand</div>
+                <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Understand</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
-                <div className="bg-indigo-500/10 border border-indigo-500/20 p-2.5 rounded-lg">Decide</div>
+                <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Decide</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
-                <div className="bg-indigo-500/10 border border-indigo-500/20 p-2.5 rounded-lg">Delegate</div>
+                <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Delegate</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
-                <div className="bg-indigo-500/10 border border-indigo-500/20 p-2.5 rounded-lg">Execute</div>
+                <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Execute</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
-                <div className="bg-indigo-500/20 border border-indigo-500/30 p-2.5 rounded-lg text-emerald-300">Verify</div>
+                <div className="bg-indigo-600/20 border border-indigo-500/30 p-2.5 rounded-lg text-emerald-300">Verify</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
-                <div className="bg-indigo-500/10 border border-indigo-500/20 p-2.5 rounded-lg">Learn</div>
+                <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Learn</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
-                <div className="bg-indigo-500/10 border border-indigo-500/20 p-2.5 rounded-lg">Replan</div>
+                <div className="bg-indigo-600/10 border border-indigo-500/20 p-2.5 rounded-lg">Replan</div>
                 <ArrowRight className="w-4 h-4 mx-auto rotate-90 opacity-50 text-indigo-400" />
                 <div className="bg-indigo-600 border border-indigo-500 p-2.5 rounded-lg text-white shadow-lg">Operate</div>
               </div>
@@ -80,7 +80,7 @@ export function LandingCore() {
               <p className="text-2xl font-medium text-white">"Get me 20 new customers."</p>
             </div>
             
-            <ArrowRight className="w-6 h-6 text-slate-600 my-4 rotate-90" />
+            <ArrowRight className="w-6 h-6 text-slate-400 my-4 rotate-90" />
             
             {/* Understand */}
             <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 w-full text-center">
@@ -88,7 +88,7 @@ export function LandingCore() {
               <p className="text-sm text-slate-400">Company Brain retrieves context.</p>
             </div>
 
-            <ArrowRight className="w-6 h-6 text-slate-600 my-4 rotate-90" />
+            <ArrowRight className="w-6 h-6 text-slate-400 my-4 rotate-90" />
 
             {/* CEO */}
             <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-700 w-full text-center">
@@ -96,7 +96,7 @@ export function LandingCore() {
               <p className="text-sm text-slate-400">Sets strategic priority.</p>
             </div>
 
-            <ArrowRight className="w-6 h-6 text-slate-600 my-4 rotate-90" />
+            <ArrowRight className="w-6 h-6 text-slate-400 my-4 rotate-90" />
 
             {/* COO */}
             <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-700 w-full text-center">
@@ -104,7 +104,7 @@ export function LandingCore() {
               <p className="text-sm text-slate-400">Coordinates execution.</p>
             </div>
 
-            <ArrowRight className="w-6 h-6 text-slate-600 my-4 rotate-90" />
+            <ArrowRight className="w-6 h-6 text-slate-400 my-4 rotate-90" />
 
             {/* CMO */}
             <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-700 w-full text-center">
@@ -112,7 +112,7 @@ export function LandingCore() {
               <p className="text-sm text-slate-400">Owns customer acquisition.</p>
             </div>
 
-            <ArrowRight className="w-6 h-6 text-slate-600 my-4 rotate-90" />
+            <ArrowRight className="w-6 h-6 text-slate-400 my-4 rotate-90" />
 
             {/* AI Workers */}
             <div className="bg-slate-800 p-4 rounded-xl border border-dashed border-slate-600 w-full text-center">
@@ -120,7 +120,7 @@ export function LandingCore() {
               <p className="text-sm text-slate-400">Execute authorized tasks.</p>
             </div>
 
-            <ArrowRight className="w-6 h-6 text-slate-600 my-4 rotate-90" />
+            <ArrowRight className="w-6 h-6 text-slate-400 my-4 rotate-90" />
 
             {/* Verify */}
             <div className="bg-emerald-900/20 p-4 rounded-xl border border-emerald-500/20 w-full text-center">
@@ -128,7 +128,7 @@ export function LandingCore() {
               <p className="text-sm text-slate-400">Business data confirms results.</p>
             </div>
 
-            <ArrowRight className="w-6 h-6 text-slate-600 my-4 rotate-90" />
+            <ArrowRight className="w-6 h-6 text-slate-400 my-4 rotate-90" />
 
             {/* Replan */}
             <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 w-full text-center">
@@ -167,10 +167,10 @@ export function LandingCore() {
                   }`}
                 >
                   <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] mr-2 ${
-                    activeStep === idx ? 'bg-white/20' : activeStep > idx ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-500'
+                    activeStep === idx ? 'bg-white/20' : activeStep > idx ? 'bg-indigo-600/20 text-indigo-400' : 'bg-slate-800 text-slate-400'
                   }`}>
                     {activeStep > idx ? <Check className="w-3 h-3" /> : (idx + 1)}
-                  </span>
+                   aria-hidden="true">?</span>
                   {step}
                 </button>
               ))}
@@ -192,7 +192,7 @@ export function LandingCore() {
                 
                 <div className="bg-slate-900 border border-slate-700 rounded-2xl p-8 mb-8 shadow-sm text-left">
                   <div className="flex items-center text-lg font-bold text-white mb-8">
-                    <span className="bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-lg text-sm mr-4 border border-indigo-500/30">You</span>
+                    <span className="bg-indigo-600/20 text-indigo-400 px-3 py-1 rounded-lg text-sm mr-4 border border-indigo-500/30">You aria-hidden="true">?</span>
                     "Get me 20 new customers."
                   </div>
                   
@@ -204,12 +204,12 @@ export function LandingCore() {
                 </div>
                 
                 <div className="flex flex-wrap justify-center gap-3 mb-10">
-                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Find what's stopping my business from growing."</span>
-                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Reduce unnecessary costs."</span>
-                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Pause customer acquisition."</span>
+                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Find what's stopping my business from growing." aria-hidden="true">?</span>
+                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Reduce unnecessary costs." aria-hidden="true">?</span>
+                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Pause customer acquisition." aria-hidden="true">?</span>
                 </div>
                 
-                <button onClick={() => setActiveStep(1)} className="inline-flex items-center justify-center h-10 px-6 rounded-full bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 font-bold transition-colors mx-auto">
+                <button onClick={() => setActiveStep(1)} className="inline-flex items-center justify-center h-10 px-6 rounded-full bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20 font-bold transition-colors mx-auto">
                   Next <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
@@ -258,19 +258,19 @@ export function LandingCore() {
                     OBJECTIVE
                   </div>
                   
-                  <div className="w-0.5 h-6 bg-indigo-500/50 -mt-6 mb-0" />
+                  <div className="w-0.5 h-6 bg-indigo-600/50 -mt-6 mb-0" />
                   
                   <div className="bg-indigo-600 text-white rounded-2xl p-6 w-full max-w-md text-center mb-6 relative z-10 shadow-lg">
                     <h3 className="text-xl font-bold mb-1">CEO</h3>
                     <p className="text-indigo-200 text-sm mb-4">Company strategy & priorities</p>
-                    <div className="bg-indigo-500/50 text-white text-sm font-medium py-1.5 px-4 rounded-lg inline-block border border-indigo-400/50">
+                    <div className="bg-indigo-600/50 text-white text-sm font-medium py-1.5 px-4 rounded-lg inline-block border border-indigo-400/50">
                       What matters most?
                     </div>
                   </div>
                   
-                  <div className="w-0.5 h-6 bg-indigo-500/50 -mt-6 mb-0" />
+                  <div className="w-0.5 h-6 bg-indigo-600/50 -mt-6 mb-0" />
                   
-                  <div className="bg-indigo-500 text-white rounded-2xl p-6 w-full max-w-md text-center mb-8 relative z-10 shadow-lg">
+                  <div className="bg-indigo-600 text-white rounded-2xl p-6 w-full max-w-md text-center mb-8 relative z-10 shadow-lg">
                     <h3 className="text-xl font-bold mb-1">COO</h3>
                     <p className="text-indigo-100 text-sm mb-4">Operations & coordination</p>
                     <div className="bg-indigo-400/50 text-white text-sm font-medium py-1.5 px-4 rounded-lg inline-block border border-indigo-300/50">
@@ -287,11 +287,11 @@ export function LandingCore() {
                       <div className="border border-slate-700 bg-slate-900 rounded-xl p-4 text-center relative flex flex-col items-center">
                         <div className="absolute -top-6 left-1/2 w-0.5 h-6 bg-slate-700 -translate-x-1/2" />
                         <h4 className="font-bold text-slate-300">CTO</h4>
-                        <p className="text-xs text-slate-500">Technology & systems</p>
+                        <p className="text-xs text-slate-400">Technology & systems</p>
                       </div>
                       
                       <div className="border-2 border-indigo-500 bg-slate-900 rounded-xl p-4 text-center relative flex flex-col items-center shadow-lg shadow-indigo-900/50 scale-105 z-10">
-                        <div className="absolute -top-4 right-[-10px] bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Active</div>
+                        <div className="absolute -top-4 right-[-10px] bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Active</div>
                         <h4 className="font-bold text-indigo-400">CMO</h4>
                         <p className="text-xs text-slate-400">Customers & growth</p>
                       </div>
@@ -299,7 +299,7 @@ export function LandingCore() {
                       <div className="border border-slate-700 bg-slate-900 rounded-xl p-4 text-center relative flex flex-col items-center">
                         <div className="absolute -top-6 left-1/2 w-0.5 h-6 bg-slate-700 -translate-x-1/2" />
                         <h4 className="font-bold text-slate-300">CFO</h4>
-                        <p className="text-xs text-slate-500">Financial health & cost</p>
+                        <p className="text-xs text-slate-400">Financial health & cost</p>
                       </div>
                     </div>
                   </div>
@@ -316,11 +316,11 @@ export function LandingCore() {
                 </div>
                 
                 <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 shadow-xl flex flex-col items-center">
-                  <div className="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 font-bold px-6 py-2 rounded-lg mb-6 text-sm">
+                  <div className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-bold px-6 py-2 rounded-lg mb-6 text-sm">
                     CMO WORK ASSIGNMENTS
                   </div>
                   
-                  <ArrowRight className="w-5 h-5 text-slate-600 rotate-90 mb-6" />
+                  <ArrowRight className="w-5 h-5 text-slate-400 rotate-90 mb-6" />
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mb-8">
                     <div className="border border-slate-700 bg-slate-800/50 rounded-xl p-4 flex flex-col items-center justify-center text-center">
@@ -338,10 +338,10 @@ export function LandingCore() {
                   </div>
                   
                   <div className="bg-slate-950 border border-slate-800 w-full rounded-xl p-6 text-left font-mono text-sm space-y-3 shadow-inner text-emerald-400">
-                    <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-500" /> Market research completed</div>
-                    <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-500" /> Prospects identified</div>
-                    <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-500" /> Opportunities processed</div>
-                    <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-500" /> Results recorded in CRM</div>
+                    <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-400" /> Market research completed</div>
+                    <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-400" /> Prospects identified</div>
+                    <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-400" /> Opportunities processed</div>
+                    <div className="flex items-center"><Check className="w-4 h-4 mr-2 text-emerald-400" /> Results recorded in CRM</div>
                   </div>
                 </div>
               </div>
@@ -360,7 +360,7 @@ export function LandingCore() {
                     <div className="flex items-center text-indigo-400 font-bold tracking-widest uppercase text-sm">
                       <Activity className="w-5 h-5 mr-2" /> OUTCOME VERIFICATION
                     </div>
-                    <span className="bg-slate-800 text-slate-400 border border-slate-700 text-[10px] px-2 py-1 rounded font-medium">Demo data</span>
+                    <span className="bg-slate-800 text-slate-400 border border-slate-700 text-[10px] px-2 py-1 rounded font-medium">Demo data aria-hidden="true">?</span>
                   </div>
                   
                   <div className="flex justify-between items-end mb-4">
@@ -378,13 +378,13 @@ export function LandingCore() {
                     <div className="absolute top-0 left-0 h-full bg-indigo-600 rounded-full" style={{ width: '35%' }}></div>
                   </div>
                   
-                  <div className="flex justify-between text-xs font-medium text-slate-500">
-                    <span>0</span>
-                    <span>Remaining: 13</span>
-                    <span>20</span>
+                  <div className="flex justify-between text-xs font-medium text-slate-400">
+                    <span>0 aria-hidden="true">?</span>
+                    <span>Remaining: 13 aria-hidden="true">?</span>
+                    <span>20 aria-hidden="true">?</span>
                   </div>
                   
-                  <div className="mt-8 text-center text-sm text-slate-500 font-medium">
+                  <div className="mt-8 text-center text-sm text-slate-400 font-medium">
                     Only supported business records count toward the actual result.
                   </div>
                 </div>
@@ -406,7 +406,7 @@ export function LandingCore() {
                     
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <RefreshCw className="w-8 h-8 text-indigo-500 mb-2" />
-                      <span className="font-bold text-white tracking-widest uppercase text-sm">OPERATE</span>
+                      <span className="font-bold text-white tracking-widest uppercase text-sm">OPERATE aria-hidden="true">?</span>
                     </div>
                     
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1E293B] px-3 py-1 rounded text-xs font-bold text-slate-400">Evaluate</div>
@@ -419,19 +419,19 @@ export function LandingCore() {
                   <div className="text-left space-y-6">
                     <div className="flex items-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-4"></div>
-                      <div className="text-base"><span className="font-bold text-slate-300">If it's working:</span> <span className="text-slate-400">Continue</span></div>
+                      <div className="text-base"><span className="font-bold text-slate-300">If it's working: aria-hidden="true">?</span> <span className="text-slate-400">Continue aria-hidden="true">?</span></div>
                     </div>
                     <div className="flex items-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-4"></div>
-                      <div className="text-base"><span className="font-bold text-slate-300">If it's not working:</span> <span className="text-slate-400">Investigate & replan</span></div>
+                      <div className="text-base"><span className="font-bold text-slate-300">If it's not working: aria-hidden="true">?</span> <span className="text-slate-400">Investigate & replan aria-hidden="true">?</span></div>
                     </div>
                     <div className="flex items-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-amber-500 mr-4"></div>
-                      <div className="text-base"><span className="font-bold text-slate-300">If it's blocked:</span> <span className="text-slate-400">Coordinate the dependency</span></div>
+                      <div className="text-base"><span className="font-bold text-slate-300">If it's blocked: aria-hidden="true">?</span> <span className="text-slate-400">Coordinate the dependency aria-hidden="true">?</span></div>
                     </div>
                     <div className="flex items-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-4"></div>
-                      <div className="text-base"><span className="font-bold text-slate-300">If authority required:</span> <span className="text-slate-400">Pause & ask you</span></div>
+                      <div className="text-base"><span className="font-bold text-slate-300">If authority required: aria-hidden="true">?</span> <span className="text-slate-400">Pause & ask you aria-hidden="true">?</span></div>
                     </div>
                   </div>
                   
@@ -461,7 +461,7 @@ export function LandingCore() {
 
             {/* CEO */}
             <div className="w-full max-w-2xl bg-[#1E293B] border border-slate-700 rounded-2xl p-6 mb-6 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 shadow-xl relative z-10">
-              <div className="w-14 h-14 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center shrink-0"><Briefcase className="w-7 h-7" /></div>
+              <div className="w-14 h-14 bg-indigo-600/20 text-indigo-400 rounded-xl flex items-center justify-center shrink-0"><Briefcase className="w-7 h-7" /></div>
               <div>
                 <h3 className="text-2xl font-bold text-white mb-1">CEO</h3>
                 <p className="text-slate-400">Company strategy and priorities.</p>
@@ -508,7 +508,7 @@ export function LandingCore() {
 
             <div className="w-0.5 h-6 bg-slate-700 mb-6" />
 
-            <div className="bg-[#111827] border border-slate-800 px-8 py-3 rounded-full text-slate-500 font-bold tracking-widest uppercase text-sm z-10">
+            <div className="bg-[#111827] border border-slate-800 px-8 py-3 rounded-full text-slate-400 font-bold tracking-widest uppercase text-sm z-10">
               Authorized Systems
             </div>
 

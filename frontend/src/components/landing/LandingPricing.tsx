@@ -25,8 +25,8 @@ export function LandingPricing() {
           <div className="bg-[#1E293B] border border-slate-700 rounded-3xl p-6 flex flex-col hover:border-slate-500 transition-colors">
             <h3 className="text-lg font-bold text-white mb-2">FREE</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-white">$0</span>
-              <span className="text-sm text-slate-400">/ forever</span>
+              <span className="text-4xl font-extrabold text-white">$0 aria-hidden="true">?</span>
+              <span className="text-sm text-slate-400">/ forever aria-hidden="true">?</span>
             </div>
             <p className="text-xs text-slate-400 mb-6 min-h-[40px]">Learning, testing, and your first AI company.</p>
             <Link to={ctaDest} className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start Free</Link>
@@ -43,14 +43,14 @@ export function LandingPricing() {
 
           {/* SOLO BUILDER */}
           <div className="bg-[#1E293B] border-2 border-indigo-500/50 rounded-3xl p-6 flex flex-col relative shadow-xl shadow-indigo-900/20 hover:border-indigo-400 transition-colors lg:-mt-4 lg:mb-4">
-            <div className="absolute top-0 right-6 -translate-y-1/2 bg-indigo-500 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Popular</div>
+            <div className="absolute top-0 right-6 -translate-y-1/2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Popular</div>
             <h3 className="text-lg font-bold text-white mb-2">SOLO BUILDER</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-white">$49</span>
-              <span className="text-sm text-slate-400">/ month</span>
+              <span className="text-4xl font-extrabold text-white">$49 aria-hidden="true">?</span>
+              <span className="text-sm text-slate-400">/ month aria-hidden="true">?</span>
             </div>
             <p className="text-xs text-slate-400 mb-6 min-h-[40px]">Builders shipping real workloads.</p>
-            <Link to={ctaDest} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Solo</Link>
+            <Link to={ctaDest} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-600 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Solo</Link>
             <ul className="space-y-3 text-sm text-slate-300 mt-auto">
               <li className="flex gap-2"><Check className="w-4 h-4 text-indigo-400 shrink-0" /> Unlimited workspaces</li>
               <li className="flex gap-2"><Check className="w-4 h-4 text-indigo-400 shrink-0" /> Up to 25 AI workers</li>
@@ -68,8 +68,8 @@ export function LandingPricing() {
           <div className="bg-[#1E293B] border border-slate-700 rounded-3xl p-6 flex flex-col hover:border-slate-500 transition-colors">
             <h3 className="text-lg font-bold text-white mb-2">PROFESSIONAL</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-white">$199</span>
-              <span className="text-sm text-slate-400">/ month</span>
+              <span className="text-4xl font-extrabold text-white">$199 aria-hidden="true">?</span>
+              <span className="text-sm text-slate-400">/ month aria-hidden="true">?</span>
             </div>
             <p className="text-xs text-slate-400 mb-6 min-h-[40px]">For teams operating AI across more serious workloads.</p>
             <Link to={ctaDest} className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Professional</Link>
@@ -92,8 +92,8 @@ export function LandingPricing() {
             <div className="absolute top-0 right-6 -translate-y-1/2 bg-slate-700 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Popular</div>
             <h3 className="text-lg font-bold text-white mb-2">BUSINESS</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-white">$299</span>
-              <span className="text-sm text-slate-400">/ month</span>
+              <span className="text-4xl font-extrabold text-white">$299 aria-hidden="true">?</span>
+              <span className="text-sm text-slate-400">/ month aria-hidden="true">?</span>
             </div>
             <p className="text-xs text-slate-400 mb-6 min-h-[40px]">For larger operating workloads.</p>
             <Link to={ctaDest} className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Business</Link>
@@ -115,21 +115,21 @@ export function LandingPricing() {
           <div className="bg-[#111827] border border-slate-700 rounded-3xl p-6 flex flex-col hover:border-slate-500 transition-colors">
             <h3 className="text-lg font-bold text-white mb-2">ENTERPRISE</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-3xl font-extrabold text-white">Custom</span>
+              <span className="text-3xl font-extrabold text-white">Custom aria-hidden="true">?</span>
             </div>
             <p className="text-xs text-slate-400 mb-6 min-h-[40px]">Scoped to your company.</p>
             <a href="#enterprise" className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Talk to Sales</a>
             <ul className="space-y-3 text-sm text-slate-400 mt-auto">
-              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-500 shrink-0" /> Unlimited workspaces</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-500 shrink-0" /> Unlimited AI workers</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-500 shrink-0" /> Unlimited seats</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-500 shrink-0" /> Custom usage volume</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-500 shrink-0" /> Custom pricing</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-500 shrink-0" /> Advanced security controls</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-500 shrink-0" /> Enterprise support</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-500 shrink-0" /> Custom operating requirements</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-500 shrink-0" /> Deployment support</li>
-              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-500 shrink-0" /> Enterprise SLA where applicable</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-400 shrink-0" /> Unlimited workspaces</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-400 shrink-0" /> Unlimited AI workers</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-400 shrink-0" /> Unlimited seats</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-400 shrink-0" /> Custom usage volume</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-400 shrink-0" /> Custom pricing</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-400 shrink-0" /> Advanced security controls</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-400 shrink-0" /> Enterprise support</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-400 shrink-0" /> Custom operating requirements</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-400 shrink-0" /> Deployment support</li>
+              <li className="flex gap-2"><Check className="w-4 h-4 text-slate-400 shrink-0" /> Enterprise SLA where applicable</li>
             </ul>
           </div>
 
@@ -173,7 +173,7 @@ export function LandingPricing() {
                     <td className="p-4 border-b border-slate-800 font-medium">{row.label}</td>
                     {row.values.map((val, j) => (
                       <td key={j} className="p-4 border-b border-slate-800 text-slate-400">
-                        {val === "✓" ? <Check className="w-4 h-4 text-indigo-400" /> : val === "—" ? <Minus className="w-4 h-4 text-slate-600" /> : val}
+                        {val === "✓" ? <Check className="w-4 h-4 text-indigo-400" /> : val === "—" ? <Minus className="w-4 h-4 text-slate-400" /> : val}
                       </td>
                     ))}
                   </tr>
@@ -192,11 +192,11 @@ export function LandingPricing() {
             <div className="space-y-4">
               <div className="bg-[#1E293B] border border-slate-700 p-4 rounded-xl flex justify-between items-center">
                 <div>
-                  <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">STARTER COMPANY</div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">STARTER COMPANY</div>
                   <div className="text-sm text-slate-300">Free plan • Small AI workforce</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-slate-500 mb-1">Total:</div>
+                  <div className="text-xs text-slate-400 mb-1">Total:</div>
                   <div className="text-lg font-bold text-white">$0 / month</div>
                 </div>
               </div>
@@ -206,7 +206,7 @@ export function LandingPricing() {
                   <div className="text-sm text-slate-300">Solo Builder • 25 AI workers</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-slate-500 mb-1">Total:</div>
+                  <div className="text-xs text-slate-400 mb-1">Total:</div>
                   <div className="text-lg font-bold text-white">$49 / month</div>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export function LandingPricing() {
                   <div className="text-sm text-slate-300">Professional • 25 AI workers</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-slate-500 mb-1">Total:</div>
+                  <div className="text-xs text-slate-400 mb-1">Total:</div>
                   <div className="text-lg font-bold text-white">$199 / month</div>
                 </div>
               </div>
@@ -226,7 +226,7 @@ export function LandingPricing() {
                   <div className="text-sm text-slate-300">Business • Unlimited AI workers</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-slate-500 mb-1">Total:</div>
+                  <div className="text-xs text-slate-400 mb-1">Total:</div>
                   <div className="text-lg font-bold text-white">$299 / month</div>
                 </div>
               </div>
@@ -253,7 +253,7 @@ export function LandingPricing() {
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 tracking-tight">AI operation your company can control.</h2>
           <div className="flex flex-wrap justify-center gap-3 mb-10">
             {["Tenant isolation", "Authorization", "Risk controls", "Auditability", "Company Brain isolation", "Controlled execution", "Approvals", "Verification", "Emergency controls"].map((tag, i) => (
-              <span key={i} className="bg-slate-800 border border-slate-700 text-slate-300 text-sm px-4 py-2 rounded-full">{tag}</span>
+              <span key={i} className="bg-slate-800 border border-slate-700 text-slate-300 text-sm px-4 py-2 rounded-full">{tag} aria-hidden="true">?</span>
             ))}
           </div>
           <Link to={ctaDest} className="inline-flex items-center justify-center font-bold h-12 bg-white text-slate-900 px-8 rounded-full hover:bg-slate-200 transition-colors">
