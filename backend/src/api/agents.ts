@@ -1,3 +1,4 @@
+import { CreditService } from '../services/CreditService';
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { z } from 'zod';
@@ -185,6 +186,18 @@ router.post('/:id/chat', async (req: AuthRequest, res) => {
       }
     }
 
+    // --- CREDIT ENFORCEMENT BOUNDARY ---
+    if (req.supabase) {
+        const creditCheck = await CreditService.deductCredits(req.supabase, agent.workspace_id, 1);
+        if (!creditCheck.allowed) {
+            return res.status(402).json({
+                error: 'INSUFFICIENT_CREDITS',
+                message: 'Insufficient AI credits. Please upgrade your plan to continue.'
+            });
+        }
+    }
+    // -----------------------------------
+    
     // Save user message
     if (req.supabase) {
       await req.supabase.from('messages').insert({

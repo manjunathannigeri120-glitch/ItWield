@@ -15,6 +15,19 @@ router.post('/', async (req: any, res) => {
 
     try {
         // Use BusinessGoalInterpreter to understand the user's chat message
+        
+        // --- CREDIT ENFORCEMENT BOUNDARY ---
+        // Atomically deduct 1 AI credit before calling any external LLM provider
+        const creditCheck = await CreditService.deductCredits(db, workspaceId, 1);
+        
+        if (!creditCheck.allowed) {
+            return res.status(402).json({
+                error: 'INSUFFICIENT_CREDITS',
+                message: 'Insufficient AI credits. Please upgrade your plan to continue.'
+            });
+        }
+        // -----------------------------------
+
         const interpretation = await BusinessGoalInterpreter.interpretGoal(db, workspaceId, message, {});
         
         let reply = '';
@@ -38,7 +51,7 @@ router.post('/', async (req: any, res) => {
         }
         
         // Save the chat to some log if necessary (or just return the reply so the frontend can display it)
-        res.json({ reply, interpretation });
+        res.json({ reply, interpretation, credits: creditCheck.remaining });
         
     } catch (error: any) {
         res.status(500).json({ error: error.message });

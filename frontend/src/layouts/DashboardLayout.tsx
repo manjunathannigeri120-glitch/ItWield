@@ -5,12 +5,44 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
+import { Loader2 } from 'lucide-react';
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [credits, setCredits] = useState<number | null>(null);
+  const [loadingCredits, setLoadingCredits] = useState(true);
+  const [creditError, setCreditError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        const wsRes = await api.get('/workspaces');
+        if (wsRes.data && wsRes.data.length > 0) {
+          const wsId = wsRes.data[0].id;
+          const credRes = await api.get(`/workspaces/${wsId}/credits`);
+          setCredits(credRes.data.credits);
+        }
+      } catch (err) {
+        setCreditError('Error loading credits');
+      } finally {
+        setLoadingCredits(false);
+      }
+    };
+    fetchCredits();
+
+    const handleCreditUpdate = (e: any) => {
+      if (typeof e.detail === 'number') {
+        setCredits(e.detail);
+      }
+    };
+    window.addEventListener('credits_updated', handleCreditUpdate);
+    return () => window.removeEventListener('credits_updated', handleCreditUpdate);
+  }, []);
   const location = useLocation();
   const { user } = useAuth();
 

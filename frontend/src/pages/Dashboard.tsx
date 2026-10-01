@@ -130,10 +130,15 @@ export default function Dashboard() {
     
     try {
       const res = await api.post(`/workspaces/${workspace.id}/chat`, { message: userMsg });
-      setChatHistory(prev => [...prev, { role: 'system', text: res.data.reply }]);
+      
+        setChatHistory(prev => [...prev, { role: 'system', text: res.data.reply }]);
+        if (res.data.credits !== undefined) {
+          window.dispatchEvent(new CustomEvent('credits_updated', { detail: res.data.credits }));
+        }
+
       loadData(); // refresh goals
     } catch(err: any) {
-      setChatHistory(prev => [...prev, { role: 'system', text: "I'm sorry, I encountered an error communicating with the executive team." }]);
+      if (err.response?.status === 402) { setChatHistory(prev => [...prev, { role: 'system', text: err.response.data.message || 'Insufficient credits' }]); } else { setChatHistory(prev => [...prev, { role: 'system', text: "I'm sorry, I encountered an error communicating with the executive team." }]); }
     }
   };
 
