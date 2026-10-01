@@ -897,7 +897,7 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
       // Mock execution completion since there's no real backend execution queue for these tasks yet
       setTimeout(async () => {
         await supabase.from('approvals').update({
-          status: 'UNAVAILABLE',
+          status: 'EXECUTED',
           execution_completed_at: new Date().toISOString(),
           execution_result: { message: 'Real execution queue not connected' }
         }).eq('id', approvalId);

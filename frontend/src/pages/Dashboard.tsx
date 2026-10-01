@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [ccData, setCcData] = useState<any>(null);
   const [goals, setGoals] = useState<any[]>([]);
   const [operatingState, setOperatingState] = useState<string>('READY');
+    const [isDiagnosing, setIsDiagnosing] = useState(false);
   
   const [agents, setAgents] = useState<any[]>([]);
   const [_nextAction, setNextAction] = useState<any>(null);
@@ -51,7 +52,7 @@ export default function Dashboard() {
       const [goalsRes, ccRes, opStateRes, nextActionRes, agentsRes] = await Promise.all([
         api.get(`/workspaces/${ws.id}/goals`).catch(() => ({ data: [] })),
         api.get(`/workspaces/${ws.id}/command-center?limit=10`).catch(() => ({ data: null })),
-        api.get(`/workspaces/${ws.id}/company/operating-state`).catch(() => ({ data: { operating_state: 'READY' } })),
+        api.get(`/workspaces/${ws.id}/company/state`).catch(() => ({ data: {} })),
         api.get(`/workspaces/${ws.id}/company/next-action`).catch(() => ({ data: null })),
         api.get(`/agents/workspace/${ws.id}`).catch(() => ({ data: [] }))
       ]);
@@ -461,12 +462,12 @@ export default function Dashboard() {
                    <div>
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Engine Status</p>
                       <p className="text-lg font-black text-slate-900 flex items-center gap-2">
-                         <Shield className="w-4 h-4 text-indigo-500" /> {ccData?.health?.technology === 'HEALTHY' ? 'MONITORING (IDLE)' : 'ACTIVE (DIAGNOSING)'}
+                         <Shield className="w-4 h-4 text-indigo-500" /> {isDiagnosing ? 'ACTIVE (DIAGNOSING)' : 'MONITORING (IDLE)'}
                       </p>
                    </div>
                    <Button variant="outline" size="sm" className="bg-white border-slate-200 shadow-sm text-indigo-700 hover:bg-indigo-50" onClick={async () => {
                         try {
-                           await api.post(`/cto/${workspace.id}/diagnostic`);
+                           setIsDiagnosing(true); await api.post(`/cto/${workspace.id}/diagnostic`); setIsDiagnosing(false);
                            loadData();
                         } catch(e) { console.error(e); }
                    }}>
