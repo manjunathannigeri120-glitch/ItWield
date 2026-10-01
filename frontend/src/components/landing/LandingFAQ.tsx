@@ -1,3 +1,4 @@
+import { LogoIcon } from '@/components/ui/LogoIcon';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -108,10 +109,8 @@ export function LandingFAQ() {
             
             <div className="col-span-2">
               <Link to="/" className="flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 rounded-full bg-[#0057FF] flex items-center justify-center">
-                  <Terminal className="w-4 h-4 text-white" />
-                  </div>
-                <span className="text-xl font-bold text-[#111827] tracking-tight">ItWield</span>
+                <LogoIcon className="w-8 h-8" />
+                <span className="text-2xl font-black text-[#111827] tracking-tighter uppercase" style={{ fontFamily: "Montserrat, sans-serif" }}>ITWIELD</span>
               </Link>
               <p className="text-[#4B5563] text-sm max-w-sm">
                 AI that operates your business automatically 24/7.
