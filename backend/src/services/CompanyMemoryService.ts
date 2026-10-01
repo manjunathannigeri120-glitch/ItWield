@@ -164,7 +164,7 @@ export class CompanyMemoryService {
       content,
       sourceType: 'APPROVAL',
       sourceId,
-      evidence: { ...evidence, expected_effect: evidence?.expected_effect, actual_result: evidence?.actual_result },
+      evidence: evidence ? { ...evidence, expected_effect: evidence.expected_effect, actual_result: evidence.actual_result } : undefined,
       createdBy,
       importance: 'high',
       verificationStatus: 'INDEPENDENTLY_VERIFIED'

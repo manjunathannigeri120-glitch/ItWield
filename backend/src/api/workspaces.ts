@@ -414,7 +414,7 @@ router.get('/:id/action-queue', async (req: AuthRequest, res) => {
     res.json(queue || []);
   } catch (error: any) {
     console.error('Action Queue Error:', error);
-    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API ERROR:', error); res.status(500).json({ error: error.message });
   }
 });
 
@@ -912,7 +912,7 @@ router.post('/:id/approvals/:approvalId/approve', async (req: AuthRequest, res) 
 
     res.json({ success: true, executed: true });
   } catch (error: any) {
-    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API ERROR:', error); res.status(500).json({ error: error.message });
   }
 });
 
@@ -972,7 +972,7 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
 
     res.json({ success: true });
   } catch (error: any) {
-    res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API ERROR:', error); res.status(500).json({ error: error.message });
   }
 });
 
