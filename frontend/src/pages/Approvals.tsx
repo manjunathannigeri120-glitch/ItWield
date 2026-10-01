@@ -40,21 +40,23 @@ export default function Approvals() {
           return;
         }
       }
+      setApprovals(prev => prev.filter(a => a.id !== approvalId));
       await api.post(`/workspaces/${currentWorkspace.id}/approvals/${approvalId}/approve`, payload);
       setEditingId(null);
       loadApprovals();
     } catch (e) {
-      alert('Failed to approve');
+      alert('Failed to approve: ' + ((e as any).response?.data?.error || (e as any).message));
     }
   };
 
   const handleReject = async (approvalId: string) => {
     try {
+      setApprovals(prev => prev.filter(a => a.id !== approvalId));
       await api.post(`/workspaces/${currentWorkspace.id}/approvals/${approvalId}/reject`);
       setEditingId(null);
       loadApprovals();
     } catch (e) {
-      alert('Failed to reject');
+      alert('Failed to reject: ' + ((e as any).response?.data?.error || (e as any).message));
     }
   };
   

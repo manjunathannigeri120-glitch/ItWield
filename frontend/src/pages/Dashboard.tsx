@@ -69,7 +69,9 @@ export default function Dashboard() {
     }
   };
 
+  const [hiddenApprovals, setHiddenApprovals] = useState<string[]>([]);
   const handleApprove = async (approvalId: string) => {
+    setHiddenApprovals(prev => [...prev, approvalId]);
     if (!workspace) return;
     try {
       await api.post(`/workspaces/${workspace.id}/approvals/${approvalId}/approve`);
@@ -145,7 +147,7 @@ export default function Dashboard() {
     </div>
   );
 
-  const pendingApprovals = (ccData?.approvals || []).filter((a: any) => a.status === 'PENDING' || a.status === 'PENDING_APPROVAL');
+  const pendingApprovals = (ccData?.approvals || []).filter((a: any) => (a.status === 'PENDING' || a.status === 'PENDING_APPROVAL') && !hiddenApprovals.includes(a.id));
   const importantAlerts = ccData?.ownerAttention?.filter((a: any) => a.severity === 'high' || a.severity === 'critical') || [];
   const whileAway = ccData?.decisionTimeline?.slice(0, 5) || [];
   const activeGoals = goals.filter(g => g.status === 'ACTIVE' || g.status === 'active');
