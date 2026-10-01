@@ -799,7 +799,7 @@ import { CreditService } from '../services/CreditService';
         return res.status(403).json({ error: 'Not authorized to view these credits' });
       }
 
-      return res.json({ credits: typeof data.credits === 'number' ? data.credits : 150 });
+      return res.json({ credits: typeof data.credits === 'number' ? data.credits : 200 });
     } catch (err: any) {
       console.error('[Workspaces] GET credits error:', err);
       return res.status(500).json({ error: 'Internal server error' });

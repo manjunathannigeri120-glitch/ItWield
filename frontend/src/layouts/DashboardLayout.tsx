@@ -1,4 +1,3 @@
-import { UpgradeModal } from '@/components/UpgradeModal';
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Bot, Home, Settings, Rocket, GitMerge, Users, Database, Target } from 'lucide-react';
