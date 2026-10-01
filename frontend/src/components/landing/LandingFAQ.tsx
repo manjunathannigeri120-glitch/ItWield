@@ -1,193 +1,98 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { ChevronDown, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { ChevronDown, Terminal } from 'lucide-react';
 
 export function LandingFAQ() {
   const { user } = useAuth();
   const ctaDest = user ? "/dashboard" : "/login";
-  
+
   const faqs = [
     {
-      q: "What is ItWield?",
-      a: "ItWield is an AI business operating platform. Instead of a standard chatbot or workflow builder, ItWield acts as a complete AI executive team that understands your goals, plans the work, delegates to AI workers, executes authorized actions, and verifies the results."
+      question: "How does the AI Executive team actually work?",
+      answer: "You assign a high-level business objective to your AI CEO. The CEO breaks it down into an operational plan and delegates tasks to the AI COO and workers. They execute the tasks (research, email, CRM entry) and report back to you for approval."
     },
     {
-      q: "How is ItWield different from an AI chatbot?",
-      a: "Chatbots wait for you to ask questions and return answers. ItWield operates continuously. You set a business objective, and ItWield coordinates its executive team to actually execute the work and verify outcomes without you needing to micromanage every step."
+      question: "Will the AI take actions without my permission?",
+      answer: "No. ItWield operates on an authorization model. You can set the AI to strictly 'Require Approval' for high-risk actions like sending external emails or spending money, while allowing it to autonomously do research and draft documents."
     },
     {
-      q: "Do I need to build workflows?",
-      a: "No. You provide a plain-language business objective (e.g., 'Get me 20 new customers'). ItWield's Business Outcome Engine handles the routing, planning, and execution dynamically."
-    },
-    {
-      q: "What are AI workers?",
-      a: "AI workers are specialized execution agents that perform specific tasks assigned by the executive team. They operate within strict authorization boundaries using connected tools and systems."
-    },
-    {
-      q: "What do the CEO, COO, CMO, CTO, and CFO do?",
-      a: "They form your AI executive team. The CEO aligns strategy, the COO coordinates operations, the CMO drives growth and customers, the CTO handles technical execution, and the CFO monitors financial context."
-    },
-    {
-      q: "Can ItWield actually execute actions?",
-      a: "Yes. Through Authorized Capabilities, ItWield can interact with external systems (like GitHub, Vercel, or Supabase) to perform real work, as long as you have granted the system permission."
-    },
-    {
-      q: "How does ItWield verify results?",
-      a: "Execution is not treated as success until it is verified. ItWield checks external authoritative evidence (e.g., records in a CRM or a successful deployment log) before considering an objective complete."
-    },
-    {
-      q: "What happens when ItWield cannot safely complete something?",
-      a: "ItWield is built for safe failure. If a task fails or requires authority beyond its permissions, it will investigate, attempt authorized fixes, and escalate to the Founder Control Center if it cannot proceed safely."
-    },
-    {
-      q: "Can I pause my AI company?",
-      a: "Yes. You have global Pause, Resume, and Stop controls in the Founder Control Center at all times."
-    },
-    {
-      q: "How does ItWield protect company data?",
-      a: "ItWield uses tenant isolation, ensuring your Company Brain and business data remain scoped to your workspace. We also employ prompt injection defense and strict role-based capability authorization."
-    },
-    {
-      q: "How does pricing work?",
-      a: "Pricing is based on your operating needs. We offer a Free tier to get started, and paid plans starting at $49/month for serious workloads. Paid plans provide more AI workers, credits, and advanced capabilities."
-    },
-    {
-      q: "What are credits?",
-      a: "Credits represent the execution capacity of your AI company. Usage limits apply according to your plan, and credits are consumed as your AI executives and workers operate."
+      question: "How are Compute Credits consumed?",
+      answer: "Credits are consumed based on the AI's operations. A simple task might consume 1 credit, while a massive parallel research workflow might consume 50. When you run out, your AI executives pause until you upgrade."
     }
   ];
 
   return (
-    <div className="bg-[#F9F8F6]">
-      
-      {/* FAQ */}
-      <section id="faq" className="scroll-mt-24 py-24 px-6 border-b border-slate-200">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#111827] mb-12 text-center tracking-tight">Frequently asked questions.</h2>
+    <>
+      <section className="py-24 sm:py-32 bg-[#F4F7FF] font-sans">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-[40px] md:text-[56px] font-extrabold text-[#111827] leading-[1.1] tracking-tight">
+              Got questions?
+            </h2>
+            <p className="text-xl text-[#4B5563] font-medium mt-4">We've got answers.</p>
+          </div>
           
           <div className="space-y-4">
-            {faqs.map((faq, i) => (
-              <FAQItem key={i} question={faq.q} answer={faq.a} />
+            {faqs.map((faq, index) => (
+              <FAQItem key={index} question={faq.question} answer={faq.answer} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* FINAL CTA */}
-      <section className="py-32 px-6 bg-[#F9F8F6] text-center border-b border-slate-200 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-[#3B3690]/10 rounded-full blur-[100px] pointer-events-none" />
+      <section className="py-32 px-4 relative overflow-hidden bg-white text-center font-sans border-t border-slate-100">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-gradient-to-r from-blue-100 to-pink-100 rounded-full blur-[100px] opacity-70 pointer-events-none" />
         
-        <div className="max-w-3xl mx-auto relative z-10">
-          <h2 className="text-4xl md:text-6xl font-extrabold text-[#111827] mb-6 tracking-tight">Give your company a direction.</h2>
-          <p className="text-xl md:text-2xl text-[#4B5563] mb-10">Let your AI company handle the operating work.</p>
+        <div className="max-w-4xl mx-auto relative z-10">
+          <h2 className="text-[56px] md:text-[80px] font-extrabold text-[#111827] leading-[1.05] tracking-tight mb-8">
+            Ready to scale<br/>your business?
+          </h2>
+          <p className="text-2xl text-[#4B5563] mb-12 font-medium">Join the founders automating their growth with ItWield.</p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10">
-            <Link to={ctaDest} className="inline-flex items-center justify-center font-bold h-14 bg-[#3B3690] text-white hover:bg-[#2d296e] hover:bg-[#3B3690] px-10 text-lg rounded-full shadow-xl shadow-indigo-900/20 transition-all w-full sm:w-auto">
-              Start Building Your AI Company
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link 
+              to={ctaDest} 
+              className="inline-flex items-center justify-center font-bold text-lg h-16 bg-[#0057FF] text-white px-10 rounded-full hover:bg-[#004DE6] hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto shadow-[0_8px_24px_rgba(0,87,255,0.3)]"
+            >
+              Get Started Free
+              <ArrowRight className="ml-2 w-5 h-5" />
             </Link>
-            <a href="#how-it-works" className="inline-flex items-center justify-center font-semibold h-14 border border-slate-300 text-[#111827] px-8 text-lg rounded-full bg-white shadow-sm border border-slate-200 hover:bg-white shadow-sm border border-slate-200 transition-all w-full sm:w-auto">
-              See How It Works
-            </a>
-          </div>
-
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-6 text-sm font-bold tracking-widest text-[#4B5563] uppercase">
-            <span>Start with a business objective.</span>
-            <span className="hidden sm:inline">•</span>
-            <span>Stay in control.</span>
-            <span className="hidden sm:inline">•</span>
-            <span>Scale when you're ready.</span>
           </div>
         </div>
       </section>
-
-      {/* FOOTER */}
-      <footer className="pt-24 pb-12 px-6 bg-[#F9F8F6]">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
-            
-            <div className="col-span-2">
-              <Link to="/" className="flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 rounded-full bg-[#3B3690] flex items-center justify-center">
-                  <Terminal className="w-4 h-4 text-white" />
-                  </div>
-                <span className="text-xl font-bold text-[#111827] tracking-tight">ItWield</span>
-              </Link>
-              <p className="text-[#4B5563] text-sm max-w-sm">
-                AI that operates your business automatically 24/7.
-              </p>
+      
+      {/* Footer */}
+      <footer className="bg-white border-t border-slate-100 py-12 font-sans">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="text-2xl font-black text-[#111827] tracking-tight">ItWield</div>
+            <div className="flex gap-8">
+              <Link to="/privacy" className="text-[#4B5563] font-medium hover:text-[#0057FF]">Privacy Policy</Link>
+              <Link to="/terms" className="text-[#4B5563] font-medium hover:text-[#0057FF]">Terms of Service</Link>
             </div>
-
-            <div>
-              <h3 className="text-[#111827] font-bold mb-4">Product</h3>
-              <ul className="space-y-3 text-sm text-[#4B5563]">
-                <li><a href="#executive-team" className="hover:text-[#3B3690] transition-colors">AI Executives</a></li>
-                <li><a href="#company-brain" className="hover:text-[#3B3690] transition-colors">Company Brain</a></li>
-                <li><a href="#business-outcome" className="hover:text-[#3B3690] transition-colors">Business Outcomes</a></li>
-                <li><a href="#executive-team" className="hover:text-[#3B3690] transition-colors">AI Workforce</a></li>
-                <li><a href="#control-center" className="hover:text-[#3B3690] transition-colors">Founder Control Center</a></li>
-                <li><a href="#connections" className="hover:text-[#3B3690] transition-colors">Connections</a></li>
-                <li><a href="#pricing" className="hover:text-[#3B3690] transition-colors">Pricing</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-[#111827] font-bold mb-4">SOLUTIONS</h4>
-              <ul className="space-y-3 text-sm text-[#4B5563]">
-                <li><a href="#" className="hover:text-[#3B3690] transition-colors">Customer Growth</a></li>
-                <li><a href="#" className="hover:text-[#3B3690] transition-colors">Operations</a></li>
-                <li><a href="#" className="hover:text-[#3B3690] transition-colors">Technology</a></li>
-                <li><a href="#" className="hover:text-[#3B3690] transition-colors">Finance</a></li>
-                <li><a href="#" className="hover:text-[#3B3690] transition-colors">Business Goals</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-[#111827] font-bold mb-4">RESOURCES</h4>
-              <ul className="space-y-3 text-sm text-[#4B5563]">
-                <li><a href="#how-it-works" className="hover:text-[#3B3690] transition-colors">How It Works</a></li>
-                <li><a href="#trust" className="hover:text-[#3B3690] transition-colors">Trust & Security</a></li>
-                <li><a href="#faq" className="hover:text-[#3B3690] transition-colors">FAQ</a></li>
-                <li><a href="#pricing" className="hover:text-[#3B3690] transition-colors">Pricing</a></li>
-              </ul>
-            </div>
-
-          </div>
-          
-          <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row items-center justify-between text-[#4B5563] text-sm">
-            <p>&copy; 2026 ItWield</p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link to="/privacy" className="hover:text-[#111827] transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-[#111827] transition-colors">Terms &amp; Conditions</Link>
-            </div>
+            <div className="text-[#4B5563] font-medium">� 2026 ItWield Inc.</div>
           </div>
         </div>
       </footer>
-
-    </div>
+    </>
   );
 }
 
 function FAQItem({ question, answer }: { question: string, answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  
   return (
-    <div className="border border-slate-300 rounded-2xl bg-white shadow-sm overflow-hidden transition-colors hover:border-slate-600">
+    <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
       <button 
-        className="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none"
+        className="w-full text-left p-8 flex justify-between items-center focus:outline-none"
         onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
       >
-        <span className="font-bold text-[#111827] pr-4">{question}</span>
-        <ChevronDown className={`w-5 h-5 text-[#4B5563] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="text-xl font-bold text-[#111827] pr-4">{question}</span>
+        <ChevronDown className={`w-6 h-6 text-[#0057FF] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
-      {isOpen && (
-        <div className="px-6 pb-4">
-          <p className="text-[#4B5563] leading-relaxed text-sm">
-            {answer}
-          </p>
-        </div>
-      )}
+      <div className={`transition-all duration-300 ease-in-out px-8 overflow-hidden ${isOpen ? 'pb-8 opacity-100' : 'max-h-0 opacity-0'}`}>
+        <p className="text-[#4B5563] text-lg leading-relaxed">{answer}</p>
+      </div>
     </div>
   );
 }
