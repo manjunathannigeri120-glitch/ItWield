@@ -209,7 +209,7 @@ export function LandingCore() {
                   <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Pause customer acquisition."</span>
                 </div>
                 
-                <button onClick={() => setActiveStep(1)} className="text-indigo-400 font-bold flex items-center justify-center mx-auto hover:text-indigo-300 transition-colors">
+                <button onClick={() => setActiveStep(1)} className="inline-flex items-center justify-center h-10 px-6 rounded-full bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 font-bold transition-colors mx-auto">
                   Next <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>

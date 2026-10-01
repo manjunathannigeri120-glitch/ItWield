@@ -58,7 +58,7 @@ export function LandingHero() {
 
                 <div className="mb-6 grid grid-cols-2 gap-4">
                   <div className="bg-[#1E293B] p-4 rounded-xl border border-slate-700/50">
-                    <p className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Active Objective</p>
+                    <p className="text-xs text-slate-400 font-bold mb-1">Active Objective</p>
                     <p className="text-sm text-white font-medium">Get me 20 new customers</p>
                   </div>
                   <div className="bg-[#1E293B] p-4 rounded-xl border border-emerald-500/20 relative overflow-hidden">
@@ -76,7 +76,7 @@ export function LandingHero() {
                     { role: "CTO", status: "No technical blockers", icon: Terminal, color: "text-slate-300" },
                     { role: "CFO", status: "Monitoring financial context", icon: PieChart, color: "text-emerald-400" }
                   ].map((exec, i) => (
-                    <div key={i} className="flex justify-between items-center bg-slate-800/30 p-2.5 rounded-lg border border-slate-700/30">
+                    <div key={i} className="flex justify-between items-center bg-slate-800/30 p-2.5 rounded-full border border-slate-700/30">
                       <div className="flex items-center gap-3">
                         <div className={`w-6 h-6 rounded flex items-center justify-center bg-slate-800 ${exec.color}`}><exec.icon className="w-3.5 h-3.5" /></div>
                         <span className="text-sm font-bold text-slate-300">{exec.role}</span>
@@ -87,7 +87,7 @@ export function LandingHero() {
                 </div>
 
                 <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 flex items-center justify-between mb-6">
-                  <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Founder Attention</span>
+                  <span className="text-xs font-bold text-slate-400">Founder Attention</span>
                   <span className="text-xs text-slate-400 font-medium bg-slate-800 px-2 py-1 rounded">None required</span>
                 </div>
 
@@ -106,7 +106,7 @@ export function LandingHero() {
       {/* Trust Strip */}
       <section className="py-16 bg-[#0B1121] border-y border-slate-800 px-6">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-center text-sm font-bold text-slate-500 uppercase tracking-widest mb-10">Built around controlled AI operation.</h2>
+          <h2 className="text-center text-base font-bold text-slate-400 mb-10">Built around controlled AI operation.</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {[
               { title: "Authorized Actions", desc: "Only approved capabilities can execute.", icon: Lock },

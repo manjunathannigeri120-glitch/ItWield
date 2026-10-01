@@ -44,7 +44,7 @@ export function LandingFeatures() {
           <div className="lg:w-1/2 w-full">
             <div className="bg-[#1E293B] border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
               <div className="text-[10px] text-slate-500 uppercase tracking-widest font-mono absolute top-6 right-6">Illustrative Product Preview</div>
-              <h3 className="text-sm font-bold text-white mb-6 uppercase tracking-widest">Customer Acquisition</h3>
+              <h3 className="text-base font-bold text-white mb-6">Customer Acquisition</h3>
               
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">

@@ -36,7 +36,7 @@ export function LandingNav() {
             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[800px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out translate-y-2 group-hover:translate-y-0">
               <div className="bg-[#111827] border border-slate-700 rounded-2xl shadow-2xl overflow-hidden p-8 flex gap-8">
                 <div className="w-1/2">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">AI Executives</h3>
+                  <h3 className="text-xs font-bold text-slate-400 mb-4">AI Executives</h3>
                   <div className="space-y-4">
                     {[
                       { icon: Briefcase, color: "text-indigo-400", bg: "bg-indigo-500/10", title: "CEO", desc: "Company strategy and priorities." },
