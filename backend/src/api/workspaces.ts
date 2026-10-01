@@ -27,7 +27,7 @@ router.get('/', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -59,7 +59,7 @@ router.post('/', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -171,7 +171,7 @@ router.post('/:id/analyze-company', async (req: AuthRequest, res) => {
       workforce: proposedWorkforce
     });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -254,7 +254,7 @@ router.post('/:id/activate', async (req: AuthRequest, res) => {
 
     res.json({ message: 'Workspace activated successfully' });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -382,7 +382,7 @@ router.get('/:id/while-away', async (req: AuthRequest, res) => {
       }
     });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -615,7 +615,7 @@ router.get('/:id/ceo-briefing', async (req: AuthRequest, res) => {
       generatedAt: new Date().toISOString()
     });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -636,7 +636,7 @@ router.get('/:id/plan', async (req: AuthRequest, res) => {
       usage: usageSnapshot
     });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -651,7 +651,7 @@ router.post('/:id/plan', async (req: AuthRequest, res) => {
     const subscription = await SubscriptionService.changePlan(req.supabase, workspaceId, planId, req.user.id);
     res.json({ ok: true, subscription });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -662,7 +662,7 @@ router.post('/:id/subscription/cancel', async (req: AuthRequest, res) => {
     const subscription = await SubscriptionService.cancelSubscription(req.supabase, workspaceId, req.user.id);
     res.json({ ok: true, subscription });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -673,7 +673,7 @@ router.post('/:id/subscription/reactivate', async (req: AuthRequest, res) => {
     const subscription = await SubscriptionService.reactivateSubscription(req.supabase, workspaceId, req.user.id);
     res.json({ ok: true, subscription });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -1018,7 +1018,7 @@ router.get('/:id/improvements', async (req: AuthRequest, res) => {
       total: proposals.length
     });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -1052,7 +1052,7 @@ router.get('/:id/improvements/:improvId', async (req: AuthRequest, res) => {
 
     res.json(proposal);
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 
@@ -1107,7 +1107,7 @@ router.post('/:id/improvements/:improvId/dismiss', async (req: AuthRequest, res)
 
     res.json({ success: true, message: 'Improvement dismissed.' });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup could not be completed. Please try again.' });
   }
 });
 

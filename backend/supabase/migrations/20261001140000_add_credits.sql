@@ -1,0 +1,1 @@
+ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS credits integer NOT NULL DEFAULT 200;
