@@ -25,8 +25,8 @@ export function LandingPricing() {
           <div className="bg-[#1E293B] border border-slate-700 rounded-3xl p-6 flex flex-col hover:border-slate-500 transition-colors">
             <h3 className="text-lg font-bold text-white mb-2">FREE</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-white">$0 aria-hidden="true">?</span>
-              <span className="text-sm text-slate-400">/ forever aria-hidden="true">?</span>
+              <span className="text-4xl font-extrabold text-white">$0</span>
+              <span className="text-sm text-slate-400">/ forever</span>
             </div>
             <p className="text-xs text-slate-400 mb-6 min-h-[40px]">Learning, testing, and your first AI company.</p>
             <Link to={ctaDest} className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start Free</Link>
@@ -46,8 +46,8 @@ export function LandingPricing() {
             <div className="absolute top-0 right-6 -translate-y-1/2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Popular</div>
             <h3 className="text-lg font-bold text-white mb-2">SOLO BUILDER</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-white">$49 aria-hidden="true">?</span>
-              <span className="text-sm text-slate-400">/ month aria-hidden="true">?</span>
+              <span className="text-4xl font-extrabold text-white">$49</span>
+              <span className="text-sm text-slate-400">/ month</span>
             </div>
             <p className="text-xs text-slate-400 mb-6 min-h-[40px]">Builders shipping real workloads.</p>
             <Link to={ctaDest} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-600 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Solo</Link>
@@ -68,8 +68,8 @@ export function LandingPricing() {
           <div className="bg-[#1E293B] border border-slate-700 rounded-3xl p-6 flex flex-col hover:border-slate-500 transition-colors">
             <h3 className="text-lg font-bold text-white mb-2">PROFESSIONAL</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-white">$199 aria-hidden="true">?</span>
-              <span className="text-sm text-slate-400">/ month aria-hidden="true">?</span>
+              <span className="text-4xl font-extrabold text-white">$199</span>
+              <span className="text-sm text-slate-400">/ month</span>
             </div>
             <p className="text-xs text-slate-400 mb-6 min-h-[40px]">For growing teams with high-volume automation needs.</p>
             <Link to={ctaDest} className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Professional</Link>
@@ -92,8 +92,8 @@ export function LandingPricing() {
             <div className="absolute top-0 right-6 -translate-y-1/2 bg-slate-700 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Popular</div>
             <h3 className="text-lg font-bold text-white mb-2">BUSINESS</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-4xl font-extrabold text-white">$299 aria-hidden="true">?</span>
-              <span className="text-sm text-slate-400">/ month aria-hidden="true">?</span>
+              <span className="text-4xl font-extrabold text-white">$299</span>
+              <span className="text-sm text-slate-400">/ month</span>
             </div>
             <p className="text-xs text-slate-400 mb-6 min-h-[40px]">For larger operating workloads.</p>
             <Link to={ctaDest} className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Start with Business</Link>
@@ -115,7 +115,7 @@ export function LandingPricing() {
           <div className="bg-[#111827] border border-slate-700 rounded-3xl p-6 flex flex-col hover:border-slate-500 transition-colors">
             <h3 className="text-lg font-bold text-white mb-2">ENTERPRISE</h3>
             <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-3xl font-extrabold text-white">Custom aria-hidden="true">?</span>
+              <span className="text-3xl font-extrabold text-white">Custom</span>
             </div>
             <p className="text-xs text-slate-400 mb-6 min-h-[40px]">Scoped to your company.</p>
             <a href="#enterprise" className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold text-center rounded-xl mb-6 transition-colors">Talk to Sales</a>
@@ -253,7 +253,7 @@ export function LandingPricing() {
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-8 tracking-tight">AI operation your company can control.</h2>
           <div className="flex flex-wrap justify-center gap-3 mb-10">
             {["Tenant isolation", "Authorization", "Risk controls", "Auditability", "Company Brain isolation", "Controlled execution", "Approvals", "Verification", "Emergency controls"].map((tag, i) => (
-              <span key={i} className="bg-slate-800 border border-slate-700 text-slate-300 text-sm px-4 py-2 rounded-full">{tag} aria-hidden="true">?</span>
+              <span key={i} className="bg-slate-800 border border-slate-700 text-slate-300 text-sm px-4 py-2 rounded-full">{tag}</span>
             ))}
           </div>
           <Link to={ctaDest} className="inline-flex items-center justify-center font-bold h-12 bg-white text-slate-900 px-8 rounded-full hover:bg-slate-200 transition-colors">

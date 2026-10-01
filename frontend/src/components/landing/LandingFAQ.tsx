@@ -92,11 +92,11 @@ export function LandingFAQ() {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-6 text-sm font-bold tracking-widest text-slate-400 uppercase">
-            <span>Start with a business objective. aria-hidden="true">?</span>
-            <span className="hidden sm:inline">• aria-hidden="true">?</span>
-            <span>Stay in control. aria-hidden="true">?</span>
-            <span className="hidden sm:inline">• aria-hidden="true">?</span>
-            <span>Scale when you're ready. aria-hidden="true">?</span>
+            <span>Start with a business objective.</span>
+            <span className="hidden sm:inline">•</span>
+            <span>Stay in control.</span>
+            <span className="hidden sm:inline">•</span>
+            <span>Scale when you're ready.</span>
           </div>
         </div>
       </section>
@@ -111,7 +111,7 @@ export function LandingFAQ() {
                 <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
                   <Terminal className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-xl font-bold text-white tracking-tight">ItWield aria-hidden="true">?</span>
+                <span className="text-xl font-bold text-white tracking-tight">ItWield</span>
               </Link>
               <p className="text-slate-400 text-sm max-w-sm">
                 AI that operates your business automatically 24/7.
@@ -178,7 +178,7 @@ function FAQItem({ question, answer }: { question: string, answer: string }) {
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
       >
-        <span className="font-bold text-white pr-4">{question} aria-hidden="true">?</span>
+        <span className="font-bold text-white pr-4">{question}</span>
         <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (

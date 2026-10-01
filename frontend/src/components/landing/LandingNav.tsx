@@ -22,7 +22,7 @@ export function LandingNav() {
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <Terminal className="w-4 h-4 text-white" />
           </div>
-          <span className="text-xl font-bold text-white tracking-tight">ItWield aria-hidden="true">?</span>
+          <span className="text-xl font-bold text-white tracking-tight">ItWield</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -30,7 +30,7 @@ export function LandingNav() {
           {/* PRODUCT */}
           <div className="group relative">
             <button className="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors rounded-lg hover:bg-slate-800/50">
-              <span>Product aria-hidden="true">?</span>
+              <span>Product</span>
               <ChevronDown className="w-4 h-4 opacity-50 group-hover:rotate-180 transition-transform" />
             </button>
             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[800px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out translate-y-2 group-hover:translate-y-0">
@@ -86,7 +86,7 @@ export function LandingNav() {
           {/* SOLUTIONS */}
           <div className="group relative">
             <button className="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors rounded-lg hover:bg-slate-800/50">
-              <span>Solutions aria-hidden="true">?</span>
+              <span>Solutions</span>
               <ChevronDown className="w-4 h-4 opacity-50 group-hover:rotate-180 transition-transform" />
             </button>
             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[600px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out translate-y-2 group-hover:translate-y-0">
@@ -119,7 +119,7 @@ export function LandingNav() {
           {/* ENTERPRISE */}
           <div className="group relative">
             <button className="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors rounded-lg hover:bg-slate-800/50">
-              <span>Enterprise aria-hidden="true">?</span>
+              <span>Enterprise</span>
               <ChevronDown className="w-4 h-4 opacity-50 group-hover:rotate-180 transition-transform" />
             </button>
             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[400px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out translate-y-2 group-hover:translate-y-0">
@@ -127,12 +127,12 @@ export function LandingNav() {
                 <h3 className="text-sm font-bold text-white mb-2">Controlled AI operation</h3>
                 <p className="text-xs text-slate-400 mb-6">For companies that need visibility, authorization, security, and accountability.</p>
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <span className="text-sm font-medium text-slate-300">Security aria-hidden="true">?</span>
-                  <span className="text-sm font-medium text-slate-300">Tenant isolation aria-hidden="true">?</span>
-                  <span className="text-sm font-medium text-slate-300">Role-based authority aria-hidden="true">?</span>
-                  <span className="text-sm font-medium text-slate-300">Audit trails aria-hidden="true">?</span>
-                  <span className="text-sm font-medium text-slate-300">Approvals aria-hidden="true">?</span>
-                  <span className="text-sm font-medium text-slate-300">Verification aria-hidden="true">?</span>
+                  <span className="text-sm font-medium text-slate-300">Security</span>
+                  <span className="text-sm font-medium text-slate-300">Tenant isolation</span>
+                  <span className="text-sm font-medium text-slate-300">Role-based authority</span>
+                  <span className="text-sm font-medium text-slate-300">Audit trails</span>
+                  <span className="text-sm font-medium text-slate-300">Approvals</span>
+                  <span className="text-sm font-medium text-slate-300">Verification</span>
                 </div>
                 <a href="#enterprise" className="block w-full text-center bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold py-2 rounded-lg transition-colors">Explore Enterprise</a>
               </div>
@@ -142,7 +142,7 @@ export function LandingNav() {
           {/* RESOURCES */}
           <div className="group relative">
             <button className="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors rounded-lg hover:bg-slate-800/50">
-              <span>Resources aria-hidden="true">?</span>
+              <span>Resources</span>
               <ChevronDown className="w-4 h-4 opacity-50 group-hover:rotate-180 transition-transform" />
             </button>
             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[300px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out translate-y-2 group-hover:translate-y-0">

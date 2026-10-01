@@ -65,8 +65,8 @@ export function LandingTrust() {
                 <div key={i} className="flex gap-4 items-start">
                   <div className="text-xs text-slate-400 font-mono w-20 shrink-0 pt-0.5">{log.time}</div>
                   <div>
-                    <span className={`text-xs font-bold uppercase tracking-widest mr-2 ${log.color}`}>{log.role} aria-hidden="true">?</span>
-                    <span className="text-sm text-slate-300">{log.action} aria-hidden="true">?</span>
+                    <span className={`text-xs font-bold uppercase tracking-widest mr-2 ${log.color}`}>{log.role}</span>
+                    <span className="text-sm text-slate-300">{log.action}</span>
                   </div>
                 </div>
               ))}
@@ -83,17 +83,17 @@ export function LandingTrust() {
 
           <div className="flex flex-wrap justify-center items-center gap-4 text-sm font-bold tracking-widest text-slate-300 uppercase">
             <div className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg">Founder leaves</div>
-            <span className="text-slate-400">→ aria-hidden="true">?</span>
+            <span className="text-slate-400">→</span>
             <div className="bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 px-4 py-2 rounded-lg">AI company operates</div>
-            <span className="text-slate-400">→ aria-hidden="true">?</span>
+            <span className="text-slate-400">→</span>
             <div className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg">Progress monitored</div>
-            <span className="text-slate-400">→ aria-hidden="true">?</span>
+            <span className="text-slate-400">→</span>
             <div className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg">Problems detected</div>
-            <span className="text-slate-400">→ aria-hidden="true">?</span>
+            <span className="text-slate-400">→</span>
             <div className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg">Safe actions executed</div>
-            <span className="text-slate-400">→ aria-hidden="true">?</span>
+            <span className="text-slate-400">→</span>
             <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg">Results verified</div>
-            <span className="text-slate-400">→ aria-hidden="true">?</span>
+            <span className="text-slate-400">→</span>
             <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-4 py-2 rounded-lg">Founder notified when attention is required</div>
           </div>
         </div>
@@ -136,19 +136,19 @@ export function LandingTrust() {
               <div className="w-16 h-16 bg-[#1E293B] border border-slate-700 rounded-2xl flex items-center justify-center mb-3 text-white">
                 <GitBranch className="w-8 h-8" />
               </div>
-              <span className="text-sm font-bold text-slate-300">GitHub aria-hidden="true">?</span>
+              <span className="text-sm font-bold text-slate-300">GitHub</span>
             </div>
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 bg-[#1E293B] border border-slate-700 rounded-2xl flex items-center justify-center mb-3 text-white">
                 <Cloud className="w-8 h-8" />
               </div>
-              <span className="text-sm font-bold text-slate-300">Vercel aria-hidden="true">?</span>
+              <span className="text-sm font-bold text-slate-300">Vercel</span>
             </div>
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 bg-[#1E293B] border border-slate-700 rounded-2xl flex items-center justify-center mb-3 text-emerald-400">
                 <Database className="w-8 h-8" />
               </div>
-              <span className="text-sm font-bold text-slate-300">Supabase aria-hidden="true">?</span>
+              <span className="text-sm font-bold text-slate-300">Supabase</span>
             </div>
           </div>
         </div>

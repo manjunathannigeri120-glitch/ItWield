@@ -170,7 +170,7 @@ export function LandingCore() {
                     activeStep === idx ? 'bg-white/20' : activeStep > idx ? 'bg-indigo-600/20 text-indigo-400' : 'bg-slate-800 text-slate-400'
                   }`}>
                     {activeStep > idx ? <Check className="w-3 h-3" /> : (idx + 1)}
-                   aria-hidden="true">?</span>
+                  </span>
                   {step}
                 </button>
               ))}
@@ -192,7 +192,7 @@ export function LandingCore() {
                 
                 <div className="bg-slate-900 border border-slate-700 rounded-2xl p-8 mb-8 shadow-sm text-left">
                   <div className="flex items-center text-lg font-bold text-white mb-8">
-                    <span className="bg-indigo-600/20 text-indigo-400 px-3 py-1 rounded-lg text-sm mr-4 border border-indigo-500/30">You aria-hidden="true">?</span>
+                    <span className="bg-indigo-600/20 text-indigo-400 px-3 py-1 rounded-lg text-sm mr-4 border border-indigo-500/30">You</span>
                     "Get me 20 new customers."
                   </div>
                   
@@ -204,9 +204,9 @@ export function LandingCore() {
                 </div>
                 
                 <div className="flex flex-wrap justify-center gap-3 mb-10">
-                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Find what's stopping my business from growing." aria-hidden="true">?</span>
-                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Reduce unnecessary costs." aria-hidden="true">?</span>
-                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Pause customer acquisition." aria-hidden="true">?</span>
+                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Find what's stopping my business from growing."</span>
+                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Reduce unnecessary costs."</span>
+                  <span className="bg-slate-800 text-slate-300 px-4 py-2 rounded-full text-sm font-medium border border-slate-700">"Pause customer acquisition."</span>
                 </div>
                 
                 <button onClick={() => setActiveStep(1)} className="inline-flex items-center justify-center h-10 px-6 rounded-full bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20 font-bold transition-colors mx-auto">
@@ -360,7 +360,7 @@ export function LandingCore() {
                     <div className="flex items-center text-indigo-400 font-bold tracking-widest uppercase text-sm">
                       <Activity className="w-5 h-5 mr-2" /> OUTCOME VERIFICATION
                     </div>
-                    <span className="bg-slate-800 text-slate-400 border border-slate-700 text-[10px] px-2 py-1 rounded font-medium">Demo data aria-hidden="true">?</span>
+                    <span className="bg-slate-800 text-slate-400 border border-slate-700 text-[10px] px-2 py-1 rounded font-medium">Demo data</span>
                   </div>
                   
                   <div className="flex justify-between items-end mb-4">
@@ -379,9 +379,9 @@ export function LandingCore() {
                   </div>
                   
                   <div className="flex justify-between text-xs font-medium text-slate-400">
-                    <span>0 aria-hidden="true">?</span>
-                    <span>Remaining: 13 aria-hidden="true">?</span>
-                    <span>20 aria-hidden="true">?</span>
+                    <span>0</span>
+                    <span>Remaining: 13</span>
+                    <span>20</span>
                   </div>
                   
                   <div className="mt-8 text-center text-sm text-slate-400 font-medium">
@@ -406,7 +406,7 @@ export function LandingCore() {
                     
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <RefreshCw className="w-8 h-8 text-indigo-500 mb-2" />
-                      <span className="font-bold text-white tracking-widest uppercase text-sm">OPERATE aria-hidden="true">?</span>
+                      <span className="font-bold text-white tracking-widest uppercase text-sm">OPERATE</span>
                     </div>
                     
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1E293B] px-3 py-1 rounded text-xs font-bold text-slate-400">Evaluate</div>
@@ -419,19 +419,19 @@ export function LandingCore() {
                   <div className="text-left space-y-6">
                     <div className="flex items-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-4"></div>
-                      <div className="text-base"><span className="font-bold text-slate-300">If it's working: aria-hidden="true">?</span> <span className="text-slate-400">Continue aria-hidden="true">?</span></div>
+                      <div className="text-base"><span className="font-bold text-slate-300">If it's working:</span> <span className="text-slate-400">Continue</span></div>
                     </div>
                     <div className="flex items-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-4"></div>
-                      <div className="text-base"><span className="font-bold text-slate-300">If it's not working: aria-hidden="true">?</span> <span className="text-slate-400">Investigate & replan aria-hidden="true">?</span></div>
+                      <div className="text-base"><span className="font-bold text-slate-300">If it's not working:</span> <span className="text-slate-400">Investigate & replan</span></div>
                     </div>
                     <div className="flex items-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-amber-500 mr-4"></div>
-                      <div className="text-base"><span className="font-bold text-slate-300">If it's blocked: aria-hidden="true">?</span> <span className="text-slate-400">Coordinate the dependency aria-hidden="true">?</span></div>
+                      <div className="text-base"><span className="font-bold text-slate-300">If it's blocked:</span> <span className="text-slate-400">Coordinate the dependency</span></div>
                     </div>
                     <div className="flex items-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-4"></div>
-                      <div className="text-base"><span className="font-bold text-slate-300">If authority required: aria-hidden="true">?</span> <span className="text-slate-400">Pause & ask you aria-hidden="true">?</span></div>
+                      <div className="text-base"><span className="font-bold text-slate-300">If authority required:</span> <span className="text-slate-400">Pause & ask you</span></div>
                     </div>
                   </div>
                   

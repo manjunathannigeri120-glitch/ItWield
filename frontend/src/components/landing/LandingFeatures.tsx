@@ -20,7 +20,7 @@ export function LandingFeatures() {
               </div>
               <div className="flex flex-wrap gap-2 mb-8">
                 {['Goals', 'Decisions', 'Products', 'Customers', 'Markets', 'Strategy', 'Lessons', 'Failures', 'Technical context', 'Operational context'].map((tag, i) => (
-                  <span key={i} className="text-xs text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">{tag} aria-hidden="true">?</span>
+                  <span key={i} className="text-xs text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">{tag}</span>
                 ))}
               </div>
               <div className="border-t border-slate-700 pt-6">
@@ -49,11 +49,11 @@ export function LandingFeatures() {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
                   <p className="text-xs text-slate-400 font-bold uppercase mb-1">Target</p>
-                  <p className="text-2xl text-white font-medium">20 <span className="text-sm text-slate-400">customers aria-hidden="true">?</span></p>
+                  <p className="text-2xl text-white font-medium">20 <span className="text-sm text-slate-400">customers</span></p>
                 </div>
                 <div className="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20">
                   <p className="text-xs text-emerald-400 font-bold uppercase mb-1">Current</p>
-                  <p className="text-2xl text-emerald-400 font-medium">7 <span className="text-sm text-emerald-400">verified aria-hidden="true">?</span></p>
+                  <p className="text-2xl text-emerald-400 font-medium">7 <span className="text-sm text-emerald-400">verified</span></p>
                 </div>
               </div>
               
@@ -94,15 +94,15 @@ export function LandingFeatures() {
             <div className="flex justify-start gap-4 mt-8">
               <div className="flex flex-col items-center">
                 <div className="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center border border-amber-500/30 mb-2"><Pause className="w-5 h-5 fill-current" /></div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Pause aria-hidden="true">?</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Pause</span>
               </div>
               <div className="flex flex-col items-center">
                 <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center border border-emerald-500/30 mb-2"><Play className="w-5 h-5 fill-current" /></div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Resume aria-hidden="true">?</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Resume</span>
               </div>
               <div className="flex flex-col items-center">
                 <div className="w-12 h-12 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center border border-rose-500/30 mb-2"><Square className="w-5 h-5 fill-current" /></div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Stop aria-hidden="true">?</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Stop</span>
               </div>
             </div>
           </div>
@@ -110,24 +110,24 @@ export function LandingFeatures() {
             <div className="bg-[#1E293B] border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
               <div className="space-y-3">
                 <div className="flex justify-between items-center border-b border-slate-700 pb-3">
-                  <span className="text-sm font-medium text-slate-300">Company Status aria-hidden="true">?</span>
-                  <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded uppercase">Operating aria-hidden="true">?</span>
+                  <span className="text-sm font-medium text-slate-300">Company Status</span>
+                  <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded uppercase">Operating</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-slate-700 pb-3">
-                  <span className="text-sm font-medium text-slate-300">Active Objective aria-hidden="true">?</span>
-                  <span className="text-sm text-slate-400 truncate max-w-[200px]">Get me 20 new customers aria-hidden="true">?</span>
+                  <span className="text-sm font-medium text-slate-300">Active Objective</span>
+                  <span className="text-sm text-slate-400 truncate max-w-[200px]">Get me 20 new customers</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-slate-700 pb-3">
-                  <span className="text-sm font-medium text-slate-300">Blocked Work aria-hidden="true">?</span>
-                  <span className="text-sm text-slate-400">0 tasks aria-hidden="true">?</span>
+                  <span className="text-sm font-medium text-slate-300">Blocked Work</span>
+                  <span className="text-sm text-slate-400">0 tasks</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-slate-700 pb-3">
-                  <span className="text-sm font-medium text-slate-300">Pending Approvals aria-hidden="true">?</span>
-                  <span className="text-xs font-bold text-amber-400 bg-amber-400/10 px-2 py-1 rounded uppercase">1 Required aria-hidden="true">?</span>
+                  <span className="text-sm font-medium text-slate-300">Pending Approvals</span>
+                  <span className="text-xs font-bold text-amber-400 bg-amber-400/10 px-2 py-1 rounded uppercase">1 Required</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-slate-300">Recent Activity aria-hidden="true">?</span>
-                  <span className="text-sm text-slate-400">CEO updated strategy aria-hidden="true">?</span>
+                  <span className="text-sm font-medium text-slate-300">Recent Activity</span>
+                  <span className="text-sm text-slate-400">CEO updated strategy</span>
                 </div>
               </div>
             </div>
@@ -146,7 +146,7 @@ export function LandingFeatures() {
                     <div className="w-6 h-6 rounded-full bg-indigo-600/20 flex items-center justify-center shrink-0">
                       <Check className="w-3 h-3 text-indigo-400" />
                     </div>
-                    <span className="text-sm font-medium text-slate-300">{step} aria-hidden="true">?</span>
+                    <span className="text-sm font-medium text-slate-300">{step}</span>
                   </div>
                 ))}
               </div>

@@ -66,7 +66,7 @@ export function HowItWorksDemo() {
                     isActive ? "bg-white/20" : "bg-slate-200 text-slate-400"
                   )}>
                     {step.id}
-                   aria-hidden="true">?</span>
+                  </span>
                 )}
                 {step.name}
               </button>
@@ -112,13 +112,13 @@ export function HowItWorksDemo() {
             </div>
 
             <div className="flex flex-wrap justify-center gap-3">
-              <span className="px-4 py-2 bg-slate-100 text-slate-400 rounded-full text-sm font-medium">"Find what's stopping my business from growing." aria-hidden="true">?</span>
-              <span className="px-4 py-2 bg-slate-100 text-slate-400 rounded-full text-sm font-medium">"Reduce unnecessary costs." aria-hidden="true">?</span>
-              <span className="px-4 py-2 bg-slate-100 text-slate-400 rounded-full text-sm font-medium">"Pause customer acquisition." aria-hidden="true">?</span>
+              <span className="px-4 py-2 bg-slate-100 text-slate-400 rounded-full text-sm font-medium">"Find what's stopping my business from growing."</span>
+              <span className="px-4 py-2 bg-slate-100 text-slate-400 rounded-full text-sm font-medium">"Reduce unnecessary costs."</span>
+              <span className="px-4 py-2 bg-slate-100 text-slate-400 rounded-full text-sm font-medium">"Pause customer acquisition."</span>
             </div>
             
             <button onClick={nextStep} className="mt-12 inline-flex items-center space-x-2 text-indigo-600 font-semibold hover:text-indigo-700">
-              <span>Next aria-hidden="true">?</span> <ArrowRight className="w-4 h-4" />
+              <span>Next</span> <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -134,7 +134,7 @@ export function HowItWorksDemo() {
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex-1 w-full text-left">
                 <div className="flex items-center space-x-2 text-indigo-600 font-bold mb-4">
                   <BrainCircuit className="w-5 h-5" />
-                  <span>COMPANY BRAIN aria-hidden="true">?</span>
+                  <span>COMPANY BRAIN</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm font-medium text-slate-400">
                   <div className="bg-slate-50 px-3 py-2 rounded-lg">Company</div>
@@ -271,8 +271,8 @@ export function HowItWorksDemo() {
             
             <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden max-w-2xl mx-auto mb-4">
               <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex justify-between items-center">
-                <span className="font-bold text-slate-800 flex items-center"><Activity className="w-5 h-5 mr-2 text-indigo-600" /> OUTCOME VERIFICATION aria-hidden="true">?</span>
-                <span className="text-xs bg-slate-200 text-slate-400 px-2 py-1 rounded font-medium">Demo data aria-hidden="true">?</span>
+                <span className="font-bold text-slate-800 flex items-center"><Activity className="w-5 h-5 mr-2 text-indigo-600" /> OUTCOME VERIFICATION</span>
+                <span className="text-xs bg-slate-200 text-slate-400 px-2 py-1 rounded font-medium">Demo data</span>
               </div>
               <div className="p-8">
                 <div className="flex justify-between items-end mb-2">
@@ -290,9 +290,9 @@ export function HowItWorksDemo() {
                   <div className="bg-indigo-600 h-4 rounded-full" style={{ width: '35%' }}></div>
                 </div>
                 <div className="flex justify-between text-xs font-medium text-slate-400">
-                  <span>0 aria-hidden="true">?</span>
-                  <span>Remaining: 13 aria-hidden="true">?</span>
-                  <span>20 aria-hidden="true">?</span>
+                  <span>0</span>
+                  <span>Remaining: 13</span>
+                  <span>20</span>
                 </div>
               </div>
             </div>
@@ -314,7 +314,7 @@ export function HowItWorksDemo() {
                 
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white m-4 rounded-full shadow-lg z-10 border border-slate-100">
                   <RefreshCcw className="w-8 h-8 text-indigo-600 mb-2" />
-                  <span className="font-bold text-slate-900">OPERATE aria-hidden="true">?</span>
+                  <span className="font-bold text-slate-900">OPERATE</span>
                 </div>
 
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 py-1 rounded-full text-xs font-bold border border-slate-200 shadow-sm text-slate-700 z-20">Evaluate</div>
@@ -327,19 +327,19 @@ export function HowItWorksDemo() {
               <div className="text-left space-y-4">
                 <div className="flex items-start">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 mt-2 mr-3 shrink-0"></div>
-                  <div><span className="font-semibold text-slate-800">If it's working: aria-hidden="true">?</span> <span className="text-slate-400">Continue aria-hidden="true">?</span></div>
+                  <div><span className="font-semibold text-slate-800">If it's working:</span> <span className="text-slate-400">Continue</span></div>
                 </div>
                 <div className="flex items-start">
                   <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 mr-3 shrink-0"></div>
-                  <div><span className="font-semibold text-slate-800">If it's not working: aria-hidden="true">?</span> <span className="text-slate-400">Investigate & replan aria-hidden="true">?</span></div>
+                  <div><span className="font-semibold text-slate-800">If it's not working:</span> <span className="text-slate-400">Investigate & replan</span></div>
                 </div>
                 <div className="flex items-start">
                   <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 mr-3 shrink-0"></div>
-                  <div><span className="font-semibold text-slate-800">If it's blocked: aria-hidden="true">?</span> <span className="text-slate-400">Coordinate the dependency aria-hidden="true">?</span></div>
+                  <div><span className="font-semibold text-slate-800">If it's blocked:</span> <span className="text-slate-400">Coordinate the dependency</span></div>
                 </div>
                 <div className="flex items-start">
                   <div className="w-2 h-2 rounded-full bg-rose-500 mt-2 mr-3 shrink-0"></div>
-                  <div><span className="font-semibold text-slate-800">If authority required: aria-hidden="true">?</span> <span className="text-slate-400">Pause & ask you aria-hidden="true">?</span></div>
+                  <div><span className="font-semibold text-slate-800">If authority required:</span> <span className="text-slate-400">Pause & ask you</span></div>
                 </div>
               </div>
             </div>
