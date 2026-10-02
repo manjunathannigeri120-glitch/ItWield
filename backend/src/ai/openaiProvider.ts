@@ -45,6 +45,7 @@ export class OpenAIProvider implements AIProvider {
         model: model || 'gpt-4o-mini',
         messages: sanitizedMessages,
         temperature: temperature ?? 0.7,
+        max_tokens: 2048,
         tools: tools && tools.length > 0 ? tools : undefined,
         response_format: responseFormat,
       });
