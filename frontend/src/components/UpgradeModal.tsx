@@ -75,7 +75,7 @@ export function UpgradeModal() {
       });
       rzp1.open();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       alert("Payment failed: " + (error.response?.data?.error || error.message || "Please try again later."));
     } finally {
