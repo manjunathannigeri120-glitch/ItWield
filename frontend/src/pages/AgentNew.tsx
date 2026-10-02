@@ -39,7 +39,7 @@ export function AgentNew() {
       name,
       description: objective,
       system_prompt: instructions,
-      model: 'gpt-4o-mini',
+      model: 'apodex/apodex-1.1-mini:free',
       temperature: 0.7,
       status: 'idle',
       capabilities: {

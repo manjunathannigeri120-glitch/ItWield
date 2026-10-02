@@ -13,7 +13,7 @@ const AgentSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   system_prompt: z.string().optional(),
-  model: z.string().default('mock-model-v1'),
+  model: z.string().default('apodex/apodex-1.1-mini:free'),
   temperature: z.number().min(0).max(2).default(0.7),
   status: z.string().default('idle'),
   capabilities: z.any().optional(),
