@@ -77,7 +77,7 @@ export function UpgradeModal() {
 
     } catch (error) {
       console.error(error);
-      alert("Failed to initiate payment. Please try again later.");
+      alert("Payment failed: " + (error.response?.data?.error || error.message || "Please try again later."));
     } finally {
       setLoadingPlan(null);
     }
