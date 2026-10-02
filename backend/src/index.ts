@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
 import apiRoutes from './api';
 import { startScheduler } from './workflows/scheduler';
 import crypto from 'crypto';
@@ -51,6 +52,19 @@ app.use((_req, res, next) => {
   }
   next();
 });
+
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
+// Basic rate-limiting: 500 requests per 15 minutes per IP
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+
+// Apply rate limiting to all requests (except webhooks which might come in high volume, if needed we can exclude them, but global is safer for now)
+app.use(globalLimiter);
 
 // ─── Body Size Limits ─────────────────────────────────────────────────────────
 // Default express.json() allows 100kb. Webhooks get their own smaller limit.
