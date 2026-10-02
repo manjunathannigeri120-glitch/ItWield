@@ -416,7 +416,7 @@ export default function Dashboard() {
                   <div ref={chatEndRef} />
                 </div>
                 <div className="p-3 bg-white border-t border-slate-200">
-                  <form onSubmit={handleChat} className="flex gap-2">
+                  <form onSubmit={sendChatMessage} className="flex gap-2">
                     <input 
                       type="text" 
                       value={chatInput}
