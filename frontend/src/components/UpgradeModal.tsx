@@ -27,7 +27,17 @@ export function UpgradeModal() {
   const handleUpgrade = async (planId: string) => {
     try {
       setLoadingPlan(planId);
-      const wsId = localStorage.getItem('itwield_workspace_id');
+      let wsId = localStorage.getItem('itwield_workspace_id');
+      if (!wsId) {
+        const wsRes = await api.get('/workspaces');
+        const ws = wsRes.data.find((w: any) => w.status === 'operating' || w.status === 'active' || w.status === 'ACTIVE');
+        if (ws) {
+          wsId = ws.id;
+          localStorage.setItem('itwield_workspace_id', ws.id);
+        } else {
+          throw new Error("Could not find an active workspace to upgrade.");
+        }
+      }
       
       // 1. Create Order
       const res = await api.post('/payments/create-order', {

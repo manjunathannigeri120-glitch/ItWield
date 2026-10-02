@@ -77,6 +77,18 @@ export function GoalDetail() {
           <Button variant="outline" onClick={fetchGoal}>
             Verify Now
           </Button>
+          <Button variant="destructive" onClick={async () => {
+            if (!confirm('Are you sure you want to delete this goal?')) return;
+            try {
+              const wsId = localStorage.getItem('itwield_workspace_id');
+              await api.delete(`/workspaces/${wsId}/goals/${goalId}`);
+              window.location.href = '/dashboard';
+            } catch(e: any) {
+              alert('Failed to delete goal: ' + (e?.response?.data?.error || e?.message));
+            }
+          }}>
+            Delete Goal
+          </Button>
         </div>
       </div>
 

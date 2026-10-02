@@ -197,6 +197,24 @@ router.get('/what-next', async (req: any, res) => {
   }
 });
 
+router.delete('/:goalId', async (req: AuthRequest, res) => {
+  try {
+    if (!req.supabase) return res.status(500).json({ error: 'DB required' });
+    const { workspaceId, goalId } = req.params;
+
+    const { error } = await req.supabase
+      .from('business_goals')
+      .delete()
+      .eq('id', goalId)
+      .eq('workspace_id', workspaceId);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+  }
+});
+
 export default router;
 
 
