@@ -28,7 +28,7 @@ export function UpgradeModal() {
     try {
       setLoadingPlan(planId);
       let wsId = localStorage.getItem('itwield_workspace_id');
-      if (!wsId) {
+      if (!wsId || wsId === 'null' || wsId === 'undefined') {
         const wsRes = await api.get('/workspaces');
         const ws = wsRes.data.find((w: any) => w.status === 'operating' || w.status === 'active' || w.status === 'ACTIVE');
         if (ws) {
