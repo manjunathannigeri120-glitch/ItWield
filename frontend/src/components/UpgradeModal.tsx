@@ -187,10 +187,7 @@ export function UpgradeModal() {
                 <li className="flex gap-2 text-sm"><Check className="w-4 h-4 text-primary shrink-0" /> Private Instance</li>
                 <li className="flex gap-2 text-sm"><Check className="w-4 h-4 text-primary shrink-0" /> Dedicated Account Manager</li>
               </ul>
-              <button onClick={() => {
-                navigator.clipboard.writeText('supportitwield@gmail.com');
-                alert('Email address copied to clipboard: supportitwield@gmail.com');
-              }} className="w-full py-2 rounded-lg bg-secondary text-secondary-foreground font-bold hover:bg-secondary/80 transition-colors border border-dashed border-muted-foreground/50">
+              <button onClick={() => window.location.href = 'mailto:supportitwield@gmail.com?subject=Enterprise%20Plan%20Inquiry'} className="w-full py-2 rounded-lg bg-secondary text-secondary-foreground font-bold hover:bg-secondary/80 transition-colors border border-dashed border-muted-foreground/50">
                 Contact Sales
               </button>
             </div>
