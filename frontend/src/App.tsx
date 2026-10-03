@@ -116,6 +116,7 @@ function App() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/system-core-admin" element={<ProtectedRoute><DashboardLayout><SuperAdmin /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/system core admin" element={<ProtectedRoute><DashboardLayout><SuperAdmin /></DashboardLayout></ProtectedRoute>} />
           
           {/* V2 Onboarding: Protected by Auth, but explicitly bypasses WorkspaceGuard */}
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
@@ -154,6 +155,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
