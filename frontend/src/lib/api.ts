@@ -45,7 +45,7 @@ api.interceptors.response.use(
 
 
 // Admin Methods
-export const getAdminUsers = () => fetchWithAuth('/admin/users');
-export const updateAdminCredits = (userId: string, amount: number, action: 'add' | 'set') => fetchWithAuth(/admin/users/${userId}/credits, { method: 'POST', body: JSON.stringify({ amount, action }) });
-export const deleteAdminUser = (userId: string) => fetchWithAuth(/admin/users/${userId}, { method: 'DELETE' });
+export const getAdminUsers = async () => (await api.get('/admin/users')).data;
+export const updateAdminCredits = async (userId: string, amount: number, action: 'add' | 'set') => (await api.post(`/admin/users/${userId}/credits`, { amount, action })).data;
+export const deleteAdminUser = async (userId: string) => (await api.delete(`/admin/users/${userId}`)).data;
 
