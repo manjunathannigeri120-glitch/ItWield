@@ -53,7 +53,7 @@ export function GodMode() {
       await updateAdminCredits(userId, amount, 'add');
       loadUsers();
     } catch (err: any) {
-      alert(err.message || 'Failed to update credits');
+      alert(err.response?.data?.error || err.message || 'Failed to update credits');
     }
   };
 
@@ -67,7 +67,7 @@ export function GodMode() {
       }
       loadUsers();
     } catch (err: any) {
-      alert(err.message || 'Failed to update ban status');
+      alert(err.response?.data?.error || err.message || 'Failed to update ban status');
     }
   };
 
@@ -77,7 +77,7 @@ export function GodMode() {
       await deleteAdminUser(userId);
       loadUsers();
     } catch (err: any) {
-      alert(err.message || 'Failed to delete user');
+      alert(err.response?.data?.error || err.message || 'Failed to delete user');
     }
   };
 
@@ -89,7 +89,7 @@ export function GodMode() {
       await loadUsers();
       alert('Global reset successful! All users are strictly limited to 150.');
     } catch (err: any) {
-      alert(err.message || 'Failed to enforce credits');
+      alert(err.response?.data?.error || err.message || 'Failed to enforce credits');
       setLoading(false);
     }
   };
@@ -189,3 +189,4 @@ export function GodMode() {
     </div>
   );
 }
+
