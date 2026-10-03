@@ -5,6 +5,9 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 
 import { DashboardLayout } from './layouts/DashboardLayout';
+import Terms from './pages/legal/Terms';
+import Privacy from './pages/legal/Privacy';
+import Refund from './pages/legal/Refund';
 import { CookieBanner } from './components/CookieBanner';
 import { NotFound } from './pages/NotFound';
 import { FeedbackModal } from './components/FeedbackModal';
@@ -146,7 +149,10 @@ function App() {
           <Route path="*" element={<NotFound />} />
           <Route path="/secure-admin-panel" element={<ProtectedRoute><DashboardLayout><GodMode /></DashboardLayout></ProtectedRoute>} />
           <Route path="/secure admin panel" element={<ProtectedRoute><DashboardLayout><GodMode /></DashboardLayout></ProtectedRoute>} />
-      </Routes>
+        <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/refund" element={<Refund />} />
+        </Routes>
         <FeedbackModal />
         <CookieBanner />
         </Router>
@@ -155,6 +161,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
