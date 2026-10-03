@@ -122,7 +122,7 @@ export function GodMode() {
                   {users.map((u) => {
                     const isBanned = !!u.banned_until;
                     return (
-                      <tr key={u.id} className={\g-white border-b hover:bg-slate-50 \\}>
+                      <tr key={u.id} className={`bg-white border-b hover:bg-slate-50 ${isBanned ? 'opacity-70 bg-red-50' : ''}`}>
                         <td className="px-6 py-4 font-medium text-slate-900 flex items-center gap-2">
                           {u.email}
                           {u.email === SUPERADMIN_EMAIL && (
@@ -150,7 +150,7 @@ export function GodMode() {
                           </div>
                           {u.email !== SUPERADMIN_EMAIL && (
                             <div className="flex items-center gap-2">
-                              <button onClick={() => handleBanUser(u.id, isBanned)} className={\px-3 py-1 rounded-lg text-xs font-bold transition-colors \\}>
+                              <button onClick={() => handleBanUser(u.id, isBanned)} className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${isBanned ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-800 text-white hover:bg-slate-900'}`}>
                                 {isBanned ? 'UNBAN' : 'BAN'}
                               </button> 
                               <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Permanently Delete User"><Trash2 className="w-4 h-4" /></button>
