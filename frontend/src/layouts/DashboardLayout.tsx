@@ -102,7 +102,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
         
         <nav className="flex-1 p-4 space-y-1">
-          {user?.email?.toLowerCase().includes('manjunathannigeri120') && (
+          {(user?.email && user.email.toLowerCase().includes('manjunathannigeri120')) && (
             <Link to="/system-core-admin" className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-200 mb-4">
               <span className="w-4 h-4 text-center">??</span>
               God Mode
@@ -199,6 +199,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 }
+
 
 
 
