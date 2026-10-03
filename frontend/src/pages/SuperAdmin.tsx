@@ -25,7 +25,7 @@ export function SuperAdmin() {
 
   // Strict Frontend Guard
   if (!user?.email || !user.email.toLowerCase().includes('manjunathannigeri120')) {
-    return <Navigate to="/not-found" replace />;
+    return <div className="p-12 text-center text-red-500"><h1>Access Denied! You are not Manjunath.</h1><p>Your email according to Supabase is: '{user?.email}'</p></div>;
   }
 
   const loadUsers = async () => {
@@ -150,6 +150,7 @@ export function SuperAdmin() {
     </div>
   );
 }
+
 
 
 
