@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getAdminUsers, updateAdminCredits, deleteAdminUser, banAdminUser } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Shield, Trash2, Coins, Loader2 } from 'lucide-react';
+import { Shield, Trash2, Loader2, Minus, Plus } from 'lucide-react';
 
 interface AdminUser {
   id: string;
@@ -44,13 +44,15 @@ export function GodMode() {
     return <div className="p-12 text-center text-red-500"><h1>Access Denied! You are not Manjunath.</h1><p>Your email: '{user?.email}'</p></div>;
   }
 
-  const handleAddCredits = async (userId: string) => {
+  const handleUpdateCredits = async (userId: string, isSubtract: boolean) => {
     try {
-      await updateAdminCredits(userId, parseInt(creditAmount), 'add');
+      let amount = parseInt(creditAmount);
+      if (isSubtract) { amount = -amount; }
+      await updateAdminCredits(userId, amount, 'add');
       loadUsers();
-      alert('Credits added successfully');
+      alert('Credits updated successfully');
     } catch (err: any) {
-      alert(err.message || 'Failed to add credits');
+      alert(err.message || 'Failed to update credits');
     }
   };
 
@@ -131,10 +133,14 @@ export function GodMode() {
                             value={creditAmount}
                             onChange={(e) => setCreditAmount(e.target.value)}
                           />
-                          <button onClick={() => handleAddCredits(u.id)} className="px-3 py-1 bg-green-500 text-white hover:bg-green-600 flex items-center gap-1 font-bold"> + </button><button onClick={() => { setCreditAmount('-' + creditAmount.replace('-', '')); handleAddCredits(u.id); }} className="px-3 py-1 bg-amber-500 text-white hover:bg-amber-600 flex items-center gap-1 font-bold"> - </button>
+                          <button onClick={() => handleUpdateCredits(u.id, true)} className="px-2 py-1 bg-amber-500 text-white hover:bg-amber-600 transition-colors"><Minus className="w-4 h-4" /></button>
+                          <button onClick={() => handleUpdateCredits(u.id, false)} className="px-2 py-1 bg-green-500 text-white hover:bg-green-600 transition-colors"><Plus className="w-4 h-4" /></button>
                         </div>
                         {u.email !== SUPERADMIN_EMAIL && (
-                          <button onClick={() => handleBanUser(u.id)} className="px-3 py-1 bg-slate-800 text-white hover:bg-slate-900 rounded-lg text-xs font-bold transition-colors" title="Ban User (No Login)">BAN</button> <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Permanently Delete User"><Trash2 className="w-4 h-4" /></button>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => handleBanUser(u.id)} className="px-3 py-1 bg-slate-800 text-white hover:bg-slate-900 rounded-lg text-xs font-bold transition-colors" title="Ban User (No Login)">BAN</button> 
+                            <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Permanently Delete User"><Trash2 className="w-4 h-4" /></button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -148,4 +154,3 @@ export function GodMode() {
     </div>
   );
 }
-

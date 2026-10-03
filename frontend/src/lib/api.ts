@@ -50,5 +50,6 @@ export const updateAdminCredits = async (userId: string, amount: number, action:
 export const deleteAdminUser = async (userId: string) => (await api.delete(`/admin/users/${userId}`)).data;
 
 
-export const banAdminUser = async (userId: string) => (await api.post(/admin/users/${userId}/ban)).data;
+export const banAdminUser = async (userId: string) => (await api.post(`/admin/users/${userId}/ban`)).data;
+
 
