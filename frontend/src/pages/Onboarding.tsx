@@ -37,13 +37,17 @@ export function Onboarding() {
 
   const handleCreateBasics = async () => {
     if (!basics.name.trim()) return setError('Company name is required');
-    if (!basics.website.trim()) return setError('Company website is required');
+    if (!basics.website.trim()) return setError('Website or App link is required');
+    if (!basics.short_description.trim()) return setError('A brief description is required to help the AI understand your business');
     
     setError(null);
     setStep(2);
   };
 
   const handleFinishOnboarding = async () => {
+    if (!context.target_customer.trim()) return setError('Target customer is required');
+    if (!context.biggest_problems.trim()) return setError('Biggest problems are required to give the AI context');
+
     setLoading(true);
     setError(null);
     try {
@@ -105,15 +109,15 @@ export function Onboarding() {
                 <Input value={basics.name} onChange={e => setBasics({...basics, name: e.target.value})} placeholder="e.g. Acme Corp" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Website <span className="text-red-500 font-normal">*</span></label>
-                <Input value={basics.website} onChange={e => setBasics({...basics, website: e.target.value})} placeholder="e.g. https://acmecorp.com" />
+                <label className="block text-sm font-medium text-slate-700 mb-1">Website or App Link <span className="text-red-500 font-normal">*</span></label>
+                <Input value={basics.website} onChange={e => setBasics({...basics, website: e.target.value})} placeholder="e.g. https://acmecorp.com or App Store link" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Industry <span className="text-slate-400 font-normal">(Optional)</span></label>
                 <Input value={basics.industry} onChange={e => setBasics({...basics, industry: e.target.value})} placeholder="e.g. B2B SaaS" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Brief Description <span className="text-slate-400 font-normal">(Optional)</span></label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Brief Description <span className="text-red-500 font-normal">*</span></label>
                 <textarea 
                   className="w-full border border-slate-300 rounded-md p-3 text-sm focus:border-indigo-500 outline-none h-24"
                   value={basics.short_description} 
@@ -141,7 +145,7 @@ export function Onboarding() {
             </CardHeader>
             <CardContent className="pt-6 space-y-5 bg-white">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Target Customer <span className="text-slate-400 font-normal">(Optional)</span></label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Target Customer <span className="text-red-500 font-normal">*</span></label>
                 <Input value={context.target_customer} onChange={e => setContext({...context, target_customer: e.target.value})} placeholder="e.g. Mid-market marketing agencies" />
               </div>
               <div>
@@ -158,7 +162,7 @@ export function Onboarding() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Biggest Problems / Constraints <span className="text-slate-400 font-normal">(Optional)</span></label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Biggest Problems / Constraints <span className="text-red-500 font-normal">*</span></label>
                 <textarea 
                   className="w-full border border-slate-300 rounded-md p-3 text-sm focus:border-indigo-500 outline-none h-20"
                   value={context.biggest_problems} 
