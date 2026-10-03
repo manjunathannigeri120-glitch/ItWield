@@ -22,13 +22,13 @@ router.get('/users', async (req: AuthRequest, res) => {
     // 2. Get all workspaces to aggregate credits
     const { data: workspaces, error: workspacesError } = await serviceClient
       .from('workspaces')
-      .select('id, name, owner_id, credits_balance');
+      .select('id, name, owner_id, credits');
     if (workspacesError) throw workspacesError;
 
     // 3. Map together
     const enrichedUsers = users.map(user => {
       const userWorkspaces = workspaces.filter(w => w.owner_id === user.id);
-      const totalCredits = userWorkspaces.reduce((acc, ws) => acc + (ws.credits_balance || 0), 0);
+      const totalCredits = userWorkspaces.reduce((acc, ws) => acc + (ws.credits || 0), 0);
       return {
         id: user.id,
         email: user.email,
@@ -63,7 +63,7 @@ router.post('/users/:userId/credits', async (req: AuthRequest, res) => {
     // Find the user's first workspace (default)
     const { data: workspaces, error: findError } = await serviceClient
       .from('workspaces')
-      .select('id, credits_balance')
+      .select('id, credits')
       .eq('owner_id', userId)
       .limit(1);
 
@@ -72,12 +72,12 @@ router.post('/users/:userId/credits', async (req: AuthRequest, res) => {
     }
 
     const workspace = workspaces[0];
-    let newBalance = action === 'set' ? parsedAmount : (workspace.credits_balance || 0) + parsedAmount;
+    let newBalance = action === 'set' ? parsedAmount : (workspace.credits || 0) + parsedAmount;
     if (newBalance < 0) newBalance = 0;
 
     const { error: updateError } = await serviceClient
       .from('workspaces')
-      .update({ credits_balance: newBalance })
+      .update({ credits: newBalance })
       .eq('id', workspace.id);
 
     if (updateError) throw updateError;
@@ -113,4 +113,5 @@ router.delete('/users/:userId', async (req: AuthRequest, res) => {
 });
 
 export default router;
+
 
