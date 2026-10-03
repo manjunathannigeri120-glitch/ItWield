@@ -1,73 +1,64 @@
 import React, { useEffect, useState } from 'react';
 import { X, Check, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
 
+const PLANS = {
+  solo: { USD: 49, INR: 4067, AED: 179, EUR: 45, credits: 5000 },
+  professional: { USD: 199, INR: 16517, AED: 730, EUR: 183, credits: 10000 },
+  business: { USD: 299, INR: 24817, AED: 1097, EUR: 275, credits: 20000 },
+};
+
+const SYMBOLS: any = { USD: '$', INR: '?', AED: '?.?', EUR: '€' };
+
 export function UpgradeModal() {
+  const [currency, setCurrency] = useState<'USD' | 'INR' | 'AED' | 'EUR'>('USD');
   const [isOpen, setIsOpen] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   useEffect(() => {
     const handleTrigger = () => setIsOpen(true);
     window.addEventListener('trigger_upgrade', handleTrigger);
-    
-    const handleCredits = (e: any) => {
-      if (typeof e.detail === 'number' && e.detail <= 0) {
-        setIsOpen(true);
-      }
-    };
-    window.addEventListener('credits_updated', handleCredits);
-
-    return () => {
-      window.removeEventListener('trigger_upgrade', handleTrigger);
-      window.removeEventListener('credits_updated', handleCredits);
-    };
+    return () => window.removeEventListener('trigger_upgrade', handleTrigger);
   }, []);
 
-  const handleUpgrade = async (planId: string) => {
+  const handleUpgrade = async (planId: keyof typeof PLANS) => {
     try {
       setLoadingPlan(planId);
-      let wsId = localStorage.getItem('itwield_workspace_id');
-      if (!wsId || wsId === 'null' || wsId === 'undefined') {
-        const wsRes = await api.get('/workspaces');
-        const ws = wsRes.data.find((w: any) => w.status === 'operating' || w.status === 'active' || w.status === 'ACTIVE');
-        if (ws) {
-          wsId = ws.id;
-          localStorage.setItem('itwield_workspace_id', ws.id);
-        } else {
-          throw new Error("Could not find an active workspace to upgrade.");
-        }
+      const wsRes = await api.get('/workspaces');
+      if (!wsRes.data || wsRes.data.length === 0) {
+        alert("Workspace not found.");
+        return;
       }
-      
-      // 1. Create Order
-      const res = await api.post('/payments/create-order', {
-        planId,
-        workspaceId: wsId
-      });
-      
-      const { orderId, amount, currency, credits } = res.data;
+      const wsId = wsRes.data[0].id;
+      const credits = PLANS[planId].credits;
 
-      // 2. Open Razorpay Checkout
+      // 1. Create Subscription
+      const orderRes = await api.post('/payments/create-subscription', {
+        planId,
+        workspaceId: wsId,
+        currency
+      });
+
+      const { subscriptionId } = orderRes.data;
+
+      // 2. Open Razorpay Checkout for Subscriptions
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID, 
-        amount: amount,
-        currency: currency,
-        name: "ItWield AI",
-        description: `Upgrade to ${planId.toUpperCase()} Plan`,
-        order_id: orderId,
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        subscription_id: subscriptionId,
+        name: "ItWield",
+        description: `Upgrade to ${planId.toUpperCase()} Plan (${currency})`,
         handler: async function (response: any) {
           try {
             // 3. Verify Payment on success
-            await api.post('/payments/verify', {
+            await api.post('/payments/verify-subscription', {
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
+              razorpay_subscription_id: response.razorpay_subscription_id,
               razorpay_signature: response.razorpay_signature,
               workspaceId: wsId
             });
             
             setIsOpen(false);
-            alert(`Payment successful! ${credits.toLocaleString()} credits added to your workspace.`);
-            // Trigger a full reload to clear paywalls and refresh credits
+            alert(`Payment successful! ${credits.toLocaleString()} credits added to your workspace. Your subscription is now active.`);
             window.location.reload();
           } catch (err) {
             console.error(err);
@@ -105,10 +96,25 @@ export function UpgradeModal() {
           <X className="w-5 h-5" />
         </button>
 
-        <div className="p-8 text-center border-b">
+        <div className="p-8 text-center border-b flex flex-col items-center relative">
+          
+          <div className="absolute right-8 top-8 flex items-center gap-2">
+            <label className="text-sm font-semibold text-muted-foreground">Currency:</label>
+            <select 
+              value={currency} 
+              onChange={(e) => setCurrency(e.target.value as any)}
+              className="bg-secondary text-secondary-foreground text-sm rounded-md px-2 py-1 border border-border"
+            >
+              <option value="USD">???? USD ($)</option>
+              <option value="INR">???? INR (?) - UPI Available</option>
+              <option value="AED">???? AED</option>
+              <option value="EUR">???? EUR (€)</option>
+            </select>
+          </div>
+
           <h2 className="text-3xl font-bold mb-2">Upgrade your digital workforce</h2>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Your AI executives have paused operations because your workspace ran out of compute credits. Upgrade to continue scaling.
+            Select a plan to start your automated monthly subscription. Cancel anytime.
           </p>
         </div>
 
@@ -118,7 +124,7 @@ export function UpgradeModal() {
             {/* Solo */}
             <div className="border rounded-xl p-6 flex flex-col bg-background/50 hover:border-primary/50 transition-colors">
               <h3 className="font-bold text-lg mb-1">Solo Builder</h3>
-              <div className="text-3xl font-bold mb-4">$49<span className="text-sm font-normal text-muted-foreground">/mo</span></div>
+              <div className="text-3xl font-bold mb-4">{SYMBOLS[currency]}{PLANS.solo[currency]}<span className="text-sm font-normal text-muted-foreground">/mo</span></div>
               <p className="text-sm text-muted-foreground mb-6">For single founders starting automation.</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <li className="flex gap-2 text-sm"><Check className="w-4 h-4 text-primary shrink-0" /> 5,000 Compute Credits</li>
@@ -140,7 +146,7 @@ export function UpgradeModal() {
                 Popular
               </div>
               <h3 className="font-bold text-lg mb-1">Professional</h3>
-              <div className="text-3xl font-bold mb-4">$199<span className="text-sm font-normal text-muted-foreground">/mo</span></div>
+              <div className="text-3xl font-bold mb-4">{SYMBOLS[currency]}{PLANS.professional[currency]}<span className="text-sm font-normal text-muted-foreground">/mo</span></div>
               <p className="text-sm text-muted-foreground mb-6">For teams automating standard processes.</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <li className="flex gap-2 text-sm"><Check className="w-4 h-4 text-primary shrink-0" /> 10,000 Compute Credits</li>
@@ -160,7 +166,7 @@ export function UpgradeModal() {
             {/* Business */}
             <div className="border rounded-xl p-6 flex flex-col bg-background/50 hover:border-primary/50 transition-colors">
               <h3 className="font-bold text-lg mb-1">Business</h3>
-              <div className="text-3xl font-bold mb-4">$299<span className="text-sm font-normal text-muted-foreground">/mo</span></div>
+              <div className="text-3xl font-bold mb-4">{SYMBOLS[currency]}{PLANS.business[currency]}<span className="text-sm font-normal text-muted-foreground">/mo</span></div>
               <p className="text-sm text-muted-foreground mb-6">For scaling high-volume automation.</p>
               <ul className="space-y-3 mb-8 flex-1">
                 <li className="flex gap-2 text-sm"><Check className="w-4 h-4 text-primary shrink-0" /> 20,000 Compute Credits</li>
