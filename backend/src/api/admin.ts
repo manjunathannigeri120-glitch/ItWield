@@ -109,7 +109,10 @@ router.post('/users/:userId/unban', async (req: AuthRequest, res) => {
     const userId = req.params.userId as string;
     const serviceClient = getServiceSupabase();
     if (!serviceClient) throw new Error("Service client not initialized");
-    const { error } = await serviceClient.auth.admin.updateUserById(userId, { ban_duration: 'none' });
+    const { data: userResp } = await serviceClient.auth.admin.getUserById(userId);
+      const userMeta = userResp?.user?.user_metadata || {};
+      userMeta.is_banned = false;
+      const { error } = await serviceClient.auth.admin.updateUserById(userId, { ban_duration: 'none', user_metadata: userMeta });
     if (error) throw error;
     res.json({ success: true, message: 'User unbanned' });
   } catch (error: any) {
@@ -140,6 +143,7 @@ router.delete('/users/:userId', async (req: AuthRequest, res) => {
 });
 
 export default router;
+
 
 
 
