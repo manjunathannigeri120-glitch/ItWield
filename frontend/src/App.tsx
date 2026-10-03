@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 
 import { DashboardLayout } from './layouts/DashboardLayout';
+import { CookieBanner } from './components/CookieBanner';
+import { NotFound } from './pages/NotFound';
 import { FeedbackModal } from './components/FeedbackModal';
 import { Login } from '@/pages/Login';
 import { Landing } from '@/pages/Landing';
@@ -135,13 +137,17 @@ function App() {
           
           {/* OAuth integrations do not render full layouts, but still require an operating workspace context */}
           <Route path="/settings/connections/callback" element={<ProtectedRoute><WorkspaceGuard><OAuthCallback /></WorkspaceGuard></ProtectedRoute>} />
+          {/* Catch-all 404 Route */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
         <FeedbackModal />
+        <CookieBanner />
         </Router>
     </QueryClientProvider>
   );
 }
 
 export default App;
+
 
 
