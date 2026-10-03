@@ -14,9 +14,9 @@ const razorpay = new Razorpay({
 });
 
 const PLANS: Record<string, { amount: number; credits: number; name: string }> = {
-  solo: { amount: 400000, credits: 5000, name: 'Solo Builder' },
-  professional: { amount: 1600000, credits: 10000, name: 'Professional' },
-  business: { amount: 2500000, credits: 20000, name: 'Business' }
+  solo: { amount: 4900, credits: 5000, name: 'Solo Builder' },
+  professional: { amount: 19900, credits: 10000, name: 'Professional' },
+  business: { amount: 29900, credits: 20000, name: 'Business' }
 };
 
 router.post('/create-order', async (req: AuthRequest, res: any) => {
@@ -35,21 +35,27 @@ router.post('/create-order', async (req: AuthRequest, res: any) => {
       return res.status(400).json({ error: 'Invalid plan or missing workspace ID' });
     }
 
-    // Server-side authorization check: Ensure user belongs to the workspace
-    const { data: member, error: memberErr } = await req.supabase
-      .from('workspace_members')
-      .select('id')
-      .eq('workspace_id', workspaceId)
-      .eq('user_id', req.user.id)
-      .single();
+    // Server-side authorization check: Ensure user is owner or member
+    const { data: workspace } = await req.supabase.from('workspaces').select('owner_id').eq('id', workspaceId).single();
+    let isAuthorized = workspace && workspace.owner_id === req.user.id;
+    
+    if (!isAuthorized) {
+      const { data: member } = await req.supabase
+        .from('workspace_members')
+        .select('id')
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', req.user.id)
+        .single();
+      if (member) isAuthorized = true;
+    }
 
-    if (memberErr || !member) {
+    if (!isAuthorized) {
       return res.status(403).json({ error: 'Unauthorized to purchase credits for this workspace' });
     }
 
     const options = {
       amount: amount, 
-      currency: "INR", // Adjust to INR if your live account only supports INR
+      currency: "USD", // Adjust to INR if your live account only supports INR
       receipt: "receipt_" + Math.random().toString(36).substring(7),
       notes: {
         workspaceId: workspaceId,
@@ -141,3 +147,4 @@ router.post('/verify', async (req: AuthRequest, res: any) => {
 });
 
 export default router;
+
