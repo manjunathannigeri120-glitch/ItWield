@@ -12,7 +12,6 @@ import { Login } from '@/pages/Login';
 import { Landing } from '@/pages/Landing';
 import { PrivacyPolicy } from '@/pages/PrivacyPolicy';
 import { TermsOfService } from '@/pages/TermsOfService';
-import { SuperAdmin } from '@/pages/SuperAdmin';
 import { Pricing } from '@/pages/Pricing';
 import Dashboard from '@/pages/Dashboard';
 import CTO from '@/pages/CTO';
@@ -115,9 +114,7 @@ function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
-          <Route path="/system-core-admin" element={<ProtectedRoute><DashboardLayout><SuperAdmin /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/system core admin" element={<ProtectedRoute><DashboardLayout><SuperAdmin /></DashboardLayout></ProtectedRoute>} />
-          
+                    
           {/* V2 Onboarding: Protected by Auth, but explicitly bypasses WorkspaceGuard */}
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
@@ -146,7 +143,8 @@ function App() {
           <Route path="/settings/connections/callback" element={<ProtectedRoute><WorkspaceGuard><OAuthCallback /></WorkspaceGuard></ProtectedRoute>} />
           {/* Catch-all 404 Route */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
+          <Route path="/secure-admin-panel" element={<ProtectedRoute><DashboardLayout><GodMode /></DashboardLayout></ProtectedRoute>} />
+      </Routes>
         <FeedbackModal />
         <CookieBanner />
         </Router>
@@ -155,6 +153,8 @@ function App() {
 }
 
 export default App;
+
+
 
 
 

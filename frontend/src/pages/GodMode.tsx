@@ -3,7 +3,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { getAdminUsers, updateAdminCredits, deleteAdminUser } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Shield, Trash2, Coins, Loader2 } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
 
 interface AdminUser {
   id: string;
@@ -12,7 +11,7 @@ interface AdminUser {
   totalCredits: number;
 }
 
-export function SuperAdmin() {
+export function GodMode() {
   const { user, loading: authLoading } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,9 +22,9 @@ export function SuperAdmin() {
 
   if (authLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-slate-300" /></div>;
 
-  // Strict Frontend Guard
+  // Strict Guard
   if (!user?.email || !user.email.toLowerCase().includes('manjunathannigeri120')) {
-    return <div className="p-12 text-center text-red-500"><h1>Access Denied! You are not Manjunath.</h1><p>Your email according to Supabase is: '{user?.email}'</p></div>;
+    return <div className="p-12 text-center text-red-500"><h1>Access Denied! You are not Manjunath.</h1><p>Your email: '{user?.email}'</p></div>;
   }
 
   const loadUsers = async () => {
@@ -47,7 +46,7 @@ export function SuperAdmin() {
   const handleAddCredits = async (userId: string) => {
     try {
       await updateAdminCredits(userId, parseInt(creditAmount), 'add');
-      loadUsers(); // Refresh
+      loadUsers();
       alert('Credits added successfully');
     } catch (err: any) {
       alert(err.message || 'Failed to add credits');
@@ -55,11 +54,10 @@ export function SuperAdmin() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm('Are you absolutely sure? This will permanently delete the user and all their workspaces.')) return;
-    
+    if (!window.confirm('Are you absolutely sure? This will permanently delete the user.')) return;
     try {
       await deleteAdminUser(userId);
-      loadUsers(); // Refresh
+      loadUsers();
       alert('User deleted successfully');
     } catch (err: any) {
       alert(err.message || 'Failed to delete user');
@@ -74,7 +72,7 @@ export function SuperAdmin() {
         </div>
         <div>
           <h1 className="text-3xl font-bold text-slate-900">God Mode</h1>
-          <p className="text-slate-500">SuperAdmin Control Panel</p>
+          <p className="text-slate-500">SuperAdmin Control Panel v2</p>
         </div>
       </div>
 
@@ -150,8 +148,3 @@ export function SuperAdmin() {
     </div>
   );
 }
-
-
-
-
-
