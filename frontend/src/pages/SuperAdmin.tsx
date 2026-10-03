@@ -13,13 +13,15 @@ interface AdminUser {
 }
 
 export function SuperAdmin() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [creditAmount, setCreditAmount] = useState('1000');
   
   const SUPERADMIN_EMAIL = 'manjunathannigeri120@gmail.com';
+
+  if (authLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-slate-300" /></div>;
 
   // Strict Frontend Guard
   if (!user?.email || !user.email.toLowerCase().includes('manjunathannigeri120')) {
@@ -148,6 +150,7 @@ export function SuperAdmin() {
     </div>
   );
 }
+
 
 
 
