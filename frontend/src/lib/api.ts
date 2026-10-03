@@ -45,7 +45,7 @@ api.interceptors.response.use(
 
 
 // Admin Methods
-export const getAdminUsers = async () => (await api.get('/admin/users')).data;
+export const getAdminUsers = async () => (await api.get(`/admin/users?t=${Date.now()}`)).data;
 export const updateAdminCredits = async (userId: string, amount: number, action: 'add' | 'set') => (await api.post(`/admin/users/${userId}/credits`, { amount, action })).data;
 export const deleteAdminUser = async (userId: string) => (await api.delete(`/admin/users/${userId}`)).data;
 
@@ -54,4 +54,5 @@ export const banAdminUser = async (userId: string) => (await api.post(`/admin/us
 
 
 export const unbanAdminUser = async (userId: string) => (await api.post(`/admin/users/${userId}/unban`)).data;
+
 
