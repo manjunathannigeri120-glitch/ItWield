@@ -49,3 +49,6 @@ export const getAdminUsers = async () => (await api.get('/admin/users')).data;
 export const updateAdminCredits = async (userId: string, amount: number, action: 'add' | 'set') => (await api.post(`/admin/users/${userId}/credits`, { amount, action })).data;
 export const deleteAdminUser = async (userId: string) => (await api.delete(`/admin/users/${userId}`)).data;
 
+
+export const banAdminUser = async (userId: string) => (await api.post(/admin/users/${userId}/ban)).data;
+
