@@ -20,6 +20,12 @@ export function GodMode() {
   
   const SUPERADMIN_EMAIL = 'manjunathannigeri120@gmail.com';
 
+  useEffect(() => {
+    if (!authLoading && user?.email?.toLowerCase().includes('manjunathannigeri120')) {
+      loadUsers();
+    }
+  }, [authLoading, user]);
+
   if (authLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-slate-300" /></div>;
 
   // Strict Guard
@@ -148,3 +154,4 @@ export function GodMode() {
     </div>
   );
 }
+
