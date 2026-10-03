@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -19,6 +20,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [credits, setCredits] = useState<number | null>(null);
   const [loadingCredits, setLoadingCredits] = useState(true);
   const [creditError, setCreditError] = useState<string | null>(null);
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const res = await api.get('/auth/me');
+      return res.data;
+    }
+  });
 
   useEffect(() => {
     const fetchCredits = async () => {
@@ -142,11 +151,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
           <div className="pt-2 border-t relative">
             <Link to="/account">
-              <Button variant={location.pathname === '/account' ? 'default' : 'outline'} size="sm" className="w-full text-sm font-medium flex items-center justify-start gap-2">
-                <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">
-                  {user?.email?.charAt(0).toUpperCase()}
+                            <Button variant={location.pathname === '/account' ? 'default' : 'outline'} size="sm" className="w-full text-sm font-medium flex items-center justify-start gap-2 overflow-hidden">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">
+                  {(profile?.name || user?.email || 'A').charAt(0).toUpperCase()}
                 </div>
-                Account
+                <div className="truncate">
+                  {profile?.name || user?.email || 'Account'}
+                </div>
               </Button>
             </Link>
           </div>
@@ -180,6 +191,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 }
+
+
 
 
 

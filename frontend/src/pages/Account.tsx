@@ -1,14 +1,43 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, LogOut, AlertTriangle } from 'lucide-react';
+import { User, LogOut, AlertTriangle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function Account() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const [nameInput, setNameInput] = useState('');
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const res = await api.get('/auth/me');
+      return res.data;
+    }
+  });
+
+  useEffect(() => {
+    if (profile?.name) {
+      setNameInput(profile.name);
+    }
+  }, [profile]);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (newName: string) => {
+      await api.put('/auth/me', { name: newName });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    }
+  });
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -44,8 +73,28 @@ export function Account() {
           <CardDescription>Your personal information and session.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          
           <div className="space-y-1">
-            <p className="text-sm font-medium text-slate-500">Email Address</p>
+            <label className="text-sm font-medium text-slate-700">Display Name</label>
+            <div className="flex gap-3 mt-1">
+              <Input 
+                value={nameInput} 
+                onChange={e => setNameInput(e.target.value)}
+                placeholder="Enter your beloved name..." 
+                className="max-w-sm"
+              />
+              <Button 
+                onClick={() => updateProfileMutation.mutate(nameInput)}
+                disabled={updateProfileMutation.isPending || nameInput === profile?.name}
+              >
+                {updateProfileMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+              </Button>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">This name will be displayed in the sidebar instead of your email address.</p>
+          </div>
+
+          <div className="pt-4 border-t space-y-1">
+            <p className="text-sm font-medium text-slate-700 mb-1">Email Address (Gmail)</p>
             <p className="text-lg font-semibold text-slate-900">{user?.email}</p>
           </div>
           
