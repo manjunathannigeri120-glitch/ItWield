@@ -145,6 +145,7 @@ function App() {
           {/* Catch-all 404 Route */}
           <Route path="*" element={<NotFound />} />
           <Route path="/secure-admin-panel" element={<ProtectedRoute><DashboardLayout><GodMode /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/secure admin panel" element={<ProtectedRoute><DashboardLayout><GodMode /></DashboardLayout></ProtectedRoute>} />
       </Routes>
         <FeedbackModal />
         <CookieBanner />
@@ -154,6 +155,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
