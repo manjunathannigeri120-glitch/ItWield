@@ -90,7 +90,6 @@ export function Account() {
                 {updateProfileMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
               </Button>
             </div>
-            <p className="text-xs text-slate-500 mt-2">This name will be displayed in the sidebar instead of your email address.</p>
           </div>
 
           <div className="pt-4 border-t space-y-1">
