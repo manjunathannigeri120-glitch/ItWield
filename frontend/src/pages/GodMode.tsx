@@ -155,8 +155,8 @@ export function GodMode() {
                             <span className="text-green-600 font-medium">Active</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 font-mono text-slate-500">{Math.max(0, 150 - u.totalCredits)}</td>
-                        <td className="px-6 py-4 font-mono font-bold">{u.totalCredits}</td>
+                        <td className="px-6 py-4 font-mono text-slate-500">{u.email === SUPERADMIN_EMAIL ? '-' : Math.max(0, 150 - u.totalCredits)}</td>
+                        <td className="px-6 py-4 font-mono font-bold">{u.email === SUPERADMIN_EMAIL ? 'Unlimited' : u.totalCredits}</td>
                         <td className="px-6 py-4 flex gap-4">
                           <div className="flex items-center bg-slate-100 rounded-lg overflow-hidden">
                             <input 
@@ -189,4 +189,5 @@ export function GodMode() {
     </div>
   );
 }
+
 
