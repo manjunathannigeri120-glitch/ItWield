@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { X, Check, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -8,10 +8,11 @@ const PLANS = {
   business: { USD: 299, INR: 24817, AED: 1097, EUR: 275, credits: 20000 },
 };
 
-const SYMBOLS: any = { USD: '$', INR: '?', AED: '?.?', EUR: '�' };
+const SYMBOLS: any = { USD: '$', INR: '₹', AED: 'د.إ', EUR: '€' };
 
 export function UpgradeModal() {
-  const [currency, setCurrency] = useState<'USD' | 'INR' | 'AED' | 'EUR'>('USD');
+  // DEFAULT TO INR so UPI is always visible without the user having to change anything!
+  const [currency, setCurrency] = useState<'USD' | 'INR' | 'AED' | 'EUR'>('INR');
   const [isOpen, setIsOpen] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
@@ -32,7 +33,6 @@ export function UpgradeModal() {
       const wsId = wsRes.data[0].id;
       const credits = PLANS[planId].credits;
 
-      // 1. Create Subscription
       const orderRes = await api.post('/payments/create-subscription', {
         planId,
         workspaceId: wsId,
@@ -41,7 +41,6 @@ export function UpgradeModal() {
 
       const { subscriptionId } = orderRes.data;
 
-      // 2. Open Razorpay Checkout for Subscriptions
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         subscription_id: subscriptionId,
@@ -49,7 +48,6 @@ export function UpgradeModal() {
         description: `Upgrade to ${planId.toUpperCase()} Plan (${currency})`,
         handler: async function (response: any) {
           try {
-            // 3. Verify Payment on success
             await api.post('/payments/verify-subscription', {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_subscription_id: response.razorpay_subscription_id,
@@ -58,7 +56,7 @@ export function UpgradeModal() {
             });
             
             setIsOpen(false);
-            alert(`Payment successful! ${credits.toLocaleString()} credits added to your workspace. Your subscription is now active.`);
+            alert(`Payment successful! ${credits.toLocaleString()} credits added. Subscription active.`);
             window.location.reload();
           } catch (err) {
             console.error(err);
@@ -99,22 +97,22 @@ export function UpgradeModal() {
         <div className="p-8 text-center border-b flex flex-col items-center relative">
           
           <div className="absolute right-8 top-8 flex items-center gap-2">
-            <label className="text-sm font-semibold text-muted-foreground">Currency:</label>
             <select 
               value={currency} 
               onChange={(e) => setCurrency(e.target.value as any)}
-              className="bg-secondary text-secondary-foreground text-sm rounded-md px-2 py-1 border border-border"
+              className="bg-secondary text-secondary-foreground text-sm rounded-md px-2 py-1 border border-border outline-none font-bold cursor-pointer"
             >
-              <option value="USD">???? USD ($)</option>
-              <option value="INR">???? INR (?) - UPI Available</option>
-              <option value="AED">???? AED</option>
-              <option value="EUR">???? EUR (�)</option>
+              <option value="INR">🇮🇳 INR (₹) - UPI</option>
+              <option value="USD">🇺🇸 USD ($) - Global</option>
+              <option value="AED">🇦🇪 AED</option>
+              <option value="EUR">🇪🇺 EUR (€)</option>
             </select>
           </div>
 
           <h2 className="text-3xl font-bold mb-2">Upgrade your digital workforce</h2>
           <p className="text-muted-foreground max-w-lg mx-auto">
             Select a plan to start your automated monthly subscription. Cancel anytime.
+            <br/><span className="text-xs text-primary font-semibold mt-1 block">International Cards are accepted on all currencies.</span>
           </p>
         </div>
 
