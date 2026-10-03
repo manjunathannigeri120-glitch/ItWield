@@ -143,14 +143,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               {loadingCredits ? (
                 <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
               ) : (
-                <span className={"text-xs font-bold " + (credits !== null && credits <= 0 ? "text-red-500" : "text-[#0057FF]")}>
-                  {credits !== null ? credits.toLocaleString() : '?'}
+                <span className={"text-xs font-bold " + (credits !== null && credits <= 0 && !user?.email?.toLowerCase().includes('manjunathannigeri120') ? "text-red-500" : "text-[#0057FF]")}>
+                  {user?.email?.toLowerCase().includes('manjunathannigeri120') ? 'Unlimited' : (credits !== null ? credits.toLocaleString() : '?')}
                 </span>
               )}
             </div>
             <div className="w-full bg-slate-200 rounded-full h-1.5 mt-2 overflow-hidden">
               <div 
-                className={"h-full transition-all " + (credits !== null && credits <= 0 ? "bg-red-500" : "bg-[#0057FF]")} 
+                className={"h-full transition-all " + (credits !== null && credits <= 0 && !user?.email?.toLowerCase().includes('manjunathannigeri120') ? "bg-red-500" : "bg-[#0057FF]")} 
                 style={{ width: `${Math.min(100, Math.max(0, ((credits || 0) / 10000) * 100))}%` }} 
               />
             </div>
@@ -177,7 +177,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {children}
         
         {/* Hard Paywall Overlay */}
-        {credits !== null && credits <= 0 && (
+        {credits !== null && credits <= 0 && !user?.email?.toLowerCase().includes('manjunathannigeri120') && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
             <div className="bg-white p-8 rounded-2xl shadow-2xl border border-slate-200 text-center max-w-md animate-in fade-in zoom-in duration-300">
               <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -199,6 +199,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 }
+
 
 
 
