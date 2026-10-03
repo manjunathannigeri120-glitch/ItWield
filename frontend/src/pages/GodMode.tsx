@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getAdminUsers, updateAdminCredits, deleteAdminUser } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -14,26 +14,13 @@ interface AdminUser {
 export function GodMode() {
   const { user, loading: authLoading } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [creditAmount, setCreditAmount] = useState('1000');
   
   const SUPERADMIN_EMAIL = 'manjunathannigeri120@gmail.com';
 
-  useEffect(() => {
-    if (!authLoading && user?.email?.toLowerCase().includes('manjunathannigeri120')) {
-      loadUsers();
-    }
-  }, [authLoading, user]);
-
-  if (authLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-slate-300" /></div>;
-
-  // Strict Guard
-  if (!user?.email || !user.email.toLowerCase().includes('manjunathannigeri120')) {
-    return <div className="p-12 text-center text-red-500"><h1>Access Denied! You are not Manjunath.</h1><p>Your email: '{user?.email}'</p></div>;
-  }
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getAdminUsers();
@@ -43,11 +30,19 @@ export function GodMode() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    if (!authLoading && user?.email?.toLowerCase().includes('manjunathannigeri120')) {
+      loadUsers();
+    }
+  }, [authLoading, user, loadUsers]);
+
+  if (authLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-slate-300" /></div>;
+
+  if (!user?.email || !user.email.toLowerCase().includes('manjunathannigeri120')) {
+    return <div className="p-12 text-center text-red-500"><h1>Access Denied! You are not Manjunath.</h1><p>Your email: '{user?.email}'</p></div>;
+  }
 
   const handleAddCredits = async (userId: string) => {
     try {
@@ -154,4 +149,3 @@ export function GodMode() {
     </div>
   );
 }
-
