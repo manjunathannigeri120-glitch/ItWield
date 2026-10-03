@@ -79,4 +79,25 @@ router.get('/me', async (req: AuthRequest, res) => {
   }
 });
 
+router.delete('/me', async (req: AuthRequest, res) => {
+  try {
+    if (!req.user) return res.status(400).json({ error: 'User required' });
+    
+    // To delete a user in Supabase Auth, we must use the admin API
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(
+      process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_KEY
+    );
+
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(req.user.id);
+    if (error) throw error;
+    
+    res.json({ success: true, message: 'User deleted permanently' });
+  } catch (error: any) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ error: 'Failed to delete account permanently.' });
+  }
+});
 export default router;
+
