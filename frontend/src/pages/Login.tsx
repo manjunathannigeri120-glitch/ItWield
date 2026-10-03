@@ -110,7 +110,7 @@ export function Login() {
             }
           });
           if (error) throw error;
-          setSuccess('Account created! Please check your email for the confirmation link before logging in.');
+          setSuccess('Account created! Please check your email.');
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -121,7 +121,7 @@ export function Login() {
       }
     } catch (err: any) {
       if (err?.message === 'Email not confirmed') {
-        setError('Please check your email and click the confirmation link before logging in.');
+        setError('Please check your email.');
       } else {
         setError(err?.message || 'Authentication failed');
       }
