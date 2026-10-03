@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import authRoutes from './auth';
+import adminRoutes from './admin';
 import paymentRoutes from './payments';
 import agentRoutes from './agents';
 import workspaceRoutes from './workspaces';
@@ -52,6 +53,8 @@ router.use('/tasks', tasksRouter);
 router.use('/ceo', ceoRouter);
 router.use('/scheduler', schedulerRouter);
 router.use('/auth', authRoutes);
+router.use('/admin', adminRoutes);
 router.use('/payments', paymentRoutes);
 
 export default router;
+

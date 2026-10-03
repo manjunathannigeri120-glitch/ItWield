@@ -42,3 +42,10 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+
+// Admin Methods
+export const getAdminUsers = () => fetchWithAuth('/admin/users');
+export const updateAdminCredits = (userId: string, amount: number, action: 'add' | 'set') => fetchWithAuth(/admin/users/${userId}/credits, { method: 'POST', body: JSON.stringify({ amount, action }) });
+export const deleteAdminUser = (userId: string) => fetchWithAuth(/admin/users/${userId}, { method: 'DELETE' });
+
