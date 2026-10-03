@@ -165,6 +165,12 @@ export class CTOService {
                     resolved_at: new Date().toISOString()
                 }).eq('id', incident.id);
 
+                await supabase.from('notifications').insert({
+                    workspace_id: workspaceId,
+                    title: 'Issue Auto-Fixed',
+                    content: `The CTO agent has autonomously resolved an incident: ${incident.title}.`
+                });
+
                 await CompanyMemoryService.createMemory({
                     workspaceId,
                     category: 'LESSON',
@@ -202,3 +208,4 @@ export class CTOService {
         }
     }
 }
+

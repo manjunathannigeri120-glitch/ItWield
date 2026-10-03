@@ -1,5 +1,6 @@
 import { LogoIcon } from '@/components/ui/LogoIcon';
 import { UpgradeModal } from '@/components/UpgradeModal';
+import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Bot, Home, Settings, Rocket, GitMerge, Users, Database, Target } from 'lucide-react';
@@ -166,6 +167,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto relative">
+        <NotificationsDropdown />
         {children}
         
         {/* Hard Paywall Overlay */}
@@ -191,6 +193,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 }
+
 
 
 
