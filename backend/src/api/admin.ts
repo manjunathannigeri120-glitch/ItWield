@@ -47,6 +47,35 @@ router.get('/users', async (req: AuthRequest, res) => {
 });
 
 // Update credits for a specific user (adds to their first workspace)
+router.post('/enforce-credits', async (req: AuthRequest, res) => {
+  try {
+    const serviceClient = getServiceSupabase();
+    if (!serviceClient) throw new Error('DB required');
+    const { data: workspaces } = await serviceClient.from('workspaces').select('id, owner_id, created_at, credits').order('created_at', { ascending: true });
+    if (!workspaces) return res.json({ success: true });
+
+    const userMap = new Map<string, any[]>();
+    for (const ws of workspaces) {
+      if (!userMap.has(ws.owner_id)) userMap.set(ws.owner_id, []);
+      userMap.get(ws.owner_id)!.push(ws);
+    }
+
+    for (const [ownerId, wss] of Array.from(userMap.entries())) {
+      for (let i = 0; i < wss.length; i++) {
+        const ws = wss[i];
+        let correctCredits = 0;
+        if (i === 0) { correctCredits = Math.min(ws.credits, 150); }
+        if (ws.credits !== correctCredits) {
+          await serviceClient.from('workspaces').update({ credits: correctCredits }).eq('id', ws.id);
+        }
+      }
+    }
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/users/:userId/credits', async (req: AuthRequest, res) => {
   try {
     const userId = req.params.userId as string;
@@ -143,6 +172,7 @@ router.delete('/users/:userId', async (req: AuthRequest, res) => {
 });
 
 export default router;
+
 
 
 
