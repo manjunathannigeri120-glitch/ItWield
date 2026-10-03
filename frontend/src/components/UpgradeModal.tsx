@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { X, Check, Loader2, ArrowLeft, CreditCard, Smartphone } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
 
 const PLANS = {
   solo: { USD: 49, INR: 4067, AED: 179, EUR: 45, credits: 5000, name: 'Solo Builder' },
@@ -11,6 +12,7 @@ const PLANS = {
 const SYMBOLS: any = { USD: '$', INR: '₹', AED: 'د.إ', EUR: '€' };
 
 export function UpgradeModal() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedPlan, setSelectedPlan] = useState<keyof typeof PLANS | null>(null);
