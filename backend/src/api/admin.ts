@@ -90,6 +90,19 @@ router.post('/users/:userId/credits', async (req: AuthRequest, res) => {
 });
 
 // Delete a user account completely
+router.post('/users/:userId/ban', async (req: AuthRequest, res) => {
+  try {
+    const userId = req.params.userId as string;
+    if (userId === req.user?.id) return res.status(400).json({ error: 'Cannot ban yourself' });
+    const serviceClient = getServiceSupabase();
+    const { error } = await serviceClient.auth.admin.updateUserById(userId, { ban_duration: '87600h' });
+    if (error) throw error;
+    res.json({ success: true, message: 'User banned' });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to ban user' });
+  }
+});
+
 router.delete('/users/:userId', async (req: AuthRequest, res) => {
   try {
     const userId = req.params.userId as string;
@@ -113,5 +126,6 @@ router.delete('/users/:userId', async (req: AuthRequest, res) => {
 });
 
 export default router;
+
 
 
