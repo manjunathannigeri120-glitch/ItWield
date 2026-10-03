@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { getAdminUsers, updateAdminCredits, deleteAdminUser, banAdminUser } from '@/lib/api';
+import { getAdminUsers, updateAdminCredits, deleteAdminUser, banAdminUser, unbanAdminUser } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Shield, Trash2, Loader2, Minus, Plus } from 'lucide-react';
+import { Shield, Trash2, Loader2, Minus, Plus, AlertCircle } from 'lucide-react';
 
 interface AdminUser {
   id: string;
   email: string;
   created_at: string;
   totalCredits: number;
+  banned_until?: string;
 }
 
 export function GodMode() {
@@ -16,7 +17,7 @@ export function GodMode() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [creditAmount, setCreditAmount] = useState('1000');
+  const [creditAmount, setCreditAmount] = useState('100');
   
   const SUPERADMIN_EMAIL = 'manjunathannigeri120@gmail.com';
 
@@ -47,22 +48,26 @@ export function GodMode() {
   const handleUpdateCredits = async (userId: string, isSubtract: boolean) => {
     try {
       let amount = parseInt(creditAmount);
+      if (isNaN(amount) || amount <= 0) return alert('Enter a valid number greater than 0');
       if (isSubtract) { amount = -amount; }
       await updateAdminCredits(userId, amount, 'add');
       loadUsers();
-      alert('Credits updated successfully');
     } catch (err: any) {
       alert(err.message || 'Failed to update credits');
     }
   };
 
-  const handleBanUser = async (userId: string) => {
-    if (!window.confirm('Are you sure you want to BAN this user? They will not be able to log in for 10 years.')) return;
+  const handleBanUser = async (userId: string, isBanned: boolean) => {
+    if (!isBanned && !window.confirm('Are you sure you want to BAN this user?')) return;
     try {
-      await banAdminUser(userId);
-      alert('User successfully banned.');
+      if (isBanned) {
+        await unbanAdminUser(userId);
+      } else {
+        await banAdminUser(userId);
+      }
+      loadUsers();
     } catch (err: any) {
-      alert(err.message || 'Failed to ban user');
+      alert(err.message || 'Failed to update ban status');
     }
   };
 
@@ -71,7 +76,6 @@ export function GodMode() {
     try {
       await deleteAdminUser(userId);
       loadUsers();
-      alert('User deleted successfully');
     } catch (err: any) {
       alert(err.message || 'Failed to delete user');
     }
@@ -109,42 +113,53 @@ export function GodMode() {
                 <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                   <tr>
                     <th className="px-6 py-3">Email</th>
-                    <th className="px-6 py-3">Joined</th>
+                    <th className="px-6 py-3">Status</th>
                     <th className="px-6 py-3">Remaining Credits</th>
                     <th className="px-6 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
-                    <tr key={u.id} className="bg-white border-b hover:bg-slate-50">
-                      <td className="px-6 py-4 font-medium text-slate-900 flex items-center gap-2">
-                        {u.email}
-                        {u.email === SUPERADMIN_EMAIL && (
-                          <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full font-bold">YOU</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">{new Date(u.created_at).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 font-mono font-bold">{u.totalCredits}</td>
-                      <td className="px-6 py-4 flex gap-4">
-                        <div className="flex items-center bg-slate-100 rounded-lg overflow-hidden">
-                          <input 
-                            type="number" 
-                            className="w-20 px-2 py-1 text-sm bg-transparent border-none focus:ring-0" 
-                            value={creditAmount}
-                            onChange={(e) => setCreditAmount(e.target.value)}
-                          />
-                          <button onClick={() => handleUpdateCredits(u.id, true)} className="px-2 py-1 bg-amber-500 text-white hover:bg-amber-600 transition-colors"><Minus className="w-4 h-4" /></button>
-                          <button onClick={() => handleUpdateCredits(u.id, false)} className="px-2 py-1 bg-green-500 text-white hover:bg-green-600 transition-colors"><Plus className="w-4 h-4" /></button>
-                        </div>
-                        {u.email !== SUPERADMIN_EMAIL && (
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => handleBanUser(u.id)} className="px-3 py-1 bg-slate-800 text-white hover:bg-slate-900 rounded-lg text-xs font-bold transition-colors" title="Ban User (No Login)">BAN</button> 
-                            <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Permanently Delete User"><Trash2 className="w-4 h-4" /></button>
+                  {users.map((u) => {
+                    const isBanned = !!u.banned_until;
+                    return (
+                      <tr key={u.id} className={\g-white border-b hover:bg-slate-50 \\}>
+                        <td className="px-6 py-4 font-medium text-slate-900 flex items-center gap-2">
+                          {u.email}
+                          {u.email === SUPERADMIN_EMAIL && (
+                            <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full font-bold">YOU</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {isBanned ? (
+                            <span className="text-red-600 font-bold flex items-center gap-1"><AlertCircle className="w-4 h-4"/> BANNED</span>
+                          ) : (
+                            <span className="text-green-600 font-medium">Active</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 font-mono font-bold">{u.totalCredits}</td>
+                        <td className="px-6 py-4 flex gap-4">
+                          <div className="flex items-center bg-slate-100 rounded-lg overflow-hidden">
+                            <input 
+                              type="number" 
+                              className="w-20 px-2 py-1 text-sm bg-transparent border-none focus:ring-0" 
+                              value={creditAmount}
+                              onChange={(e) => setCreditAmount(e.target.value)}
+                            />
+                            <button onClick={() => handleUpdateCredits(u.id, true)} className="px-2 py-1 bg-amber-500 text-white hover:bg-amber-600 transition-colors"><Minus className="w-4 h-4" /></button>
+                            <button onClick={() => handleUpdateCredits(u.id, false)} className="px-2 py-1 bg-green-500 text-white hover:bg-green-600 transition-colors"><Plus className="w-4 h-4" /></button>
                           </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                          {u.email !== SUPERADMIN_EMAIL && (
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => handleBanUser(u.id, isBanned)} className={\px-3 py-1 rounded-lg text-xs font-bold transition-colors \\}>
+                                {isBanned ? 'UNBAN' : 'BAN'}
+                              </button> 
+                              <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Permanently Delete User"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

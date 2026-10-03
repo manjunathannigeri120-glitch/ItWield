@@ -53,3 +53,5 @@ export const deleteAdminUser = async (userId: string) => (await api.delete(`/adm
 export const banAdminUser = async (userId: string) => (await api.post(`/admin/users/${userId}/ban`)).data;
 
 
+export const unbanAdminUser = async (userId: string) => (await api.post(`/admin/users/${userId}/unban`)).data;
+
