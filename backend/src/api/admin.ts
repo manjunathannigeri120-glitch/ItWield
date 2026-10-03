@@ -95,6 +95,7 @@ router.post('/users/:userId/ban', async (req: AuthRequest, res) => {
     const userId = req.params.userId as string;
     if (userId === req.user?.id) return res.status(400).json({ error: 'Cannot ban yourself' });
     const serviceClient = getServiceSupabase();
+    if (!serviceClient) throw new Error("Service client not initialized");
     const { error } = await serviceClient.auth.admin.updateUserById(userId, { ban_duration: '87600h' });
     if (error) throw error;
     res.json({ success: true, message: 'User banned' });
@@ -126,6 +127,7 @@ router.delete('/users/:userId', async (req: AuthRequest, res) => {
 });
 
 export default router;
+
 
 
 
