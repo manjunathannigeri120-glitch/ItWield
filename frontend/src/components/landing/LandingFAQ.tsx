@@ -133,11 +133,11 @@ export function LandingFAQ() {
             <div>
               <h4 className="text-[#111827] font-bold mb-4">SOLUTIONS</h4>
               <ul className="space-y-3 text-sm text-[#4B5563]">
-                <li><a href="#" className="hover:text-[#0057FF] transition-colors">Customer Growth</a></li>
-                <li><a href="#" className="hover:text-[#0057FF] transition-colors">Operations</a></li>
-                <li><a href="#" className="hover:text-[#0057FF] transition-colors">Technology</a></li>
-                <li><a href="#" className="hover:text-[#0057FF] transition-colors">Finance</a></li>
-                <li><a href="#" className="hover:text-[#0057FF] transition-colors">Business Goals</a></li>
+                <li><a href="#features" className="hover:text-[#0057FF] transition-colors">Customer Growth</a></li>
+                <li><a href="#features" className="hover:text-[#0057FF] transition-colors">Operations</a></li>
+                <li><a href="#features" className="hover:text-[#0057FF] transition-colors">Technology</a></li>
+                <li><a href="#features" className="hover:text-[#0057FF] transition-colors">Finance</a></li>
+                <li><a href="#features" className="hover:text-[#0057FF] transition-colors">Business Goals</a></li>
               </ul>
             </div>
 
