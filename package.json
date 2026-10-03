@@ -4,5 +4,11 @@
   "workspaces": [
     "frontend",
     "backend"
-  ]
+  ],
+  "devDependencies": {
+    "autoprefixer": "^10.6.1",
+    "nanoid": "^3.3.19",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3"
+  }
 }
