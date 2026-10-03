@@ -56,3 +56,5 @@ export const banAdminUser = async (userId: string) => (await api.post(`/admin/us
 export const unbanAdminUser = async (userId: string) => (await api.post(`/admin/users/${userId}/unban`)).data;
 
 
+export const enforceAdminCredits = async () => (await api.post('/admin/enforce-credits')).data;
+

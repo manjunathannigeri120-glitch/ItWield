@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { getAdminUsers, updateAdminCredits, deleteAdminUser, banAdminUser, unbanAdminUser } from '@/lib/api';
+import { getAdminUsers, updateAdminCredits, deleteAdminUser, banAdminUser, unbanAdminUser, enforceAdminCredits } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Shield, Trash2, Loader2, Minus, Plus, AlertCircle } from 'lucide-react';
+import { Shield, Trash2, Loader2, Minus, Plus, AlertCircle, Zap } from 'lucide-react';
 
 interface AdminUser {
   id: string;
@@ -81,15 +81,33 @@ export function GodMode() {
     }
   };
 
+  const handleEnforceCredits = async () => {
+    if (!window.confirm('WARNING: This will instantly scan the entire database, set all users oldest workspace to 150 max credits, and wipe all duplicate workspaces to 0 credits. Proceed?')) return;
+    try {
+      setLoading(true);
+      await enforceAdminCredits();
+      await loadUsers();
+      alert('Global reset successful! All users are strictly limited to 150.');
+    } catch (err: any) {
+      alert(err.message || 'Failed to enforce credits');
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div className="flex items-center space-x-4 mb-8 border-b border-red-100 pb-4">
         <div className="p-3 bg-red-100 text-red-600 rounded-xl">
           <Shield className="w-8 h-8" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-slate-900">God Mode</h1>
           <p className="text-slate-500">SuperAdmin Control Panel v2</p>
+        </div>
+        <div>
+          <button onClick={handleEnforceCredits} className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold flex items-center gap-2 hover:bg-indigo-700 transition-colors shadow-sm">
+            <Zap className="w-4 h-4" /> Reset All Users to 150 Max
+          </button>
         </div>
       </div>
 
@@ -171,4 +189,3 @@ export function GodMode() {
     </div>
   );
 }
-
