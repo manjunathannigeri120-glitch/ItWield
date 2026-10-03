@@ -23,6 +23,7 @@ import { AgentNew } from '@/pages/AgentNew';
 import { AgentChat } from '@/pages/AgentChat';
 import { Settings } from '@/pages/Settings';
 import { Account } from '@/pages/Account';
+import { GodMode } from './pages/GodMode';
 import Connections from '@/pages/Connections';
 import { Knowledge } from '@/pages/Knowledge';
 import { Workflows } from '@/pages/Workflows';
@@ -153,6 +154,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
