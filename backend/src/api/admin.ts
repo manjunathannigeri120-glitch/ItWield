@@ -130,10 +130,10 @@ router.delete('/users/:userId', async (req: AuthRequest, res) => {
     if (!serviceClient) throw new Error("Service client not initialized");
 
     const { data: workspaces } = await serviceClient.from('workspaces').select('id').eq('owner_id', userId);
-    if (workspaces) {
-      for (const ws of workspaces) await serviceClient.from('workspaces').delete().eq('id', ws.id);
-    }
-    await serviceClient.from('profiles').delete().eq('id', userId);
+    const { error: wError } = await serviceClient.from('workspaces').delete().eq('owner_id', userId);
+    if (wError) throw new Error('Workspace cleanup failed: ' + wError.message);
+    const { error: pError } = await serviceClient.from('profiles').delete().eq('id', userId);
+    if (pError) throw new Error('Profile cleanup failed: ' + pError.message);
 
     const { error } = await serviceClient.auth.admin.deleteUser(userId);
     if (error) throw error;
@@ -174,3 +174,4 @@ router.post('/enforce-credits', async (req: AuthRequest, res) => {
 });
 
 export default router;
+
