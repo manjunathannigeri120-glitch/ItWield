@@ -2,8 +2,10 @@ import { Router } from 'express';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 
 const router = Router();
+router.use(requireAuth);
 
 // Ensure keys are safely pulled from environment, with fallbacks for this specific session
 const razorpay = new Razorpay({
@@ -17,8 +19,9 @@ const PLANS: Record<string, { amount: number; credits: number; name: string }> =
   business: { amount: 2500000, credits: 20000, name: 'Business' }
 };
 
-router.post('/create-order', async (req: any, res: any) => {
+router.post('/create-order', async (req: AuthRequest, res: any) => {
   try {
+    if (!req.supabase || !req.user) return res.status(401).json({ error: 'Unauthorized' });
     const { planId, workspaceId } = req.body;
     let amount = req.body.amount;
     let creditsToUnlock = req.body.credits || 0;
@@ -30,6 +33,18 @@ router.post('/create-order', async (req: any, res: any) => {
 
     if (!amount || !workspaceId) {
       return res.status(400).json({ error: 'Invalid plan or missing workspace ID' });
+    }
+
+    // Server-side authorization check: Ensure user belongs to the workspace
+    const { data: member, error: memberErr } = await req.supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', req.user.id)
+      .single();
+
+    if (memberErr || !member) {
+      return res.status(403).json({ error: 'Unauthorized to purchase credits for this workspace' });
     }
 
     const options = {
@@ -54,8 +69,9 @@ router.post('/create-order', async (req: any, res: any) => {
   }
 });
 
-router.post('/verify', async (req: any, res: any) => {
+router.post('/verify', async (req: AuthRequest, res: any) => {
   try {
+    if (!req.supabase || !req.user) return res.status(401).json({ error: 'Unauthorized' });
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     const secret = process.env.RAZORPAY_KEY_SECRET as string;
     

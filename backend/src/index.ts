@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import apiRoutes from './api';
@@ -11,6 +12,7 @@ dotenv.config();
 assertProductionConfig();
 
 const app = express();
+app.use(helmet());
 
 const port = process.env.PORT || 3000;
 
