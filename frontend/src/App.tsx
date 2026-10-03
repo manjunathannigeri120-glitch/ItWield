@@ -18,6 +18,7 @@ import { Agents } from '@/pages/Agents';
 import { AgentNew } from '@/pages/AgentNew';
 import { AgentChat } from '@/pages/AgentChat';
 import { Settings } from '@/pages/Settings';
+import { Account } from '@/pages/Account';
 import Connections from '@/pages/Connections';
 import { Knowledge } from '@/pages/Knowledge';
 import { Workflows } from '@/pages/Workflows';
@@ -130,6 +131,7 @@ function App() {
           <Route path="/workflows/:id/runs/:runId" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><WorkflowRunDetail /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/connections" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Connections /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Settings /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
+          <Route path="/account" element={<ProtectedRoute><WorkspaceGuard><DashboardLayout><Account /></DashboardLayout></WorkspaceGuard></ProtectedRoute>} />
           
           {/* OAuth integrations do not render full layouts, but still require an operating workspace context */}
           <Route path="/settings/connections/callback" element={<ProtectedRoute><WorkspaceGuard><OAuthCallback /></WorkspaceGuard></ProtectedRoute>} />

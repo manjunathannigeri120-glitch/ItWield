@@ -141,28 +141,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <div className="pt-2 border-t relative">
-            {accountOpen && (
-              <div className="absolute bottom-full left-0 mb-2 w-full bg-white border border-slate-200 rounded-lg shadow-lg p-2 z-50 animate-in fade-in zoom-in duration-200">
-                <div className="px-2 py-2 text-xs font-medium text-slate-500 truncate border-b mb-1">
-                  {user?.email}
-                </div>
-                <button onClick={handleLogout} className="w-full text-left px-2 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded">
-                  Logout
-                </button>
-                <button onClick={handleDeleteAccount} className="w-full text-left px-2 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 rounded mt-1">
-                  Delete Account Permanently
-                </button>
-              </div>
-            )}
-            <Button variant="outline" size="sm" className="w-full text-sm font-medium flex items-center justify-between" onClick={() => setAccountOpen(!accountOpen)}>
-              <div className="flex items-center gap-2">
+            <Link to="/account">
+              <Button variant={location.pathname === '/account' ? 'default' : 'outline'} size="sm" className="w-full text-sm font-medium flex items-center justify-start gap-2">
                 <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">
                   {user?.email?.charAt(0).toUpperCase()}
                 </div>
                 Account
-              </div>
-              <svg className={`w-4 h-4 transition-transform ${accountOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </Button>
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
