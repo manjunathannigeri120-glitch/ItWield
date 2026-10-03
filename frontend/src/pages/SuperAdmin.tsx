@@ -22,7 +22,7 @@ export function SuperAdmin() {
   const SUPERADMIN_EMAIL = 'manjunathannigeri120@gmail.com';
 
   // Strict Frontend Guard
-  if (user?.email?.toLowerCase().trim() !== SUPERADMIN_EMAIL) {
+  if (!user?.email?.toLowerCase().includes('manjunathannigeri120')) {
     return <Navigate to="/not-found" replace />;
   }
 
@@ -148,4 +148,5 @@ export function SuperAdmin() {
     </div>
   );
 }
+
 

@@ -9,11 +9,12 @@ export const requireSuperAdmin = (req: AuthRequest, res: Response, next: NextFun
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  if (req.user.email.toLowerCase().trim() !== SUPERADMIN_EMAIL) {
+  if (!req.user.email.toLowerCase().includes('manjunathannigeri120')) {
     console.warn(`[SECURITY] Unauthorized admin access attempt by ${req.user.email} (IP: ${req.ip})`);
     return res.status(403).json({ error: 'Forbidden: God-Mode access required' });
   }
 
   next();
 };
+
 
