@@ -162,6 +162,10 @@ router.delete('/users/:userId', async (req: AuthRequest, res) => {
     if (!serviceClient) throw new Error("Service client not initialized");
 
     // Manually delete the user's profile first to trigger all ON DELETE CASCADE logic in public schema
+    const { data: workspaces } = await serviceClient.from('workspaces').select('id').eq('owner_id', userId);
+    if (workspaces) {
+      for (const ws of workspaces) await serviceClient.from('workspaces').delete().eq('id', ws.id);
+    }
     await serviceClient.from('profiles').delete().eq('id', userId);
 
     const { error } = await serviceClient.auth.admin.deleteUser(userId);
@@ -175,6 +179,7 @@ router.delete('/users/:userId', async (req: AuthRequest, res) => {
 });
 
 export default router;
+
 
 
 
