@@ -114,6 +114,7 @@ export function GodMode() {
                   <tr>
                     <th className="px-6 py-3">Email</th>
                     <th className="px-6 py-3">Status</th>
+                    <th className="px-6 py-3">Used Credits</th>
                     <th className="px-6 py-3">Remaining Credits</th>
                     <th className="px-6 py-3">Actions</th>
                   </tr>
@@ -136,6 +137,7 @@ export function GodMode() {
                             <span className="text-green-600 font-medium">Active</span>
                           )}
                         </td>
+                        <td className="px-6 py-4 font-mono text-slate-500">{Math.max(0, 150 - u.totalCredits)}</td>
                         <td className="px-6 py-4 font-mono font-bold">{u.totalCredits}</td>
                         <td className="px-6 py-4 flex gap-4">
                           <div className="flex items-center bg-slate-100 rounded-lg overflow-hidden">
@@ -169,3 +171,4 @@ export function GodMode() {
     </div>
   );
 }
+
