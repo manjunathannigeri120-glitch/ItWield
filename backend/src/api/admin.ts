@@ -129,7 +129,7 @@ router.post('/users/:userId/ban', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json({ success: true, message: 'User banned' });
   } catch (error: any) {
-    res.status(500).json({ error: 'Failed to ban user' });
+    res.status(500).json({ error: 'Ban Error: ' + (error.message || error.toString()) });
   }
 });
 
@@ -145,7 +145,7 @@ router.post('/users/:userId/unban', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json({ success: true, message: 'User unbanned' });
   } catch (error: any) {
-    res.status(500).json({ error: 'Failed to unban user' });
+    res.status(500).json({ error: 'Unban Error: ' + (error.message || error.toString()) });
   }
 });
 
@@ -167,11 +167,12 @@ router.delete('/users/:userId', async (req: AuthRequest, res) => {
     res.json({ success: true, message: 'User permanently deleted' });
   } catch (error: any) {
     console.error('Admin API Error:', error);
-    res.status(500).json({ error: 'Failed to delete user' });
+    res.status(500).json({ error: 'Delete Error: ' + (error.message || error.toString()) });
   }
 });
 
 export default router;
+
 
 
 
