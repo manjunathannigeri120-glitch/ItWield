@@ -38,6 +38,15 @@ export function Landing() {
         <LandingPricing />
         <LandingFAQ />
       </main>
+      <footer className="bg-slate-50 py-12 border-t border-slate-200 text-center">
+        <div className="container mx-auto px-4 text-slate-500 text-sm">
+          <div className="flex justify-center space-x-6 mb-4">
+            <a href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</a>
+            <a href="/terms" className="hover:text-indigo-600 transition-colors">Terms of Service</a>
+          </div>
+          <p>&copy; {new Date().getFullYear()} ItWield. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }

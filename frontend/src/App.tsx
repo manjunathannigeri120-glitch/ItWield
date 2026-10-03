@@ -10,6 +10,8 @@ import { NotFound } from './pages/NotFound';
 import { FeedbackModal } from './components/FeedbackModal';
 import { Login } from '@/pages/Login';
 import { Landing } from '@/pages/Landing';
+import { PrivacyPolicy } from '@/pages/PrivacyPolicy';
+import { TermsOfService } from '@/pages/TermsOfService';
 import { Pricing } from '@/pages/Pricing';
 import Dashboard from '@/pages/Dashboard';
 import CTO from '@/pages/CTO';
@@ -110,6 +112,8 @@ function App() {
           <Route path="/signup" element={<Login />} />
           <Route path="/" element={<Landing />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
           
           {/* V2 Onboarding: Protected by Auth, but explicitly bypasses WorkspaceGuard */}
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
@@ -148,6 +152,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
