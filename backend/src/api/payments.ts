@@ -12,13 +12,13 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET as string,
 });
 
-const PLANS: Record<string, { amountUSD: number; amountINR: number; credits: number; name: string }> = {
-  solo: { amountUSD: 4900, amountINR: 406700, credits: 5000, name: 'Solo Builder' },
-  professional: { amountUSD: 19900, amountINR: 1651700, credits: 10000, name: 'Professional' },
-  business: { amountUSD: 29900, amountINR: 2481700, credits: 20000, name: 'Business' }
+// Store prices in their native subunit (cents, paise, fils, cents)
+const PLANS: Record<string, { USD: number; INR: number; AED: number; EUR: number; credits: number; name: string }> = {
+  solo: { USD: 4900, INR: 406700, AED: 17900, EUR: 4500, credits: 5000, name: 'Solo Builder' },
+  professional: { USD: 19900, INR: 1651700, AED: 73000, EUR: 18300, credits: 10000, name: 'Professional' },
+  business: { USD: 29900, INR: 2481700, AED: 109700, EUR: 27500, credits: 20000, name: 'Business' }
 };
 
-// V2 Route that creates an automated Subscription instead of a one-time order
 router.post('/create-subscription', async (req: AuthRequest, res: any) => {
   try {
     if (!req.supabase || !req.user) return res.status(401).json({ error: 'Unauthorized' });
@@ -37,29 +37,27 @@ router.post('/create-subscription', async (req: AuthRequest, res: any) => {
     if (!isAuthorized) return res.status(403).json({ error: 'Unauthorized to purchase credits for this workspace' });
 
     // Determine amount based on requested currency
-    let amount = PLANS[planId].amountUSD;
-    if (currency === 'INR') amount = PLANS[planId].amountINR;
+    const planObj = PLANS[planId] as any;
+    const amount = planObj[currency] || planObj.USD;
 
-    // Create a dynamic plan on Razorpay for this specific checkout
-    // (In production, you'd cache plan IDs, but creating on the fly works perfectly for diverse currencies)
     const plan = await razorpay.plans.create({
       period: 'monthly',
       interval: 1,
       item: {
-        name: `${PLANS[planId].name} (${currency})`,
+        name: `${planObj.name} (${currency})`,
         amount: amount,
         currency: currency,
-        description: `Monthly subscription to ItWield ${PLANS[planId].name}`
+        description: `Monthly subscription to ItWield ${planObj.name}`
       }
     });
 
     const subscription = await razorpay.subscriptions.create({
       plan_id: plan.id,
-      total_count: 120, // 10 years duration
+      total_count: 120,
       customer_notify: 0,
       notes: {
         workspaceId: workspaceId,
-        credits: PLANS[planId].credits,
+        credits: planObj.credits,
         userId: req.user.id
       }
     });
@@ -81,7 +79,6 @@ router.post('/verify-subscription', async (req: AuthRequest, res: any) => {
     const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = req.body;
     const secret = process.env.RAZORPAY_KEY_SECRET as string;
     
-    // Subscriptions use a different signature payload format
     const text = razorpay_payment_id + '|' + razorpay_subscription_id;
     const hmac = crypto.createHmac('sha256', secret);
     hmac.update(text);
@@ -99,9 +96,9 @@ router.post('/verify-subscription', async (req: AuthRequest, res: any) => {
       return res.status(400).json({ error: 'Invalid subscription notes' });
     }
 
+    let client = req.supabase; 
     const supabaseUrl = process.env.SUPABASE_URL || '';
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-    let client = req.supabase; 
     if (supabaseUrl && supabaseServiceKey) {
       client = createClient(supabaseUrl, supabaseServiceKey);
     }
@@ -109,7 +106,7 @@ router.post('/verify-subscription', async (req: AuthRequest, res: any) => {
     const { error: insertError } = await client.from('processed_payments').insert({
       workspace_id: workspaceId,
       razorpay_payment_id: razorpay_payment_id,
-      razorpay_order_id: razorpay_subscription_id, // Store sub ID as order ID for tracing
+      razorpay_order_id: razorpay_subscription_id,
       amount: 0, 
       credits_added: creditsToAdd
     });
@@ -118,16 +115,10 @@ router.post('/verify-subscription', async (req: AuthRequest, res: any) => {
       return res.status(500).json({ error: 'Failed to record payment' });
     }
 
-    const { error: rpcError } = await client.rpc('add_workspace_credits', {
-      ws_id: workspaceId,
-      amount: creditsToAdd
-    });
-    
+    const { error: rpcError } = await client.rpc('add_workspace_credits', { ws_id: workspaceId, amount: creditsToAdd });
     if (rpcError) {
       const { data: ws } = await client.from('workspaces').select('credits').eq('id', workspaceId).single();
-      if (ws) {
-         await client.from('workspaces').update({ credits: (ws.credits || 0) + creditsToAdd }).eq('id', workspaceId);
-      }
+      if (ws) await client.from('workspaces').update({ credits: (ws.credits || 0) + creditsToAdd }).eq('id', workspaceId);
     }
 
     return res.json({ success: true, message: 'Subscription verified and credits added.' });
