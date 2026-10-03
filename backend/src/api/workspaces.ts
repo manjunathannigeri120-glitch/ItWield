@@ -84,7 +84,8 @@ router.post('/', async (req: AuthRequest, res) => {
       .from('workspaces')
       .insert({
         owner_id: req.user?.id,
-        name: validatedData.name
+        name: validatedData.name,
+        credits: 0
       })
       .select()
       .single();
@@ -1212,4 +1213,5 @@ router.post('/:id/feedback', async (req: any, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
 
