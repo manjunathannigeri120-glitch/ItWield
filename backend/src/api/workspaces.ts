@@ -85,7 +85,7 @@ router.post('/', async (req: AuthRequest, res) => {
       .insert({
         owner_id: req.user?.id,
         name: validatedData.name,
-        credits: 0
+        credits: 150
       })
       .select()
       .single();
