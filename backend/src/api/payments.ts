@@ -3,9 +3,11 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { paymentLimiter } from '../middleware/rateLimiters';
 
 const router = Router();
 router.use(requireAuth);
+router.use(paymentLimiter);
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID as string,

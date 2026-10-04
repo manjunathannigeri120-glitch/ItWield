@@ -1,10 +1,12 @@
 import { CreditService } from '../services/CreditService';
 import express from 'express';
 import { requireAuth } from '../middleware/auth';
+import { aiLimiter } from '../middleware/rateLimiters';
 import { BusinessGoalInterpreter } from '../services/BusinessGoalInterpreter';
 
 const router = express.Router({ mergeParams: true });
 router.use(requireAuth);
+router.use(aiLimiter);
 
 router.post('/', async (req: any, res) => {
     const { workspaceId } = req.params;

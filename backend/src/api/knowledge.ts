@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { uploadLimiter } from '../middleware/rateLimiters';
 import { z } from 'zod';
 import multer from 'multer';
 import OpenAI from 'openai';
 
 const router = Router();
 router.use(requireAuth);
+router.use(uploadLimiter);
 
 const upload = multer({
   storage: multer.memoryStorage(),
