@@ -36,17 +36,49 @@ export function Onboarding() {
   });
 
   const handleCreateBasics = async () => {
-    if (!basics.name.trim()) return setError('Company name is required');
-    if (!basics.website.trim()) return setError('Website or App link is required');
-    if (!basics.short_description.trim()) return setError('A brief description is required to help the AI understand your business');
+    const trimmedName = basics.name.trim();
+    let trimmedWebsite = basics.website.trim();
+    const trimmedDesc = basics.short_description.trim();
+
+    if (!trimmedName || trimmedName.length < 2) {
+      return setError('Please enter a valid company name (at least 2 characters).');
+    }
+    
+    if (!trimmedWebsite) {
+      return setError('Website or App link is required.');
+    }
+
+    // Auto-prefix https:// if user typed "mycompany.com"
+    if (!/^https?:\/\//i.test(trimmedWebsite)) {
+      trimmedWebsite = `https://${trimmedWebsite}`;
+      setBasics(prev => ({ ...prev, website: trimmedWebsite }));
+    }
+
+    // URL validation regex (checks domain structure e.g. company.com, appstore link, etc.)
+    const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/i;
+    if (!urlPattern.test(trimmedWebsite)) {
+      return setError('Please enter a valid website URL (e.g. https://yourcompany.com or yourcompany.com).');
+    }
+
+    if (!trimmedDesc || trimmedDesc.length < 10) {
+      return setError('Please provide a brief description (at least 10 characters) so the AI can understand what your business does.');
+    }
     
     setError(null);
     setStep(2);
   };
 
   const handleFinishOnboarding = async () => {
-    if (!context.target_customer.trim()) return setError('Target customer is required');
-    if (!context.biggest_problems.trim()) return setError('Biggest problems are required to give the AI context');
+    const trimmedCustomer = context.target_customer.trim();
+    const trimmedProblems = context.biggest_problems.trim();
+
+    if (!trimmedCustomer || trimmedCustomer.length < 3) {
+      return setError('Please describe your target customer (e.g., Marketing agencies, B2B startups).');
+    }
+    
+    if (!trimmedProblems || trimmedProblems.length < 5) {
+      return setError('Please specify at least one business problem or constraint so the AI agents know where to focus.');
+    }
 
     setLoading(true);
     setError(null);
