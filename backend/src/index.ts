@@ -12,6 +12,7 @@ dotenv.config();
 assertProductionConfig();
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(helmet());
 
 const port = process.env.PORT || 3000;
@@ -56,16 +57,17 @@ app.use((_req, res, next) => {
 });
 
 // ─── Rate Limiting ────────────────────────────────────────────────────────────
-// Basic rate-limiting: 500 requests per 15 minutes per IP
+// Global baseline rate-limiting: 5,000 requests per 15 minutes per IP
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 500,
+  max: 5000,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS' || req.path === '/api/health',
   message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
 });
 
-// Apply rate limiting to all requests (except webhooks which might come in high volume, if needed we can exclude them, but global is safer for now)
+// Apply rate limiting to all requests
 app.use(globalLimiter);
 
 // ─── Body Size Limits ─────────────────────────────────────────────────────────
