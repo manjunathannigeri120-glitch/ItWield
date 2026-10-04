@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { LogoIcon } from '@/components/ui/LogoIcon';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -238,9 +239,7 @@ export function Login() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 px-4 py-8">
       <Card className="w-full max-w-md shadow-xl border-slate-200 bg-white">
         <CardHeader className="text-center space-y-1 pb-4">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-2xl mx-auto mb-2 shadow-md">
-            W
-          </div>
+          <LogoIcon className="w-14 h-14 mx-auto mb-2 drop-shadow-md" />
           <CardTitle className="text-2xl font-black text-slate-900 tracking-tight">ItWield</CardTitle>
           <CardDescription className="text-slate-500 font-medium">
             {isSignup ? 'Create a new account to start building' : 'Sign in to access your AI Workspace'}
