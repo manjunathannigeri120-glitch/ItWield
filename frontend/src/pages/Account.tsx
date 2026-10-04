@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { User, LogOut, AlertTriangle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { LogoIcon } from '@/components/ui/LogoIcon';
 
 export function Account() {
   const { user } = useAuth();
@@ -59,9 +60,12 @@ export function Account() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Account</h1>
-        <p className="text-slate-500 mt-2">Manage your personal account settings and security.</p>
+      <div className="flex items-center gap-3">
+        <LogoIcon className="w-10 h-10 drop-shadow-sm" />
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Account</h1>
+          <p className="text-slate-500 mt-0.5">Manage your personal account settings, security, and data.</p>
+        </div>
       </div>
 
       <Card className="border-2 border-slate-900 shadow-md">
