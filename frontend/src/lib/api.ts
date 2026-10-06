@@ -35,7 +35,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Clear mock session just in case
       localStorage.removeItem('sb-mock-session');
-      if (window.location.pathname !== '/login') {
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/' && window.location.pathname !== '/pricing') {
         window.location.href = '/login';
       }
     }
