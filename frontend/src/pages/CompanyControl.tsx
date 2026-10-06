@@ -127,7 +127,7 @@ export default function CompanyControl() {
           <h3 className="font-semibold text-slate-700 flex items-center">
             <GitBranch className="w-5 h-5 mr-2 text-slate-400" /> Connected Company Systems
           </h3>
-          <Button variant="outline" size="sm">Connect New System</Button>
+          <Button variant="outline" size="sm" disabled>Connect New System (Coming in V2)</Button>
         </div>
         <div className="divide-y divide-slate-100">
           {systems.length === 0 ? (

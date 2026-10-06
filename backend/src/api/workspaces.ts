@@ -986,7 +986,7 @@ router.post('/:id/approvals/:approvalId/reject', async (req: AuthRequest, res) =
     const workspaceId = String(req.params.id);
     const approvalId = String(req.params.approvalId);
     const userId = (req.user?.id && req.user.id !== 'mock-user-id' && req.user.id !== 'service_role') ? req.user.id : null;
-    const { reason } = req.body;
+    const reason = req.body?.reason;
 
     const { data: approval, error: fetchErr } = await req.supabase
       .from('approvals')
