@@ -8,7 +8,6 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const [currentWorkspace, setCurrentWorkspace] = useState<any>(null);
 
-  // Helper to load the first workspace for the user
   const loadWorkspace = async () => {
     try {
       const res = await api.get('/workspaces');
@@ -21,7 +20,6 @@ export function useAuth() {
   };
 
   useEffect(() => {
-    // Initial session fetch
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error || !session) {
         const mockSession = localStorage.getItem('sb-mock-session');
@@ -30,12 +28,15 @@ export function useAuth() {
           setSession(parsed);
           setUser(parsed.user);
           loadWorkspace();
-          setLoading(false);
-          return;
+        } else {
+          setSession(null);
+          setUser(null);
         }
+        setLoading(false);
+        return;
       }
       setSession(session);
-      setUser(session?.user ?? null);
+      setUser(session.user);
       loadWorkspace();
       setLoading(false);
     }).catch(() => {
@@ -52,7 +53,9 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      loadWorkspace();
+      if (session) {
+        loadWorkspace();
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -60,4 +63,3 @@ export function useAuth() {
 
   return { session, user, loading, currentWorkspace };
 }
-
