@@ -48,18 +48,24 @@ export function AgentChat() {
     }
   });
 
+  const isSendingRef = useRef(false);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, chatMutation.isPending]);
 
   const handleSend = (e?: React.FormEvent, msgOverride?: string) => {
     if (e) e.preventDefault();
-    const msg = msgOverride || input;
-    if (!msg.trim() || chatMutation.isPending) return;
+    const msg = (msgOverride || input).trim();
+    if (!msg || chatMutation.isPending || isSendingRef.current) return;
     
-    // Optimistically add to UI (optional, react-query will refetch anyway, but let's rely on refetch for now)
-    chatMutation.mutate(msg);
+    isSendingRef.current = true;
     setInput('');
+    chatMutation.mutate(msg, {
+      onSettled: () => {
+        isSendingRef.current = false;
+      }
+    });
   };
 
   if (agentLoading) return <div className="p-8 flex justify-center text-slate-500"><Loader2 className="w-6 h-6 animate-spin" /></div>;
@@ -155,8 +161,9 @@ export function AgentChat() {
                 {details.questions.map((q, i) => (
                   <button 
                     key={i}
+                    disabled={chatMutation.isPending}
                     onClick={() => handleSend(undefined, q)}
-                    className="w-full text-left px-4 py-3 bg-slate-50 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-lg text-sm text-slate-700 hover:text-indigo-700 transition-colors font-medium flex items-center justify-between group"
+                    className="w-full text-left px-4 py-3 bg-slate-50 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-lg text-sm text-slate-700 hover:text-indigo-700 transition-colors font-medium flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {q}
                     <ArrowLeft className="w-4 h-4 opacity-0 group-hover:opacity-100 rotate-180 transition-opacity" />
@@ -168,7 +175,11 @@ export function AgentChat() {
         )}
 
         <div className="max-w-4xl mx-auto space-y-6">
-          {messages.map((msg: any) => (
+          {messages.filter((msg: any, idx: number, arr: any[]) => {
+            if (idx === 0) return true;
+            const prev = arr[idx - 1];
+            return !(msg.role === prev.role && msg.content?.trim() === prev.content?.trim());
+          }).map((msg: any) => (
             <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role !== 'user' && (
                 <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-white shadow-sm mt-1 ${details.color}`}>

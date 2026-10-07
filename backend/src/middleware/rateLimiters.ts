@@ -8,8 +8,7 @@ export const aiLimiter = rateLimit({
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req: any) => req.user?.id || req.ip || 'anonymous',
-  message: { error: 'Too many AI requests. Please wait a moment before sending more messages.' }
+    message: { error: 'Too many AI requests. Please wait a moment before sending more messages.' }
 });
 
 /**
@@ -20,8 +19,7 @@ export const paymentLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req: any) => req.user?.id || req.ip || 'anonymous',
-  message: { error: 'Payment request limit reached. Please wait 10 minutes before retrying.' }
+    message: { error: 'Payment request limit reached. Please wait 10 minutes before retrying.' }
 });
 
 /**
@@ -32,8 +30,7 @@ export const uploadLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req: any) => req.user?.id || req.ip || 'anonymous',
-  message: { error: 'Upload limit reached. Maximum 10 documents per 15 minutes.' }
+    message: { error: 'Upload limit reached. Maximum 10 documents per 15 minutes.' }
 });
 
 /**
@@ -44,6 +41,5 @@ export const authLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req: any) => req.ip || 'anonymous',
-  message: { error: 'Too many authentication attempts. Please try again later.' }
+    message: { error: 'Too many authentication attempts. Please try again later.' }
 });

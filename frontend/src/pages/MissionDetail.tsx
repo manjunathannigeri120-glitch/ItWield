@@ -14,7 +14,7 @@ export function MissionDetail() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(loadData, 60000); // reduced frequency
     return () => clearInterval(interval);
   }, [missionId]);
 

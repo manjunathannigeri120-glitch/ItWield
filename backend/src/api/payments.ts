@@ -10,8 +10,8 @@ router.use(requireAuth);
 router.use(paymentLimiter);
 
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID as string,
-  key_secret: process.env.RAZORPAY_KEY_SECRET as string,
+  key_id: process.env.RAZORPAY_KEY_ID || 'dummy_key_id',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_key_secret',
 });
 
 // Store prices in their native subunit (cents, paise, fils, cents)

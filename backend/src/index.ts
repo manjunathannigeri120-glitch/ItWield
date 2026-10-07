@@ -156,7 +156,7 @@ app.listen(port, () => {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
     console.warn('WARN: SUPABASE_URL and/or SUPABASE_SERVICE_KEY missing. Falling back to in-memory mock DB.');
   }
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.OPENAI_API_KEY && !process.env.OPENROUTER_API_KEY) {
     console.warn('WARN: OPENAI_API_KEY missing. Falling back to MockProvider for AI.');
   }
 });

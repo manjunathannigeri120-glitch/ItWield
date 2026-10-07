@@ -7,6 +7,7 @@ import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { LogoIcon } from '@/components/ui/LogoIcon';
+import { getDeviceId } from '@/lib/device';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -125,7 +126,10 @@ export function Login() {
             email,
             password,
             options: {
-              emailRedirectTo: `${window.location.origin}/dashboard`
+              emailRedirectTo: `${window.location.origin}/dashboard`,
+              data: {
+                device_id: getDeviceId()
+              }
             }
           });
           if (error) throw error;

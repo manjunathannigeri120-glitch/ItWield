@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { SubscriptionService } from '../services/SubscriptionService';
 import { UsageService } from '../services/UsageService';
 import { EntitlementService } from '../services/EntitlementService';
+import { getServiceSupabase } from '../db/supabaseClient';
 
 const router = Router();
 router.use(requireAuth);
@@ -80,12 +81,56 @@ router.post('/', async (req: AuthRequest, res) => {
       }
       // -------------------------------------
 
+      // 1. Strict 150-credit limit per user & per device
+      const { data: existingWorkspaces } = await req.supabase
+        .from('workspaces')
+        .select('credits')
+        .eq('owner_id', req.user?.id);
+
+      const deviceId = (req.headers['x-device-id'] as string) || '';
+      let initialCredits = 0;
+
+      // If user already owns any workspace, ANY additional workspace gets 0 credits!
+      // This guarantees the user's total credits across all workspaces will NEVER exceed 150.
+      if (!existingWorkspaces || existingWorkspaces.length === 0) {
+        // First workspace for this user! Default allowance is 150 credits.
+        initialCredits = 150;
+
+        // Anti-Abuse: If device ID is provided, check if another account already claimed free credits on this device
+        if (deviceId && deviceId.length > 5) {
+          try {
+            const serviceClient = getServiceSupabase();
+            if (serviceClient) {
+              const { data: allUsers } = await serviceClient.auth.admin.listUsers();
+              const deviceAlreadyClaimed = (allUsers?.users || []).some(u => 
+                u.id !== req.user?.id && (u.user_metadata?.device_id === deviceId)
+              );
+              if (deviceAlreadyClaimed) {
+                console.warn(`[Anti-Abuse] Device ${deviceId} already claimed free tier on another email. Setting credits to 0.`);
+                initialCredits = 0;
+              } else if (req.user?.id) {
+                // Tag current user with device_id
+                const currentMeta = (req.user as any)?.user_metadata || {};
+                await serviceClient.auth.admin.updateUserById(req.user.id, {
+                  user_metadata: { ...currentMeta, device_id: deviceId }
+                });
+              }
+            }
+          } catch (deviceCheckErr) {
+            console.error('[Anti-Abuse] Device check error (non-fatal):', deviceCheckErr);
+          }
+        }
+      } else {
+        // User already has 1 or more workspaces: 0 additional credits granted!
+        initialCredits = 0;
+      }
+
       const { data, error } = await req.supabase
       .from('workspaces')
       .insert({
         owner_id: req.user?.id,
         name: validatedData.name,
-        credits: 150
+        credits: initialCredits
       })
       .select()
       .single();
@@ -800,7 +845,17 @@ import { CreditService } from '../services/CreditService';
         return res.status(403).json({ error: 'Not authorized to view these credits' });
       }
 
-      return res.json({ credits: typeof data.credits === 'number' ? data.credits : 150 });
+      // Return user's total pooled credits across all workspaces (strictly capped at 150 max for free tier)
+      const { data: allWs } = await req.supabase
+        .from('workspaces')
+        .select('credits')
+        .eq('owner_id', req.user?.id);
+
+      const totalCredits = (allWs || []).reduce((sum: number, w: any) => sum + (w.credits || 0), 0);
+      const isSuperAdmin = req.user?.email === 'manjunathannigeri120@gmail.com';
+      const cappedCredits = isSuperAdmin ? totalCredits : Math.min(150, totalCredits);
+
+      return res.json({ credits: cappedCredits });
     } catch (err: any) {
       console.error('[Workspaces] GET credits error:', err);
       return res.status(500).json({ error: 'Internal server error' });

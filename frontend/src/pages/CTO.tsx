@@ -21,7 +21,7 @@ export default function CTO() {
             }
         };
         fetchStatus();
-        const interval = setInterval(fetchStatus, 3000);
+        const interval = setInterval(fetchStatus, 60000); // reduced frequency
         return () => clearInterval(interval);
     }, [currentWorkspace?.id]);
 

@@ -208,17 +208,12 @@ ${agent.system_prompt || ''}
 
       const contextMessages: Message[] = [
         { role: 'system', content: dynamicSystemPrompt },
-        ...messages,
-        { role: 'user', content: userMessage }
+        ...messages
       ];
 
-            // Save user message to DB
-      if (supabase && userMessage) {
-        await supabase.from('messages').insert({
-          conversation_id: conversationId,
-          role: 'user',
-          content: userMessage
-        });
+      // If no DB connection, messages array is empty, so we must add the current user message manually
+      if (!supabase && userMessage) {
+        contextMessages.push({ role: 'user', content: userMessage });
       }
 
       const aiProvider = this.getProvider();

@@ -202,6 +202,10 @@ router.delete('/:goalId', async (req: AuthRequest, res) => {
     if (!req.supabase) return res.status(500).json({ error: 'DB required' });
     const { workspaceId, goalId } = req.params;
 
+    // Cascade delete related entities first
+    await req.supabase.from('tasks').delete().eq('goal_id', goalId);
+    await req.supabase.from('workflow_runs').delete().eq('goal_id', goalId);
+    
     const { error } = await req.supabase
       .from('business_goals')
       .delete()

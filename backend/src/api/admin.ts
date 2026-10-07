@@ -23,7 +23,11 @@ router.get('/users', async (req: AuthRequest, res) => {
 
     const enrichedUsers = users.map(user => {
       const userWorkspaces = workspaces.filter(w => w.owner_id === user.id);
-      const totalCredits = userWorkspaces.reduce((acc, ws) => acc + (ws.credits || 0), 0);
+      let totalCredits = userWorkspaces.reduce((acc, ws) => acc + (ws.credits || 0), 0);
+      const isSuperAdmin = user.email === 'manjunathannigeri120@gmail.com';
+      if (!isSuperAdmin && totalCredits > 150) {
+        totalCredits = 150;
+      }
       return {
         id: user.id,
         email: user.email,
@@ -158,12 +162,13 @@ router.post('/enforce-credits', async (req: AuthRequest, res) => {
     }
 
     for (const [ownerId, wss] of Array.from(userMap.entries())) {
+      let remainingAllowed = 150;
       for (let i = 0; i < wss.length; i++) {
         const ws = wss[i];
-        let correctCredits = 0;
-        if (i === 0) { correctCredits = Math.min(ws.credits, 150); }
-        if (ws.credits !== correctCredits) {
-          await serviceClient.from('workspaces').update({ credits: correctCredits }).eq('id', ws.id);
+        const assigned = Math.min(ws.credits || 0, remainingAllowed);
+        remainingAllowed -= assigned;
+        if (ws.credits !== assigned) {
+          await serviceClient.from('workspaces').update({ credits: assigned }).eq('id', ws.id);
         }
       }
     }

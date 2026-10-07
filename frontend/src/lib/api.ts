@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { supabase } from './supabase';
+import { getDeviceId } from './device';
 
 let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 if (API_URL && !API_URL.endsWith('/api/v1')) {
@@ -11,6 +12,9 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
+  // Always attach unique device identifier for credit rate enforcement
+  config.headers['x-device-id'] = getDeviceId();
+
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
@@ -31,11 +35,36 @@ api.interceptors.request.use(async (config) => {
 });
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Clear mock session just in case
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const { data: { session }, error: refreshErr } = await supabase.auth.refreshSession();
+        if (session?.access_token && !refreshErr) {
+          originalRequest.headers.Authorization = `Bearer ${session.access_token}`;
+          return api(originalRequest);
+        }
+      } catch (e) {
+        // Refresh failed, continue to fallback
+      }
+
+      // Check if current route is public
+      const normalizedPath = window.location.pathname.replace(/\/+$/, '') || '/';
+      const isPublicRoute = [
+        '/',
+        '/login',
+        '/signup',
+        '/pricing',
+        '/terms',
+        '/privacy',
+        '/refund'
+      ].includes(normalizedPath);
+
       localStorage.removeItem('sb-mock-session');
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/' && window.location.pathname !== '/pricing') {
+
+      // Only redirect if genuinely on an authenticated/protected route
+      if (!isPublicRoute) {
         window.location.href = '/login';
       }
     }

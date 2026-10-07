@@ -8,6 +8,7 @@ interface AdminUser {
   id: string;
   email: string;
   created_at: string;
+  last_sign_in_at?: string;
   totalCredits: number;
   banned_until?: string;
 }
@@ -132,6 +133,7 @@ export function GodMode() {
                   <tr>
                     <th className="px-6 py-3">Email</th>
                     <th className="px-6 py-3">Status</th>
+                    <th className="px-6 py-3">Last Login</th>
                     <th className="px-6 py-3">Used Credits</th>
                     <th className="px-6 py-3">Remaining Credits</th>
                     <th className="px-6 py-3">Actions</th>
@@ -153,6 +155,31 @@ export function GodMode() {
                             <span className="text-red-600 font-bold flex items-center gap-1"><AlertCircle className="w-4 h-4"/> BANNED</span>
                           ) : (
                             <span className="text-green-600 font-medium">Active</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {u.last_sign_in_at ? (
+                            <div>
+                              <div className="font-medium text-slate-900">
+                                {new Date(u.last_sign_in_at).toLocaleString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                              <div className="text-xs text-slate-400">
+                                Joined {new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <span className="text-slate-400 italic">Never</span>
+                              <div className="text-xs text-slate-400">
+                                Joined {new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </div>
+                            </div>
                           )}
                         </td>
                         <td className="px-6 py-4 font-mono text-slate-500">{u.email === SUPERADMIN_EMAIL ? '-' : Math.max(0, 150 - u.totalCredits)}</td>

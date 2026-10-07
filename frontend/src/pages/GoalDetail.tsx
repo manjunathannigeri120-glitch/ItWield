@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { LiveTerminal } from '../components/LiveTerminal';
 
 export function GoalDetail() {
   const { goalId } = useParams<{ goalId: string }>();

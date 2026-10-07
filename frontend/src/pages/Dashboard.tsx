@@ -31,7 +31,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 10000); // 10s poll to keep it light
+    const interval = setInterval(loadData, 60000); // 60s poll to reduce backend load
     return () => clearInterval(interval);
   }, []);
 
@@ -91,14 +91,24 @@ export default function Dashboard() {
     }
   };
 
+  const isSendingRef = useRef(false);
+
   const sendChatMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim() || !workspace) return;
+    const userMsg = chatInput.trim();
+    if (!userMsg || !workspace || isChatting || isSendingRef.current) return;
     
-    const userMsg = chatInput;
-    setChatInput('');
-    setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
+    isSendingRef.current = true;
     setIsChatting(true);
+    setChatInput('');
+    
+    setChatHistory(prev => {
+      const last = prev[prev.length - 1];
+      if (last && last.role === 'user' && last.text === userMsg) {
+        return prev;
+      }
+      return [...prev, { role: 'user', text: userMsg }];
+    });
     
     try {
       // Find the CEO agent to route the message to
@@ -114,9 +124,10 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.error(err);
-      setChatHistory(prev => [...prev, { role: 'ai', text: 'Connection error while contacting AI Company.' }]);
+      setChatHistory(prev => [...prev, { role: 'ai', text: 'Connection error: ' + (err?.response?.data?.message || err?.response?.data?.error || err.message) }]);
     } finally {
       setIsChatting(false);
+      isSendingRef.current = false;
     }
   };
 
@@ -422,9 +433,17 @@ export default function Dashboard() {
                       value={chatInput}
                       onChange={e => setChatInput(e.target.value)}
                       placeholder="E.g. Get me 20 customers..."
-                      className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      disabled={isChatting}
+                      className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
                     />
-                    <Button type="submit" size="sm" className="bg-indigo-600 hover:bg-indigo-700">Send</Button>
+                    <Button 
+                      type="submit" 
+                      size="sm" 
+                      disabled={isChatting || !chatInput.trim()}
+                      className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {isChatting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send"}
+                    </Button>
                   </form>
                 </div>
               </CardContent>
