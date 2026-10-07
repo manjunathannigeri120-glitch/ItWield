@@ -146,7 +146,7 @@ router.post('/', async (req: any, res) => {
 
     res.json({ goal, plan: planResult, requires_context: false });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    res.status(400).json({ error: error.message || 'An error occurred processing your request.' });
   }
 });
 
@@ -181,7 +181,7 @@ router.get('/', async (req: any, res) => {
 
     res.json(updatedGoals);
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    res.status(400).json({ error: error.message || 'An error occurred processing your request.' });
   }
 });
 
@@ -193,7 +193,7 @@ router.get('/what-next', async (req: any, res) => {
     const cooReview = await COOService.executeOperationalReview(req.supabase, workspaceId);
     res.json(cooReview);
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    res.status(400).json({ error: error.message || 'An error occurred processing your request.' });
   }
 });
 
@@ -215,7 +215,7 @@ router.delete('/:goalId', async (req: AuthRequest, res) => {
     if (error) throw error;
     res.json({ success: true });
   } catch (error: any) {
-    res.status(400).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
+    res.status(400).json({ error: error.message || 'An error occurred processing your request.' });
   }
 });
 
