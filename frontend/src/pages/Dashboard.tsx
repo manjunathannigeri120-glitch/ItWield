@@ -122,7 +122,7 @@ export default function Dashboard() {
           setChatHistory(prev => [...prev, { role: 'ai', text: 'CEO agent is currently unavailable to respond.' }]);
         }, 1000);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setChatHistory(prev => [...prev, { role: 'ai', text: 'Connection error: ' + (err?.response?.data?.message || err?.response?.data?.error || err.message) }]);
     } finally {
