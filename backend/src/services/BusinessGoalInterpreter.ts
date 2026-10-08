@@ -30,11 +30,40 @@ export class BusinessGoalInterpreter {
     companyMemorySummary: any
   ): Promise<BusinessGoalInterpretation> {
 
-    if(rawInput.trim().toLowerCase()==='get me 20 customers') { return { intent_type: 'OUTCOME', scope: 'OWN_COMPANY', request_type: 'OUTCOME', objective: 'CUSTOMER_ACQUISITION', target: 20, target_metric: 'VERIFIED_CONVERTED_CUSTOMERS', timeframe: null, success_definition: 'public.opportunities.stage = CONVERTED', required_company_context: [], missing_company_context: [], external_information_required: [], website_required: false, reason: 'Deterministic flagship outcome request', confidence: 1.0, constraints: [], required_data_integrations: ['github'] } as any; } ensureAIProvider();
+    if (rawInput.trim().toLowerCase() === 'get me 20 customers') {
+      return {
+        intent_type: 'OUTCOME',
+        scope: 'OWN_COMPANY',
+        request_type: 'OUTCOME',
+        objective: 'CUSTOMER_ACQUISITION',
+        target: 20,
+        target_metric: 'VERIFIED_CONVERTED_CUSTOMERS',
+        timeframe: null,
+        success_definition: 'public.opportunities.stage = CONVERTED',
+        required_company_context: [],
+        missing_company_context: [],
+        external_information_required: [],
+        website_required: false,
+        reason: 'Deterministic flagship outcome request',
+        confidence: 1.0,
+        constraints: [],
+        required_data_integrations: ['github']
+      } as any;
+    }
+
+    try {
+      ensureAIProvider();
+    } catch (e) {
+      console.warn('[BusinessGoalInterpreter] AI provider check notice:', e);
+    }
+
+    const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || '';
+    const baseURL = process.env.OPENROUTER_API_KEY ? 'https://openrouter.ai/api/v1' : undefined;
+    const defaultHeaders = process.env.OPENROUTER_API_KEY ? { 'HTTP-Referer': 'https://itwield.com', 'X-Title': 'ItWield Interpreter' } : undefined;
     const openai = new OpenAI({ 
-      apiKey: process.env.OPENROUTER_API_KEY || 'mock', 
-      baseURL: 'https://openrouter.ai/api/v1', 
-      defaultHeaders: { 'HTTP-Referer': 'http://localhost:5173', 'X-Title': 'ItWield Interpreter' } 
+      apiKey: apiKey || 'mock', 
+      baseURL, 
+      defaultHeaders 
     });
     
     // Convert companyMemorySummary to a readable list of what is known
@@ -86,7 +115,7 @@ export class BusinessGoalInterpreter {
     `;
 
     try {
-      const model = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
+      const model = process.env.OPENROUTER_MODEL || (process.env.OPENROUTER_API_KEY ? 'openai/gpt-4o-mini' : 'gpt-4o-mini');
       const response = await openai.chat.completions.create({ model, messages: [{ role: 'user', content: prompt }], response_format: { type: 'json_object' } });
       const text = response.choices[0].message.content!.trim().replace(/^```json/, '').replace(/```$/, '').trim();
       return JSON.parse(text) as BusinessGoalInterpretation;

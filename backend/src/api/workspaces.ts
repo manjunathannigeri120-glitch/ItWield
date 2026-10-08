@@ -815,6 +815,38 @@ router.get('/:id/control/approvals/pending', async (req: AuthRequest, res) => {
   }
 });
 
+// Generate a sample live approval gate (e.g. for demonstrating human-in-the-loop oversight)
+router.post('/:id/control/approvals/sample', async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const supabase = req.supabase!;
+    
+    const { data: newApproval, error } = await supabase.from('approvals').insert({
+      workspace_id: id,
+      action: 'EXTERNAL_COMMUNICATION',
+      title: 'Send B2B Cold Outreach: Apex Global Partners',
+      reason: 'AI CMO completed lead scoring and generated personalized outreach. Outbound touchpoint requires human sign-off before dispatch.',
+      requested_by_executive: 'AI CMO',
+      risk_level: 'high',
+      status: 'PENDING_APPROVAL',
+      context: {
+        recipient: 'sarah.connor@apexglobal.io',
+        subject: 'Scaling outbound operations for Apex Global',
+        body: 'Hi Sarah,\n\nI noticed Apex Global is scaling its B2B partnerships this quarter. We put together an automated executive workflow that coordinates research, campaign drafting, and CRM sync.\n\nWould you be open to a 10-minute preview next Wednesday at 2 PM?\n\nBest regards,\nGrowth Team',
+        target_account: 'Apex Global Partners',
+        lead_score: '94/100',
+        channel: 'Cold Email (Primary Domain)'
+      },
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    }).select().single();
+
+    if (error) throw error;
+    res.json({ success: true, approval: newApproval });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
 
 

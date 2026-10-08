@@ -21,7 +21,7 @@ const port = process.env.PORT || 3000;
 // In production, restrict to explicit allowed origin(s).
 // In development, allow localhost:5173 by default.
 const rawOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim().replace(/\/+$/, ''))
     : ['http://localhost:5173', 'http://localhost:3000'];
   
   // Automatically support www. and non-www variants to prevent CORS errors
@@ -34,14 +34,15 @@ const rawOrigins = process.env.ALLOWED_ORIGINS
   app.use(cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.has(origin)) return callback(null, true);
+      const cleanOrigin = origin.replace(/\/+$/, '');
+      if (allowedOrigins.has(cleanOrigin)) return callback(null, true);
       
       // Do not throw a synchronous 500 error for bad CORS! Let it cleanly fail CORS.
       return callback(null, false);
     },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-workspace-id', 'x-request-id']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-workspace-id', 'x-request-id', 'x-device-id']
 }));
 
 // ─── Security Headers ─────────────────────────────────────────────────────────
