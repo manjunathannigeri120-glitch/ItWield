@@ -13,6 +13,9 @@ export function useAuth() {
       const res = await api.get('/workspaces');
       const ws = res.data?.[0] ?? null;
       setCurrentWorkspace(ws);
+      if (ws?.id) {
+        localStorage.setItem('itwield_workspace_id', ws.id);
+      }
     } catch (e) {
       console.error('Failed to load workspace', e);
       setCurrentWorkspace(null);

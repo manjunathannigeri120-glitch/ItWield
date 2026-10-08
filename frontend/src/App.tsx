@@ -46,63 +46,125 @@ const queryClient = new QueryClient();
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   
-  if (loading) return <div className="flex h-screen items-center justify-center">Loading session...</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col h-screen items-center justify-center bg-[#0a0a0f] text-slate-300">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p className="text-sm font-mono text-slate-400">Verifying session...</p>
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/login" replace />;
   
   return <>{children}</>;
 }
 
 function WorkspaceGuard({ children }: { children: React.ReactNode }) {
-  const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState<string | null>(null);
-  
+  // Optimistic bypass: If user already has a cached workspace, enter immediately without blocking!
+  const cachedWsId = localStorage.getItem('itwield_workspace_id');
+  const [status, setStatus] = useState<string | null>(() => (cachedWsId ? 'operating' : null));
+  const [loading, setLoading] = useState<boolean>(() => !cachedWsId);
+  const [retryCount, setRetryCount] = useState(0);
+
   useEffect(() => {
-    api.get('/workspaces')
-      .then(res => {
+    let isMounted = true;
+    let timer: any;
+
+    const checkWorkspace = async (attempt: number = 0) => {
+      try {
+        const res = await api.get('/workspaces');
+        if (!isMounted) return;
+
         if (res.data && res.data.length > 0) {
-          // Look for any workspace that is fully operating
-          const operatingWs = res.data.find((w: any) => w.status === 'operating' || w.status === 'active' || w.status === 'ACTIVE');
+          const operatingWs = res.data.find((w: any) => 
+            w.status === 'operating' || w.status === 'active' || w.status === 'ACTIVE'
+          );
           if (operatingWs) {
+            localStorage.setItem('itwield_workspace_id', operatingWs.id);
             setStatus('operating');
           } else {
-            setStatus('pending');
+            localStorage.setItem('itwield_workspace_id', res.data[0].id);
+            setStatus('operating');
           }
         } else {
-          // No workspaces exist at all
+          localStorage.removeItem('itwield_workspace_id');
           setStatus('pending');
         }
         setLoading(false);
-      })
-      .catch((err) => {
-          console.error('WorkspaceGuard fetch error:', err);
-          if (err.message === 'Network Error' || (err.response && err.response.status >= 500)) {
-            setStatus('error');
-          } else {
-            // Only fallback to onboarding if it's a 4xx error (e.g. 404) or similar
-            setStatus('pending');
-          }
+      } catch (err: any) {
+        if (!isMounted) return;
+
+        // If we already have a cached workspace, never lock out the user on transient errors
+        if (cachedWsId) {
+          setStatus('operating');
           setLoading(false);
-        });
+          return;
+        }
+
+        // 4xx errors (client-side / no workspace) -> onboarding
+        if (err.response && err.response.status >= 400 && err.response.status < 500) {
+          setStatus('pending');
+          setLoading(false);
+          return;
+        }
+
+        // Transient network or server hiccup: auto-retry smoothly
+        if (attempt < 15) {
+          setRetryCount(attempt + 1);
+          timer = setTimeout(() => {
+            checkWorkspace(attempt + 1);
+          }, 1500);
+        } else {
+          setStatus('error');
+          setLoading(false);
+        }
+      }
+    };
+
+    checkWorkspace(0);
+
+    return () => {
+      isMounted = false;
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
-  if (loading) return <div className="flex h-screen items-center justify-center">Loading workspace...</div>;
-    if (status === 'error') {
-      return (
-        <div className="flex flex-col h-screen items-center justify-center bg-slate-50 text-slate-600">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-          <h2 className="text-xl font-semibold text-slate-800 mb-2">Connecting to Server</h2>
-          <p className="max-w-md text-center">
-            Our systems are currently waking up or experiencing high load. Please wait a moment.
+  if (loading) {
+    return (
+      <div className="flex flex-col h-screen items-center justify-center bg-[#0a0a0f] text-slate-100">
+        <div className="w-12 h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/10">
+          <div className="w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <h2 className="text-lg font-semibold text-white mb-1">Loading ItWield...</h2>
+        <p className="text-sm text-slate-400 font-mono">
+          {retryCount > 0 ? `Synchronizing workspace (attempt ${retryCount}/15)...` : 'Connecting to your AI company workspace'}
+        </p>
+      </div>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="flex flex-col h-screen items-center justify-center bg-[#0a0a0f] text-slate-200">
+        <div className="p-8 max-w-md w-full bg-slate-900/80 border border-slate-800 rounded-2xl shadow-2xl text-center backdrop-blur-sm">
+          <div className="w-12 h-12 mx-auto rounded-full bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center mb-4 text-indigo-400">
+            <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Connecting to Command Center</h2>
+          <p className="text-sm text-slate-400 mb-6">
+            Establishing secure connection to your workspace. Auto-reconnecting in the background...
           </p>
           <button 
             onClick={() => window.location.reload()} 
-            className="mt-6 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+            className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20"
           >
-            Retry Connection
+            Reconnect Now
           </button>
         </div>
-      );
-    }
+      </div>
+    );
+  }
+
   if (status === 'pending') return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
 }

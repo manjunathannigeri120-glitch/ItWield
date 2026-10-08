@@ -48,6 +48,7 @@ export default function Dashboard() {
         return;
       }
       setWorkspace(ws);
+      localStorage.setItem('itwield_workspace_id', ws.id);
 
       const [goalsRes, ccRes, opStateRes, nextActionRes, agentsRes] = await Promise.all([
         api.get(`/workspaces/${ws.id}/goals`).catch(() => ({ data: [] })),

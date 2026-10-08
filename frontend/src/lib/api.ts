@@ -9,6 +9,7 @@ if (API_URL && !API_URL.endsWith('/api/v1')) {
 
 export const api = axios.create({
   baseURL: API_URL,
+  timeout: 45000,
 });
 
 api.interceptors.request.use(async (config) => {
@@ -37,7 +38,21 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    if (!originalRequest) return Promise.reject(error);
+
+    // Automatic retry for GET requests on transient network issues, 502, 503, 504, or timeouts
+    const isGet = (originalRequest.method || 'get').toLowerCase() === 'get';
+    const isTransient = !error.response || (error.response.status >= 502 && error.response.status <= 504) || error.code === 'ECONNABORTED';
+    if (isGet && isTransient) {
+      originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
+      if (originalRequest._retryCount <= 3) {
+        const backoffMs = originalRequest._retryCount * 1200;
+        await new Promise((resolve) => setTimeout(resolve, backoffMs));
+        return api(originalRequest);
+      }
+    }
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const { data: { session }, error: refreshErr } = await supabase.auth.refreshSession();
