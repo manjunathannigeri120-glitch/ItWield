@@ -15,6 +15,8 @@ export interface AgentConfig {
   system_prompt: string;
   model: string;
   temperature: number;
+  name?: string;
+  role?: string;
 }
 
 import { ProviderFactory } from '../ai/providerFactory';
@@ -195,6 +197,13 @@ ${agent.system_prompt || ''}
           .eq('agent_id', agent.id);
         if (dbTools) {
           authorizedToolNames = dbTools.map((t: any) => t.tool_name);
+        }
+      }
+
+      // CEO always has mission creation capability enabled
+      if (agent.role === 'CEO' || agent.name?.includes('CEO')) {
+        if (!authorizedToolNames.includes('CREATE_BUSINESS_MISSION')) {
+          authorizedToolNames.push('CREATE_BUSINESS_MISSION');
         }
       }
 

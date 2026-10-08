@@ -2,15 +2,20 @@ import { Tool } from './Tool';
 import { WebSearchTool } from './webSearch';
 import { KnowledgeSearchTool } from './knowledgeSearch';
 import { HttpRequestTool } from './httpRequest';
+import { CreateBusinessMissionTool } from './createBusinessMission';
+
+const missionTool = new CreateBusinessMissionTool();
 
 const tools: Record<string, Tool> = {
   web_search: new WebSearchTool(),
   knowledge_search: new KnowledgeSearchTool(),
-  http_request: new HttpRequestTool()
+  http_request: new HttpRequestTool(),
+  create_business_mission: missionTool,
+  CREATE_BUSINESS_MISSION: missionTool
 };
 
 export function getTool(name: string): Tool | undefined {
-  return tools[name];
+  return tools[name] || tools[name.toLowerCase()] || tools[name.toUpperCase()];
 }
 
 export function getAllTools(): Tool[] {

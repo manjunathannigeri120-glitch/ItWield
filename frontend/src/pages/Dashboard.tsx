@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Activity, AlertCircle, Play, PlayCircle, Pause, Square, MessageSquare, Target, Zap, Shield, Briefcase } from 'lucide-react';
+import { LiveTerminal } from '@/components/LiveTerminal';
 
 
 export default function Dashboard() {
@@ -117,6 +118,7 @@ export default function Dashboard() {
       if (ceo) {
         const res = await api.post(`/agents/${ceo.id}/chat`, { message: userMsg, conversationId: 'dashboard-main' });
         setChatHistory(prev => [...prev, { role: 'ai', text: res.data.response || res.data.reply || "No response received." }]);
+        setTimeout(() => loadData(), 1200);
       } else {
         // Fallback if CEO not found
         setTimeout(() => {
@@ -300,6 +302,24 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* LIVE AGENT TERMINAL — THEATER OF AI */}
+      {workspace?.id && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-indigo-600 animate-pulse" /> Live Autonomous Operations
+              </h2>
+              <p className="text-sm text-slate-500">Real-time execution log of your AI CEO, CMO, and CTO operating in the background.</p>
+            </div>
+            <span className="flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Live Stream
+            </span>
+          </div>
+          <LiveTerminal workspaceId={workspace.id} />
+        </div>
+      )}
 
       {/* 3. WHAT SHOULD MY COMPANY DO NEXT? */}
       <Card className="border-indigo-100 shadow-sm bg-indigo-50/30 overflow-hidden">
