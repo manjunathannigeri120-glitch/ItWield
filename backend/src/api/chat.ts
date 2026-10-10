@@ -19,8 +19,8 @@ router.post('/', async (req: any, res) => {
         // Use BusinessGoalInterpreter to understand the user's chat message
         
         // --- CREDIT ENFORCEMENT BOUNDARY ---
-        // Atomically deduct 1 AI credit before calling any external LLM provider
-        const creditCheck = await CreditService.deductCredits(db, workspaceId, 1);
+        // Atomically deduct 2 AI credits for commands / company goals
+        const creditCheck = await CreditService.deductCredits(db, workspaceId, 2);
         
         if (!creditCheck.allowed) {
             return res.status(402).json({

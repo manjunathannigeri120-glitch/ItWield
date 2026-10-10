@@ -19,7 +19,8 @@ router.post('/', async (req: any, res) => {
     const workspaceId = req.params.workspaceId as string;
 
     // --- CREDIT ENFORCEMENT BOUNDARY ---
-    const creditCheck = await CreditService.deductCredits(req.supabase, workspaceId, 1);
+    // Atomically deduct 2 AI credits for setting/interpreting a company goal
+    const creditCheck = await CreditService.deductCredits(req.supabase, workspaceId, 2);
     if (!creditCheck.allowed) {
       return res.status(402).json({
         error: 'INSUFFICIENT_CREDITS',
