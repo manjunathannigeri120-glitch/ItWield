@@ -7,6 +7,7 @@ import https from 'https';
 const lookupAsync = promisify(dns.lookup);
 
 export async function isPrivateIP(ip: string): Promise<boolean> {
+    if (!ip || typeof ip !== 'string') return false;
     if (ip === '::1') return true;
     if (ip.startsWith('fc00:') || ip.startsWith('fd')) return true; // Unique local
     if (ip.startsWith('fe80:')) return true; // Link local

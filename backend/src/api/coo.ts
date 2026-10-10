@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { AICOOService } from '../services/AICOOService';
+import { CreditService } from '../services/CreditService';
 
 const router = Router({ mergeParams: true });
 
@@ -47,8 +48,18 @@ router.post('/company/operate', async (req: any, res: any) => {
   const { workspaceId } = req.params;
   const supabase = req.supabase;
   try {
+    // --- CREDIT ENFORCEMENT BOUNDARY ---
+    const creditCheck = await CreditService.deductCredits(supabase, workspaceId, 1);
+    if (!creditCheck.allowed) {
+      return res.status(402).json({
+        error: 'INSUFFICIENT_CREDITS',
+        message: 'Insufficient AI credits. Please upgrade your plan to operate the company.'
+      });
+    }
+    // -----------------------------------
+
     const result = await AICOOService.operateCompany(supabase, workspaceId);
-    res.json(result);
+    res.json({ ...result, credits: creditCheck.remaining });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

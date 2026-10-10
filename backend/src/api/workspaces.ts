@@ -33,21 +33,24 @@ router.get('/', async (req: AuthRequest, res) => {
 
     // Strict 150-credit limit enforcement: Every user gets strictly max 150 credits total, 0 for extra workspaces
     if (data && data.length > 0 && req.user?.id) {
-      const serviceClient = getServiceSupabase();
-      const owned = [...data].filter(w => w.owner_id === req.user?.id).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-      for (let i = 0; i < owned.length; i++) {
-        const ws = owned[i];
-        if (i === 0) {
-          // Primary workspace: strictly capped at 150 free credits
-          if (ws.credits > 150) {
-            ws.credits = 150;
-            if (serviceClient) await serviceClient.from('workspaces').update({ credits: 150 }).eq('id', ws.id);
-          }
-        } else {
-          // Any additional workspace: strictly 0 free credits
-          if (ws.credits > 0 && (ws.plan_id === 'SOLO_BUILDER' || !ws.plan_id)) {
-            ws.credits = 0;
-            if (serviceClient) await serviceClient.from('workspaces').update({ credits: 0 }).eq('id', ws.id);
+      const isSuperAdmin = req.user?.email === 'manjunathannigeri120@gmail.com';
+      if (!isSuperAdmin) {
+        const serviceClient = getServiceSupabase();
+        const owned = [...data].filter(w => w.owner_id === req.user?.id).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        for (let i = 0; i < owned.length; i++) {
+          const ws = owned[i];
+          if (i === 0) {
+            // Primary workspace: strictly capped at 150 free credits
+            if (ws.credits > 150 && (ws.plan_id === 'SOLO_BUILDER' || !ws.plan_id)) {
+              ws.credits = 150;
+              if (serviceClient) await serviceClient.from('workspaces').update({ credits: 150 }).eq('id', ws.id);
+            }
+          } else {
+            // Any additional workspace: strictly 0 free credits
+            if (ws.credits > 0 && (ws.plan_id === 'SOLO_BUILDER' || !ws.plan_id)) {
+              ws.credits = 0;
+              if (serviceClient) await serviceClient.from('workspaces').update({ credits: 0 }).eq('id', ws.id);
+            }
           }
         }
       }

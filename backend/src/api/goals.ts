@@ -6,6 +6,7 @@ import { COOService } from '../services/COOService';
 import { BusinessDataRegistry } from '../services/BusinessDataRegistry';
 import { OutcomeVerificationService } from '../services/OutcomeVerificationService';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { CreditService } from '../services/CreditService';
 import OpenAI from 'openai';
 
 const router = Router({ mergeParams: true });
@@ -16,6 +17,16 @@ router.post('/', async (req: any, res) => {
     if (!req.supabase) return res.status(500).json({ error: 'DB required' });
     const { input, context_answers } = req.body;
     const workspaceId = req.params.workspaceId as string;
+
+    // --- CREDIT ENFORCEMENT BOUNDARY ---
+    const creditCheck = await CreditService.deductCredits(req.supabase, workspaceId, 1);
+    if (!creditCheck.allowed) {
+      return res.status(402).json({
+        error: 'INSUFFICIENT_CREDITS',
+        message: 'Insufficient AI credits. Please upgrade your plan to set business outcomes.'
+      });
+    }
+    // -----------------------------------
 
     // Fetch existing company memory
     const { data: mems } = await req.supabase

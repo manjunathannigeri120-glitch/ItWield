@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { CEOService } from '../services/CEOService';
+import { CreditService } from '../services/CreditService';
 
 const router = Router();
 router.use(requireAuth);
@@ -26,10 +27,20 @@ router.post('/run', async (req: AuthRequest, res) => {
       return res.status(403).json({ error: 'Access denied to workspace' });
     }
 
+    // --- CREDIT ENFORCEMENT BOUNDARY ---
+    const creditCheck = await CreditService.deductCredits(req.supabase, workspace_id, 1);
+    if (!creditCheck.allowed) {
+      return res.status(402).json({
+        error: 'INSUFFICIENT_CREDITS',
+        message: 'Insufficient AI credits. Please upgrade your plan to run the AI CEO.'
+      });
+    }
+    // -----------------------------------
+
     // Pass execution to CEOService
     const result = await CEOService.run(req.supabase, workspace_id, objective, req.user.id);
     
-    res.json(result);
+    res.json({ ...result, credits: creditCheck.remaining });
   } catch (error: any) {
     console.error('[CEO API Error]', error);
     res.status(500).json({ error: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred processing your request.' });
