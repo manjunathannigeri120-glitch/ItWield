@@ -6,6 +6,9 @@ import { SubscriptionService } from '../services/SubscriptionService';
 import { UsageService } from '../services/UsageService';
 import { EntitlementService } from '../services/EntitlementService';
 import { getServiceSupabase } from '../db/supabaseClient';
+import { WebsiteEnrichmentService } from '../services/WebsiteEnrichmentService';
+import { validateTextMeaning } from '../utils/gibberishValidator';
+import { CompanyMemoryService } from '../services/CompanyMemoryService';
 
 const router = Router();
 router.use(requireAuth);
@@ -27,6 +30,29 @@ router.get('/', async (req: AuthRequest, res) => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
+
+    // Strict 150-credit limit enforcement: Every user gets strictly max 150 credits total, 0 for extra workspaces
+    if (data && data.length > 0 && req.user?.id) {
+      const serviceClient = getServiceSupabase();
+      const owned = [...data].filter(w => w.owner_id === req.user?.id).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      for (let i = 0; i < owned.length; i++) {
+        const ws = owned[i];
+        if (i === 0) {
+          // Primary workspace: strictly capped at 150 free credits
+          if (ws.credits > 150) {
+            ws.credits = 150;
+            if (serviceClient) await serviceClient.from('workspaces').update({ credits: 150 }).eq('id', ws.id);
+          }
+        } else {
+          // Any additional workspace: strictly 0 free credits
+          if (ws.credits > 0 && (ws.plan_id === 'SOLO_BUILDER' || !ws.plan_id)) {
+            ws.credits = 0;
+            if (serviceClient) await serviceClient.from('workspaces').update({ credits: 0 }).eq('id', ws.id);
+          }
+        }
+      }
+    }
+
     res.json(data);
   } catch (error: any) {
     console.error('API 400 ERROR:', error); res.status(400).json({ error: 'Setup Error: ' + (error.message || error.toString()) });
@@ -142,11 +168,34 @@ router.post('/', async (req: AuthRequest, res) => {
   }
 });
 
+// Auto-Enrichment from Website URL (like SaaSHub)
+router.post('/enrich-url', async (req: AuthRequest, res) => {
+  try {
+    const { url } = req.body;
+    if (!url || typeof url !== 'string' || url.trim().length === 0) {
+      return res.status(400).json({ error: 'Please enter a valid website URL.' });
+    }
+
+    const enrichedData = await WebsiteEnrichmentService.enrichFromUrl(url);
+
+    return res.json({
+      success: true,
+      data: enrichedData
+    });
+  } catch (error: any) {
+    console.error('Enrich URL Error:', error.message);
+    return res.status(400).json({
+      success: false,
+      error: error.message || 'Failed to inspect website. Please check the URL or enter details manually.'
+    });
+  }
+});
+
 // V2 Onboarding: Analyze Company
 router.post('/:id/analyze-company', async (req: AuthRequest, res) => {
   try {
     if (!req.supabase) return res.status(400).json({ error: 'DB required' });
-    const workspaceId = req.params.id;
+    const workspaceId = String(req.params.id);
     
     // Save the context
     const { 
@@ -155,6 +204,24 @@ router.post('/:id/analyze-company', async (req: AuthRequest, res) => {
       goals, secondary_goals, biggest_problems,
       ai_preferences 
     } = req.body;
+
+    // Strict Anti-Gibberish & Input Quality Validation
+    if (name) {
+      const nameVal = validateTextMeaning(name, { minChars: 2, minWords: 1, fieldName: 'Company Name' });
+      if (!nameVal.isValid) return res.status(400).json({ error: nameVal.reason });
+    }
+    if (short_description) {
+      const descVal = validateTextMeaning(short_description, { minChars: 10, minWords: 2, fieldName: 'Company Description' });
+      if (!descVal.isValid) return res.status(400).json({ error: descVal.reason });
+    }
+    if (target_customer) {
+      const custVal = validateTextMeaning(target_customer, { minChars: 3, minWords: 1, fieldName: 'Target Customer' });
+      if (!custVal.isValid) return res.status(400).json({ error: custVal.reason });
+    }
+    if (biggest_problems) {
+      const probVal = validateTextMeaning(biggest_problems, { minChars: 5, minWords: 1, fieldName: 'Business Problems' });
+      if (!probVal.isValid) return res.status(400).json({ error: probVal.reason });
+    }
 
     // Fetch existing to merge operational_context safely
     const { data: existingWs } = await req.supabase
@@ -198,9 +265,9 @@ router.post('/:id/analyze-company', async (req: AuthRequest, res) => {
     if (updateErr) throw updateErr;
 
     if (goals && goals.trim().length > 0) {
-      const { CompanyMemoryService } = require('../services/CompanyMemoryService');
       await CompanyMemoryService.createMemory({
         workspaceId,
+        category: 'GOAL',
         memoryType: 'GOAL',
         title: 'Primary Company Goal',
         content: goals,
@@ -851,7 +918,6 @@ export default router;
 
 
 import { AuthorizationRegistry } from '../services/AuthorizationRegistry';
-import { CompanyMemoryService } from '../services/CompanyMemoryService';
 import { ContinuousImprovementService } from '../services/ContinuousImprovementService';
 import { CreditService } from '../services/CreditService';
 
